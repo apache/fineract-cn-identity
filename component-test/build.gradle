@@ -1,0 +1,32 @@
+buildscript {
+    ext {
+        springBootVersion = '1.4.1.RELEASE'
+    }
+
+    repositories {
+        jcenter()
+    }
+
+    dependencies {
+        classpath ("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+plugins {
+    id 'com.github.hierynomus.license' version '0.13.1'
+}
+
+apply from: '../shared.gradle'
+
+dependencies {
+    compile(
+            [group: 'io.mifos.identity', name: 'api', version: rootProject.version],
+            [group: 'io.mifos.identity', name: 'service', version: rootProject.version],
+            [group: 'org.springframework.boot', name: 'spring-boot-starter-test'],
+            [group: 'io.mifos.core', name: 'lang', version: versions.frameworklang],
+            [group: 'io.mifos.core', name: 'api', version: versions.frameworkapi],
+            [group: 'io.mifos.core', name: 'test', version: versions.frameworktest],
+            [group: 'io.mifos.anubis', name: 'api', version: versions.frameworkanubis],
+            [group: 'io.mifos.anubis', name: 'test', version: versions.frameworkanubis]
+    )
+}

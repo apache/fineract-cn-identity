@@ -1,0 +1,6 @@
+rootProject.name = 'identity'
+
+includeBuild 'api'
+includeBuild 'service'
+includeBuild 'component-test'
+
