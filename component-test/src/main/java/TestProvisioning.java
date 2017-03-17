@@ -108,8 +108,8 @@ public class TestProvisioning {
       }
 
 
-      final String wrongSeshatToken = seshatTokenFromWrongKey();
-      try (final AutoSeshat ignored2 = new AutoSeshat(wrongSeshatToken)){
+      final String wrongSystemToken = systemTokenFromWrongKey();
+      try (final AutoSeshat ignored2 = new AutoSeshat(wrongSystemToken)){
 
         testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
         Assert.fail("The key was signed by the wrong source.  This should've failed.");
@@ -173,7 +173,7 @@ public class TestProvisioning {
     return apiFactory.create(IdentityService.class, testEnvironment.serverURI());
   }
 
-  private String seshatTokenFromWrongKey()
+  private String systemTokenFromWrongKey()
   {
     final SystemAccessTokenSerializer.Specification tokenSpecification
         = new SystemAccessTokenSerializer.Specification();

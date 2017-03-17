@@ -41,10 +41,13 @@ public class UserWithPasswordTest {
     ret.add(new ValidationTestCase<UserWithPassword>("tooShortPassword")
             .adjustment(x -> x.setPassword("1234567"))
             .valid(false));
-    ret.add(new ValidationTestCase<UserWithPassword>("tooShortPassword")
+    ret.add(new ValidationTestCase<UserWithPassword>("illegalUserIdentifierSeshat")
             .adjustment(x -> x.setIdentifier("seshat"))
             .valid(false));
-    ret.add(new ValidationTestCase<UserWithPassword>("tooShortPassword")
+    ret.add(new ValidationTestCase<UserWithPassword>("illegalUserIdentifierSystem")
+            .adjustment(x -> x.setIdentifier("system"))
+            .valid(false));
+    ret.add(new ValidationTestCase<UserWithPassword>("illegalUserIdentifierSU")
             .adjustment(x -> x.setIdentifier(ApiConstants.SYSTEM_SU))
             .valid(false));
 

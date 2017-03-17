@@ -25,7 +25,7 @@ import java.util.Objects;
  * @author Myrle Krantz
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-@ScriptAssert(lang = "javascript", script = "_this.identifier !== \"guest\" && _this.identifier !== \"seshat\" && _this.identifier !== \"wepemnefret\"" )
+@ScriptAssert(lang = "javascript", script = "_this.identifier !== \"guest\" && _this.identifier !== \"seshat\" && _this.identifier !== \"system\" && _this.identifier !== \"wepemnefret\"" )
 public class User {
   @NotBlank
   @Length(min = 4, max = 32)
