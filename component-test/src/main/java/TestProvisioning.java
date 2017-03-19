@@ -27,7 +27,7 @@ import io.mifos.core.lang.TenantContextHolder;
 import io.mifos.core.test.env.TestEnvironment;
 import io.mifos.core.test.fixture.TenantDataStoreTestContext;
 import io.mifos.core.test.fixture.cassandra.CassandraInitializer;
-import io.mifos.identity.api.v1.client.IdentityService;
+import io.mifos.identity.api.v1.client.IdentityManager;
 import io.mifos.identity.api.v1.client.TenantAlreadyInitializedException;
 import io.mifos.identity.config.IdentityServiceConfig;
 import org.junit.Assert;
@@ -92,7 +92,7 @@ public class TestProvisioning {
 
   @Test
   public void testBoundaryInitializeCases() throws InterruptedException {
-    final IdentityService testSubject = getTestSubject();
+    final IdentityManager testSubject = getTestSubject();
 
 
     Signature firstTenantSignature = null;
@@ -169,8 +169,8 @@ public class TestProvisioning {
   }
 
 
-  private IdentityService getTestSubject() {
-    return apiFactory.create(IdentityService.class, testEnvironment.serverURI());
+  private IdentityManager getTestSubject() {
+    return apiFactory.create(IdentityManager.class, testEnvironment.serverURI());
   }
 
   private String systemTokenFromWrongKey()

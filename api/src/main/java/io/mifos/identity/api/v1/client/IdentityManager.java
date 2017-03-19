@@ -32,7 +32,7 @@ import java.util.Set;
  */
 @SuppressWarnings("unused")
 @FeignClient(name="identity-v1", path="/identity/v1", configuration=CustomFeignClientsConfiguration.class)
-public interface IdentityService {
+public interface IdentityManager {
   @RequestMapping(value = "/token?grant_type=password", method = RequestMethod.POST,
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       produces = {MediaType.ALL_VALUE})

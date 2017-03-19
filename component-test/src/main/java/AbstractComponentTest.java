@@ -24,7 +24,7 @@ import io.mifos.core.test.fixture.cassandra.CassandraInitializer;
 import io.mifos.core.test.listener.EnableEventRecording;
 import io.mifos.core.test.listener.EventRecorder;
 import io.mifos.identity.api.v1.EventConstants;
-import io.mifos.identity.api.v1.client.IdentityService;
+import io.mifos.identity.api.v1.client.IdentityManager;
 import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.api.v1.domain.Password;
 import io.mifos.identity.api.v1.domain.UserWithPassword;
@@ -82,7 +82,7 @@ public class AbstractComponentTest {
           .around(cassandraInitializer)
           .around(tenantDataStoreContext);
 
-  //Not using this as a rule because initialize in identityService is different.
+  //Not using this as a rule because initialize in identityManager is different.
   static final TenantApplicationSecurityEnvironmentTestRule tenantApplicationSecurityEnvironment = new TenantApplicationSecurityEnvironmentTestRule(testEnvironment);
 
   @Autowired
@@ -93,16 +93,16 @@ public class AbstractComponentTest {
   EventRecorder eventRecorder;
 
 
-  private IdentityService identityService;
+  private IdentityManager identityManager;
 
   @PostConstruct
   public void provision() throws Exception {
-    identityService =  apiFactory.create(IdentityService.class, testEnvironment.serverURI());
+    identityManager =  apiFactory.create(IdentityManager.class, testEnvironment.serverURI());
 
     if (!alreadyInitialized) {
       try (final AutoUserContext ignored
                    = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-        identityService.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        identityManager.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
       }
       alreadyInitialized = true;
     }
@@ -114,9 +114,9 @@ public class AbstractComponentTest {
     eventRecorder.clear();
   }
 
-  IdentityService getTestSubject()
+  IdentityManager getTestSubject()
   {
-    return identityService;
+    return identityManager;
   }
 
   AutoUserContext enableAndLoginAdmin() throws InterruptedException {
@@ -158,7 +158,7 @@ public class AbstractComponentTest {
   }
 
   /**
-   * In identityService, the user is created with an expired password.  The user must change the password him- or herself
+   * In identityManager, the user is created with an expired password.  The user must change the password him- or herself
    * to access any other endpoint.
    */
   String createUserWithNonexpiredPassword(final String password, final String role) throws InterruptedException {
