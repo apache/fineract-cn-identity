@@ -16,7 +16,7 @@
 
 import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.InvalidTokenException;
-import io.mifos.core.lang.DateConverter;
+import io.mifos.core.test.domain.TimeStampChecker;
 import io.mifos.core.test.fixture.TenantDataStoreTestContext;
 import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.api.v1.domain.Password;
@@ -24,9 +24,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -94,30 +92,20 @@ public class TestRefreshToken extends AbstractComponentTest {
     final Authentication authentication =
             getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
 
-    final LocalDateTime now = LocalDateTime.now(ZoneId.of("UTC"));
+    final TimeStampChecker preRefreshAccessTokenTimeStampChecker = TimeStampChecker.inTheFuture(Duration.ofSeconds(ACCESS_TOKEN_TIME_TO_LIVE));
+    final TimeStampChecker refreshTokenTimeStampChecker = TimeStampChecker.inTheFuture(Duration.ofSeconds(REFRESH_TOKEN_TIME_TO_LIVE));
 
     Assert.assertNotNull(authentication);
 
-    checkExpiration(authentication.getAccessTokenExpiration(), now, ACCESS_TOKEN_TIME_TO_LIVE);
-    checkExpiration(authentication.getRefreshTokenExpiration(), now, REFRESH_TOKEN_TIME_TO_LIVE);
+    preRefreshAccessTokenTimeStampChecker.assertCorrect(authentication.getAccessTokenExpiration());
+    refreshTokenTimeStampChecker.assertCorrect(authentication.getRefreshTokenExpiration());
 
     TimeUnit.SECONDS.sleep(3);
-    final LocalDateTime now2 = LocalDateTime.now(ZoneId.of("UTC"));
+    final TimeStampChecker postRefreshAccessTokenTimeStampChecker = TimeStampChecker.inTheFuture(Duration.ofSeconds(ACCESS_TOKEN_TIME_TO_LIVE));
 
     final Authentication refreshedAuthentication = getTestSubject().refresh();
 
-    checkExpiration(refreshedAuthentication.getAccessTokenExpiration(), now2, ACCESS_TOKEN_TIME_TO_LIVE);
-    checkExpiration(refreshedAuthentication.getRefreshTokenExpiration(), now, REFRESH_TOKEN_TIME_TO_LIVE);
-  }
-
-  private void checkExpiration(final String expirationString, final LocalDateTime now, final int timeToLive) {
-    final LocalDateTime expectedExpiration = now.plusSeconds(timeToLive);
-    final LocalDateTime parsedExpiration = DateConverter.fromIsoString(expirationString);
-
-    final long deltaFromExpected = Math.abs(parsedExpiration.until(expectedExpiration, ChronoUnit.SECONDS));
-
-    Assert.assertTrue("Delta from expected should have been less than 2 seconds, but was " + deltaFromExpected +
-            ". Expiration string was " + expirationString + ".",
-            deltaFromExpected <= 2);
+    postRefreshAccessTokenTimeStampChecker.assertCorrect(refreshedAuthentication.getAccessTokenExpiration());
+    refreshTokenTimeStampChecker.assertCorrect(refreshedAuthentication.getRefreshTokenExpiration());
   }
 }
