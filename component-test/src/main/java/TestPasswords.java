@@ -15,6 +15,7 @@
  */
 import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.NotFoundException;
+import io.mifos.core.test.domain.DateStampChecker;
 import io.mifos.identity.api.v1.EventConstants;
 import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.api.v1.domain.Password;
@@ -120,7 +121,11 @@ public class TestPasswords extends AbstractComponentTest {
       }
 
       Thread.sleep(100);
-      getTestSubject().login(username, Helpers.encodePassword(newPassword));
+
+      final DateStampChecker passwordExpirationChecker = DateStampChecker.inTheFuture(93);
+      final Authentication userAuthenticationAfterPasswordChange = getTestSubject().login(username, Helpers.encodePassword(newPassword));
+      final String passwordExpiration = userAuthenticationAfterPasswordChange.getPasswordExpiration();
+      passwordExpirationChecker.assertCorrect(passwordExpiration);
 
       //noinspection EmptyCatchBlock
       try {

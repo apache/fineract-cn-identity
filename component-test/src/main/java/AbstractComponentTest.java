@@ -29,7 +29,9 @@ import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.api.v1.domain.Password;
 import io.mifos.identity.api.v1.domain.UserWithPassword;
 import io.mifos.identity.config.IdentityServiceConfig;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.ClassRule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
@@ -50,7 +52,7 @@ import javax.annotation.PostConstruct;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         classes = {AbstractComponentTest.TestConfiguration.class})
-@TestPropertySource(properties = {"cassandra.cl.read = LOCAL_QUORUM", "cassandra.cl.write = LOCAL_QUORUM", "cassandra.cl.delete = LOCAL_QUORUM", "identity.token.refresh.secureCookie = false"})
+@TestPropertySource(properties = {"cassandra.cl.read = LOCAL_QUORUM", "cassandra.cl.write = LOCAL_QUORUM", "cassandra.cl.delete = LOCAL_QUORUM", "identity.token.refresh.secureCookie = false", "identity.passwordExpiresInDays = 93"})
 public class AbstractComponentTest {
   private static final String APP_NAME = "identity-v1";
   @Configuration
