@@ -24,25 +24,16 @@ import java.math.BigInteger;
 /**
  * @author Myrle Krantz
  */
-@SuppressWarnings("unused")
 @Table(name = Signatures.TABLE_NAME)
-public class SignatureEntity {
+public class PrivateSignatureEntity {
   @PartitionKey
   @Column(name = Signatures.KEY_TIMESTAMP_COLUMN)
   private String keyTimestamp;
 
-  @Column(name = Signatures.PUBLIC_KEY_MOD_COLUMN)
-  private BigInteger publicKeyMod;
-  @Column(name = Signatures.PUBLIC_KEY_EXP_COLUMN)
-  private BigInteger publicKeyExp;
-
-  public SignatureEntity() { }
-
-  public SignatureEntity(final String keyTimestamp, final BigInteger publicKeyMod, final BigInteger publicKeyExp) {
-    this.keyTimestamp = keyTimestamp;
-    this.publicKeyMod = publicKeyMod;
-    this.publicKeyExp = publicKeyExp;
-  }
+  @Column(name = Signatures.PRIVATE_KEY_MOD_COLUMN)
+  private BigInteger privateKeyMod;
+  @Column(name = Signatures.PRIVATE_KEY_EXP_COLUMN)
+  private BigInteger privateKeyExp;
 
   public String getKeyTimestamp() {
     return keyTimestamp;
@@ -52,19 +43,19 @@ public class SignatureEntity {
     this.keyTimestamp = keyTimestamp;
   }
 
-  public BigInteger getPublicKeyMod() {
-    return publicKeyMod;
+  public BigInteger getPrivateKeyMod() {
+    return privateKeyMod;
   }
 
-  public void setPublicKeyMod(BigInteger publicKeyMod) {
-    this.publicKeyMod = publicKeyMod;
+  public void setPrivateKeyMod(BigInteger privateKeyMod) {
+    this.privateKeyMod = privateKeyMod;
   }
 
-  public BigInteger getPublicKeyExp() {
-    return publicKeyExp;
+  public BigInteger getPrivateKeyExp() {
+    return privateKeyExp;
   }
 
-  public void setPublicKeyExp(BigInteger publicKeyExp) {
-    this.publicKeyExp = publicKeyExp;
+  public void setPrivateKeyExp(BigInteger privateKeyExp) {
+    this.privateKeyExp = privateKeyExp;
   }
 }

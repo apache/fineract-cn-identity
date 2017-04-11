@@ -62,6 +62,7 @@ public class AuthenticationCommandHandler {
   private final Users users;
   private final Roles roles;
   private final PermittableGroups permittableGroups;
+  private final Signatures signatures;
   private final Tenants tenants;
   private final HashGenerator hashGenerator;
   private final TenantAccessTokenSerializer tenantAccessTokenSerializer;
@@ -83,7 +84,9 @@ public class AuthenticationCommandHandler {
   public AuthenticationCommandHandler(final Users users,
                                       final Roles roles,
                                       final PermittableGroups permittableGroups,
-                                      final Tenants tenants, final HashGenerator hashGenerator,
+                                      final Signatures signatures,
+                                      final Tenants tenants,
+                                      final HashGenerator hashGenerator,
                                       @SuppressWarnings("SpringJavaAutowiringInspection")
                                       final TenantAccessTokenSerializer tenantAccessTokenSerializer,
                                       final TenantRefreshTokenSerializer tenantRefreshTokenSerializer,
@@ -94,6 +97,7 @@ public class AuthenticationCommandHandler {
     this.users = users;
     this.roles = roles;
     this.permittableGroups = permittableGroups;
+    this.signatures = signatures;
     this.tenants = tenants;
     this.hashGenerator = hashGenerator;
     this.tenantAccessTokenSerializer = tenantAccessTokenSerializer;
@@ -109,13 +113,10 @@ public class AuthenticationCommandHandler {
       throws AmitAuthenticationException
   {
 
-    final Optional<PrivateTenantInfoEntity> privateTenantInfo = tenants.getPrivateTenantInfo();
-    if (!privateTenantInfo.isPresent()) {
-      logger.error("Authentication attempted on uninitialized tenant {}.", TenantContextHolder.identifier());
-      throw ServiceException.internalError("Tenant is not initialized.");
-    }
+    final PrivateTenantInfoEntity privateTenantInfo = checkedGetPrivateTenantInfo();
+    final PrivateSignatureEntity privateSignature = checkedGetPrivateSignature();
 
-    byte[] fixedSalt = privateTenantInfo.get().getFixedSalt().array();
+    byte[] fixedSalt = privateTenantInfo.getFixedSalt().array();
     final UserEntity user = getUser(command.getUseridentifier());
 
     if (!this.hashGenerator.isEqual(
@@ -133,10 +134,10 @@ public class AuthenticationCommandHandler {
 
     final TokenSerializationResult accessToken = getAccessToken(
             user.getIdentifier(),
-            getTokenPermissions(user, passwordExpiration, privateTenantInfo.get().getTimeToChangePasswordAfterExpirationInDays()),
-            privateTenantInfo.get());
+            getTokenPermissions(user, passwordExpiration, privateTenantInfo.getTimeToChangePasswordAfterExpirationInDays()),
+            privateSignature);
 
-    final TokenSerializationResult refreshToken = getRefreshToken(user, privateTenantInfo.get());
+    final TokenSerializationResult refreshToken = getRefreshToken(user, privateSignature);
 
     fireAuthenticationEvent(user.getIdentifier());
 
@@ -146,6 +147,24 @@ public class AuthenticationCommandHandler {
             DateConverter.toIsoString(passwordExpiration));
   }
 
+  private PrivateSignatureEntity checkedGetPrivateSignature() {
+    final Optional<PrivateSignatureEntity> privateSignature = signatures.getPrivateSignature();
+    if (!privateSignature.isPresent()) {
+      logger.error("Authentication attempted on tenant with no valid signature{}.", TenantContextHolder.identifier());
+      throw ServiceException.internalError("Tenant has no valid signature.");
+    }
+    return privateSignature.get();
+  }
+
+  private PrivateTenantInfoEntity checkedGetPrivateTenantInfo() {
+    final Optional<PrivateTenantInfoEntity> privateTenantInfo = tenants.getPrivateTenantInfo();
+    if (!privateTenantInfo.isPresent()) {
+      logger.error("Authentication attempted on uninitialized tenant {}.", TenantContextHolder.identifier());
+      throw ServiceException.internalError("Tenant is not initialized.");
+    }
+    return privateTenantInfo.get();
+  }
+
   @CommandHandler
   public AuthenticationCommandResponse process(final RefreshTokenAuthenticationCommand command)
       throws AmitAuthenticationException
@@ -153,9 +172,8 @@ public class AuthenticationCommandHandler {
     final TenantRefreshTokenSerializer.Deserialized deserializedRefreshToken =
         tenantRefreshTokenSerializer.deserialize(command.getRefreshToken());
 
-    final Optional<PrivateTenantInfoEntity> privateTenantInfo = tenants.getPrivateTenantInfo();
-    if (!privateTenantInfo.isPresent())
-      throw ServiceException.internalError("Tenant is not initialized.");
+    final PrivateTenantInfoEntity privateTenantInfo = checkedGetPrivateTenantInfo();
+    final PrivateSignatureEntity privateSignature = checkedGetPrivateSignature();
 
     final UserEntity user = getUser(deserializedRefreshToken.getUserIdentifier());
 
@@ -163,8 +181,8 @@ public class AuthenticationCommandHandler {
 
     final TokenSerializationResult accessToken = getAccessToken(
             user.getIdentifier(),
-            getTokenPermissions(user, passwordExpiration, privateTenantInfo.get().getTimeToChangePasswordAfterExpirationInDays()),
-            privateTenantInfo.get());
+            getTokenPermissions(user, passwordExpiration, privateTenantInfo.getTimeToChangePasswordAfterExpirationInDays()),
+            privateSignature);
 
     return new AuthenticationCommandResponse(
         accessToken.getToken(), DateConverter.toIsoString(accessToken.getExpiration()),
@@ -208,15 +226,16 @@ public class AuthenticationCommandHandler {
   private TokenSerializationResult getAccessToken(
           final String identifier,
           final Set<TokenPermission> tokenPermissions,
-          final PrivateTenantInfoEntity privateTenantInfo) {
+          final PrivateSignatureEntity privateSignatureEntity) {
 
     final PrivateKey privateKey = new RsaPrivateKeyBuilder()
-          .setPrivateKeyExp(privateTenantInfo.getPrivateKeyExp())
-          .setPrivateKeyMod(privateTenantInfo.getPrivateKeyMod())
+          .setPrivateKeyExp(privateSignatureEntity.getPrivateKeyExp())
+          .setPrivateKeyMod(privateSignatureEntity.getPrivateKeyMod())
           .build();
 
       final TenantAccessTokenSerializer.Specification x =
           new TenantAccessTokenSerializer.Specification()
+              .setKeyTimestamp(privateSignatureEntity.getKeyTimestamp())
               .setPrivateKey(privateKey)
               .setTokenContent(new TokenContent(new ArrayList<>(tokenPermissions)))
               .setSecondsToLive(accessTtl)
@@ -286,16 +305,16 @@ public class AuthenticationCommandHandler {
             Collections.singleton(RoleMapper.mapAllowedOperation(AllowedOperationType.fromHttpMethod(permittable.getMethod()))));
   }
 
-  private TokenSerializationResult getRefreshToken(
-      final UserEntity user, final PrivateTenantInfoEntity privateTenantInfo) {
-
+  private TokenSerializationResult getRefreshToken(final UserEntity user,
+                                                   final PrivateSignatureEntity privateSignatureEntity) {
     final PrivateKey privateKey = new RsaPrivateKeyBuilder()
-        .setPrivateKeyExp(privateTenantInfo.getPrivateKeyExp())
-        .setPrivateKeyMod(privateTenantInfo.getPrivateKeyMod())
+        .setPrivateKeyExp(privateSignatureEntity.getPrivateKeyExp())
+        .setPrivateKeyMod(privateSignatureEntity.getPrivateKeyMod())
         .build();
 
     final TenantRefreshTokenSerializer.Specification x =
         new TenantRefreshTokenSerializer.Specification()
+            .setKeyTimestamp(privateSignatureEntity.getKeyTimestamp())
             .setPrivateKey(privateKey)
             .setSecondsToLive(refreshTtl)
             .setUser(user.getIdentifier());

@@ -19,7 +19,6 @@ import com.datastax.driver.mapping.annotations.Column;
 import com.datastax.driver.mapping.annotations.PartitionKey;
 import com.datastax.driver.mapping.annotations.Table;
 
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 
 /**
@@ -34,11 +33,6 @@ public class PrivateTenantInfoEntity {
 
   @Column(name = Tenants.FIXED_SALT_COLUMN)
   private ByteBuffer fixedSalt;
-
-  @Column(name = Tenants.PRIVATE_KEY_MOD_COLUMN)
-  private BigInteger privateKeyMod;
-  @Column(name = Tenants.PRIVATE_KEY_EXP_COLUMN)
-  private BigInteger privateKeyExp;
 
   @Column(name = Tenants.PASSWORD_EXPIRES_IN_DAYS_COLUMN)
   private int passwordExpiresInDays;
@@ -62,22 +56,6 @@ public class PrivateTenantInfoEntity {
 
   public void setFixedSalt(ByteBuffer fixedSalt) {
     this.fixedSalt = fixedSalt;
-  }
-
-  public BigInteger getPrivateKeyMod() {
-    return privateKeyMod;
-  }
-
-  public void setPrivateKeyMod(BigInteger privateKeyMod) {
-    this.privateKeyMod = privateKeyMod;
-  }
-
-  public BigInteger getPrivateKeyExp() {
-    return privateKeyExp;
-  }
-
-  public void setPrivateKeyExp(BigInteger privateKeyExp) {
-    this.privateKeyExp = privateKeyExp;
   }
 
   public int getPasswordExpiresInDays() {

@@ -95,7 +95,8 @@ public class TestProvisioning {
     final IdentityManager testSubject = getTestSubject();
 
 
-    Signature firstTenantSignature = null;
+    final String firstTenantSignatureTimestamp;
+    Signature firstTenantIdentityManagerSignature = null;
     try (final TenantDataStoreTestContext ignored = TenantDataStoreTestContext.forRandomTenantName(cassandraInitializer)) {
 
       final String invalidSeshatToken = "notBearer";
@@ -110,7 +111,6 @@ public class TestProvisioning {
 
       final String wrongSystemToken = systemTokenFromWrongKey();
       try (final AutoSeshat ignored2 = new AutoSeshat(wrongSystemToken)){
-
         testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
         Assert.fail("The key was signed by the wrong source.  This should've failed.");
       }
@@ -130,10 +130,11 @@ public class TestProvisioning {
       }
 
       try (final AutoUserContext ignored2 = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-        firstTenantSignature = testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        firstTenantSignatureTimestamp = testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
 
-        final Signature sameSignature = testSubject.getSignature();
-        Assert.assertEquals(sameSignature, firstTenantSignature);
+        final Signature applicationSignature = tenantApplicationSecurityEnvironment.getAnubis().getApplicationSignature(firstTenantSignatureTimestamp);
+        firstTenantIdentityManagerSignature = tenantApplicationSecurityEnvironment.getAnubis().getSignatureSet(firstTenantSignatureTimestamp).getIdentityManagerSignature();
+        Assert.assertEquals(applicationSignature, firstTenantIdentityManagerSignature);
 
 
         testSubject.initialize("golden_osiris");
@@ -147,12 +148,13 @@ public class TestProvisioning {
     }
 
 
-    final Signature secondTenantSignature;
+    final String secondTenantSignatureTimestamp;
     try (final TenantDataStoreTestContext ignored = TenantDataStoreTestContext.forRandomTenantName(cassandraInitializer)) {
       try (final AutoUserContext ignored2
                    = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-        secondTenantSignature = testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
-        Assert.assertNotEquals(firstTenantSignature, secondTenantSignature);
+        secondTenantSignatureTimestamp = testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        final Signature secondTenantIdentityManagerSignature = tenantApplicationSecurityEnvironment.getAnubis().getApplicationSignature(secondTenantSignatureTimestamp);
+        Assert.assertNotEquals(firstTenantIdentityManagerSignature, secondTenantIdentityManagerSignature);
       }
     }
     catch (final Exception e)
@@ -178,6 +180,7 @@ public class TestProvisioning {
     final SystemAccessTokenSerializer.Specification tokenSpecification
         = new SystemAccessTokenSerializer.Specification();
 
+    tokenSpecification.setKeyTimestamp("rando");
     tokenSpecification.setPrivateKey(getWrongPrivateKey());
 
     tokenSpecification.setRole(RoleConstants.SYSTEM_ADMIN_ROLE_IDENTIFIER);

@@ -17,7 +17,7 @@ package io.mifos.identity.internal.command.handler;
 
 import io.jsonwebtoken.*;
 import io.mifos.anubis.api.v1.TokenConstants;
-import io.mifos.anubis.provider.InvalidKeyVersionException;
+import io.mifos.anubis.provider.InvalidKeyTimestampException;
 import io.mifos.anubis.provider.TenantRsaKeyProvider;
 import io.mifos.anubis.security.AmitAuthenticationException;
 import io.mifos.anubis.token.TokenSerializationResult;
@@ -48,9 +48,15 @@ class TenantRefreshTokenSerializer {
   }
 
   static class Specification {
+    private String keyTimestamp;
     private PrivateKey privateKey;
     private String user;
     private long secondsToLive;
+
+    Specification setKeyTimestamp(final String keyTimestamp) {
+      this.keyTimestamp = keyTimestamp;
+      return this;
+    }
 
     Specification setPrivateKey(final PrivateKey privateKey) {
       this.privateKey = privateKey;
@@ -90,10 +96,17 @@ class TenantRefreshTokenSerializer {
   {
     final long issued = System.currentTimeMillis();
 
+    if (specification.keyTimestamp == null) {
+      throw new IllegalArgumentException("token signature timestamp must not be null.");
+    }
+    if (specification.privateKey == null) {
+      throw new IllegalArgumentException("token signature privateKey must not be null.");
+    }
+
     final JwtBuilder jwtBuilder =
         Jwts.builder()
             .setSubject(specification.user)
-            .claim(TokenConstants.JWT_VERSION_CLAIM, TokenConstants.VERSION)
+            .claim(TokenConstants.JWT_SIGNATURE_TIMESTAMP_CLAIM, specification.keyTimestamp)
             .setIssuer(TokenType.TENANT.getIssuer())
             .setIssuedAt(new Date(issued))
             .signWith(SignatureAlgorithm.RS512, specification.privateKey);
@@ -117,18 +130,18 @@ class TenantRefreshTokenSerializer {
     try {
       final JwtParser parser = Jwts.parser().setSigningKeyResolver(new SigningKeyResolver() {
         @Override public Key resolveSigningKey(final JwsHeader header, final Claims claims) {
-          final String version = getVersionFromClaims(claims);
+          final String keyTimestamp = getKeyTimestampFromClaims(claims);
 
           try {
-            return tenantRsaKeyProvider.getPublicKey(version);
+            return tenantRsaKeyProvider.getPublicKey(keyTimestamp);
           }
           catch (final IllegalArgumentException e)
           {
             throw AmitAuthenticationException.missingTenant();
           }
-          catch (final InvalidKeyVersionException e)
+          catch (final InvalidKeyTimestampException e)
           {
-            throw AmitAuthenticationException.invalidTokenVersion(TokenType.TENANT.getIssuer(), version);
+            throw AmitAuthenticationException.invalidTokenKeyTimestamp(TokenType.TENANT.getIssuer(), keyTimestamp);
           }
         }
 
@@ -158,12 +171,7 @@ class TenantRefreshTokenSerializer {
     return Optional.of(refreshToken.substring(TokenConstants.PREFIX.length()).trim());
   }
 
-  private @Nonnull String getVersionFromClaims(final Claims claims) {
-    final String version = claims.get(TokenConstants.JWT_VERSION_CLAIM, String.class);
-    if (version == null)
-    {
-      return "1";
-    }
-    return version;
+  private @Nonnull String getKeyTimestampFromClaims(final Claims claims) {
+    return claims.get(TokenConstants.JWT_SIGNATURE_TIMESTAMP_CLAIM, String.class);
   }
 }

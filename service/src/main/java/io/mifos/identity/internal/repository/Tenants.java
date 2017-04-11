@@ -19,11 +19,8 @@ import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.KeyspaceMetadata;
 import com.datastax.driver.core.schemabuilder.SchemaBuilder;
-import com.datastax.driver.mapping.Mapper;
 import io.mifos.core.cassandra.core.CassandraSessionProvider;
-import io.mifos.core.cassandra.core.TenantAwareCassandraMapperProvider;
 import io.mifos.core.cassandra.core.TenantAwareEntityTemplate;
-import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.identity.internal.util.IdentityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -39,25 +36,18 @@ public class Tenants {
   static final String TABLE_NAME = "isis_tenant";
   static final String VERSION_COLUMN = "version";
   static final String FIXED_SALT_COLUMN = "fixed_salt";
-  static final String PRIVATE_KEY_MOD_COLUMN = "private_key_mod";
-  static final String PRIVATE_KEY_EXP_COLUMN = "private_key_exp";
-  static final String PUBLIC_KEY_MOD_COLUMN = "public_key_mod";
-  static final String PUBLIC_KEY_EXP_COLUMN = "public_key_exp";
   static final String PASSWORD_EXPIRES_IN_DAYS_COLUMN = "password_expires_in_days";
   static final String TIME_TO_CHANGE_PASSWORD_AFTER_EXPIRATION_IN_DAYS = "time_to_change_password_after_expiration_in_days";
 
   private final CassandraSessionProvider cassandraSessionProvider;
   private final TenantAwareEntityTemplate tenantAwareEntityTemplate;
-  private final TenantAwareCassandraMapperProvider tenantAwareCassandraMapperProvider;
 
   @Autowired
   Tenants(final CassandraSessionProvider cassandraSessionProvider,
-          final TenantAwareEntityTemplate tenantAwareEntityTemplate,
-          final TenantAwareCassandraMapperProvider tenantAwareCassandraMapperProvider)
+          final TenantAwareEntityTemplate tenantAwareEntityTemplate)
   {
     this.cassandraSessionProvider = cassandraSessionProvider;
     this.tenantAwareEntityTemplate = tenantAwareEntityTemplate;
-    this.tenantAwareCassandraMapperProvider = tenantAwareCassandraMapperProvider;
   }
 
   public void buildTable() {
@@ -65,10 +55,6 @@ public class Tenants {
         SchemaBuilder.createTable(TABLE_NAME)
             .addPartitionKey(VERSION_COLUMN, DataType.cint())
             .addColumn(FIXED_SALT_COLUMN, DataType.blob())
-            .addColumn(PRIVATE_KEY_MOD_COLUMN, DataType.varint())
-            .addColumn(PRIVATE_KEY_EXP_COLUMN, DataType.varint())
-            .addColumn(PUBLIC_KEY_MOD_COLUMN, DataType.varint())
-            .addColumn(PUBLIC_KEY_EXP_COLUMN, DataType.varint())
             .addColumn(PASSWORD_EXPIRES_IN_DAYS_COLUMN, DataType.cint())
             .addColumn(TIME_TO_CHANGE_PASSWORD_AFTER_EXPIRATION_IN_DAYS, DataType.cint())
             .buildInternal();
@@ -78,7 +64,6 @@ public class Tenants {
 
   public void add(
           final byte[] fixedSalt,
-          final RsaKeyPairFactory.KeyPairHolder keys,
           final int passwordExpiresInDays,
           final int timeToChangePasswordAfterExpirationInDays)
   {
@@ -87,22 +72,13 @@ public class Tenants {
         cassandraSessionProvider.getTenantSession().prepare("INSERT INTO " + Tenants.TABLE_NAME + " ("
             + VERSION_COLUMN + ", "
             + FIXED_SALT_COLUMN + ", "
-            + PRIVATE_KEY_MOD_COLUMN + ", "
-            + PRIVATE_KEY_EXP_COLUMN + ", "
-            + PUBLIC_KEY_MOD_COLUMN + ", "
-            + PUBLIC_KEY_EXP_COLUMN + ", "
             + PASSWORD_EXPIRES_IN_DAYS_COLUMN + ", "
             + TIME_TO_CHANGE_PASSWORD_AFTER_EXPIRATION_IN_DAYS + ")"
-            + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind();
+            + "VALUES (?, ?, ?, ?)").bind();
 
     tenantCreationStatement.setInt(VERSION_COLUMN, IdentityConstants.CURRENT_VERSION);
 
     tenantCreationStatement.setBytes(FIXED_SALT_COLUMN, ByteBuffer.wrap(fixedSalt));
-
-    tenantCreationStatement.setVarint(PRIVATE_KEY_MOD_COLUMN, keys.getPrivateKeyMod());
-    tenantCreationStatement.setVarint(PRIVATE_KEY_EXP_COLUMN, keys.getPrivateKeyExp());
-    tenantCreationStatement.setVarint(PUBLIC_KEY_MOD_COLUMN, keys.getPublicKeyMod());
-    tenantCreationStatement.setVarint(PUBLIC_KEY_EXP_COLUMN, keys.getPublicKeyExp());
     tenantCreationStatement.setInt(PASSWORD_EXPIRES_IN_DAYS_COLUMN, passwordExpiresInDays);
     tenantCreationStatement.setInt(TIME_TO_CHANGE_PASSWORD_AFTER_EXPIRATION_IN_DAYS, timeToChangePasswordAfterExpirationInDays);
 
@@ -114,13 +90,6 @@ public class Tenants {
   {
     return tenantAwareEntityTemplate
         .findById(PrivateTenantInfoEntity.class, IdentityConstants.CURRENT_VERSION);
-  }
-
-  public SignatureEntity getSignature() {
-    final Mapper<SignatureEntity> signatureEntityMapper
-            = tenantAwareCassandraMapperProvider.getMapper(SignatureEntity.class);
-
-    return signatureEntityMapper.get(IdentityConstants.CURRENT_VERSION);
   }
 
   public boolean currentTenantAlreadyProvisioned() {

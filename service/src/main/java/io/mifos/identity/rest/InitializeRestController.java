@@ -17,7 +17,6 @@ package io.mifos.identity.rest;
 
 import io.mifos.anubis.annotation.AcceptedTokenType;
 import io.mifos.anubis.annotation.Permittable;
-import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.identity.internal.command.handler.Provisioner;
 import io.mifos.identity.internal.service.TenantService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * @author Myrle Krantz
  */
+@SuppressWarnings("unused")
 @RestController
 @RequestMapping("/initialize")
 public class InitializeRestController {
@@ -48,7 +48,7 @@ public class InitializeRestController {
       consumes = {MediaType.ALL_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE})
   @Permittable(AcceptedTokenType.SYSTEM)
-  public @ResponseBody ResponseEntity<Signature> initializeTenant(
+  public @ResponseBody ResponseEntity<String> initializeTenant(
       @RequestParam("password") final String adminPassword)
   {
     if (tenantService.tenantAlreadyProvisioned())
@@ -57,9 +57,9 @@ public class InitializeRestController {
     }
 
 
-    final Signature signature = provisioner.provisionTenant(adminPassword);
+    final String signatureTimestamp = provisioner.provisionTenant(adminPassword);
 
-    return new ResponseEntity<>(signature,
+    return new ResponseEntity<>(signatureTimestamp,
         HttpStatus.OK);
   }
 }

@@ -71,6 +71,7 @@ public class AuthenticationCommandHandlerTest {
     final Users users = Mockito.mock(Users.class);
     final Roles roles = Mockito.mock(Roles.class);
     final PermittableGroups permittableGroups = Mockito.mock(PermittableGroups.class);
+    final Signatures signatures = Mockito.mock(Signatures.class);
     final Tenants tenants = Mockito.mock(Tenants.class);
     final HashGenerator hashGenerator = Mockito.mock(HashGenerator.class);
     final TenantAccessTokenSerializer tenantAccessTokenSerializer
@@ -83,7 +84,7 @@ public class AuthenticationCommandHandlerTest {
     final Logger logger = Mockito.mock(Logger.class);
 
     commandHandler = new AuthenticationCommandHandler(
-        users, roles, permittableGroups, tenants,
+        users, roles, permittableGroups, signatures, tenants,
         hashGenerator,
         tenantAccessTokenSerializer, tenantRefreshTokenSerializer,
         jmsTemplate, applicationName,
@@ -91,10 +92,14 @@ public class AuthenticationCommandHandlerTest {
 
     final PrivateTenantInfoEntity privateTenantInfoEntity = new PrivateTenantInfoEntity();
     privateTenantInfoEntity.setFixedSalt(ByteBuffer.wrap(new SaltGenerator().createRandomSalt()));
-    privateTenantInfoEntity.setPrivateKeyExp(keyPair.getPrivateKeyExp());
-    privateTenantInfoEntity.setPrivateKeyMod(keyPair.getPrivateKeyMod());
     privateTenantInfoEntity.setTimeToChangePasswordAfterExpirationInDays(GRACE_PERIOD);
     when(tenants.getPrivateTenantInfo()).thenReturn(Optional.of(privateTenantInfoEntity));
+
+    final PrivateSignatureEntity privateSignatureEntity = new PrivateSignatureEntity();
+    privateSignatureEntity.setKeyTimestamp(keyPair.getTimestamp());
+    privateSignatureEntity.setPrivateKeyExp(keyPair.getPrivateKeyExp());
+    privateSignatureEntity.setPrivateKeyMod(keyPair.getPrivateKeyMod());
+    when(signatures.getPrivateSignature()).thenReturn(Optional.of(privateSignatureEntity));
 
     final UserEntity userEntity = new UserEntity();
     userEntity.setRole(ROLE);
