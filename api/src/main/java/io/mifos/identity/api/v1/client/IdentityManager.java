@@ -124,4 +124,9 @@ public interface IdentityManager {
       produces = {MediaType.APPLICATION_JSON_VALUE})
   @ThrowsException(status = HttpStatus.CONFLICT, exception = TenantAlreadyInitializedException.class)
   String initialize(@RequestParam("password") String password);
+
+  @RequestMapping(value = "/signatures", method = RequestMethod.POST,
+          consumes = {MediaType.APPLICATION_JSON_VALUE},
+          produces = {MediaType.ALL_VALUE})
+  String createSignatureSet();
 }

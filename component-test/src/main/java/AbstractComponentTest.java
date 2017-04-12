@@ -54,7 +54,7 @@ import javax.annotation.PostConstruct;
         classes = {AbstractComponentTest.TestConfiguration.class})
 @TestPropertySource(properties = {"cassandra.cl.read = LOCAL_QUORUM", "cassandra.cl.write = LOCAL_QUORUM", "cassandra.cl.delete = LOCAL_QUORUM", "identity.token.refresh.secureCookie = false", "identity.passwordExpiresInDays = 93"})
 public class AbstractComponentTest {
-  private static final String APP_NAME = "identity-v1";
+  static final String APP_NAME = "identity-v1";
   @Configuration
   @EnableApiFactory
   @EnableEventRecording

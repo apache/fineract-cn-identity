@@ -19,6 +19,7 @@ import com.datastax.driver.core.exceptions.InvalidQueryException;
 import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.anubis.config.TenantSignatureRepository;
+import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.identity.internal.repository.SignatureEntity;
 import io.mifos.identity.internal.repository.Signatures;
 import io.mifos.identity.internal.repository.Tenants;
@@ -82,5 +83,11 @@ public class TenantService implements TenantSignatureRepository {
     {
       return false;
     }
+  }
+
+  public String createSignatureSet() {
+    final RsaKeyPairFactory.KeyPairHolder keys = RsaKeyPairFactory.createKeyPair();
+    signatures.add(keys);
+    return keys.getTimestamp();
   }
 }

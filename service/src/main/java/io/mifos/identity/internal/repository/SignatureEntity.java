@@ -24,12 +24,15 @@ import java.math.BigInteger;
 /**
  * @author Myrle Krantz
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "WeakerAccess"})
 @Table(name = Signatures.TABLE_NAME)
 public class SignatureEntity {
   @PartitionKey
   @Column(name = Signatures.KEY_TIMESTAMP_COLUMN)
   private String keyTimestamp;
+
+  @Column(name = Signatures.VALID_COLUMN)
+  private Boolean valid;
 
   @Column(name = Signatures.PUBLIC_KEY_MOD_COLUMN)
   private BigInteger publicKeyMod;
@@ -38,18 +41,20 @@ public class SignatureEntity {
 
   public SignatureEntity() { }
 
-  public SignatureEntity(final String keyTimestamp, final BigInteger publicKeyMod, final BigInteger publicKeyExp) {
-    this.keyTimestamp = keyTimestamp;
-    this.publicKeyMod = publicKeyMod;
-    this.publicKeyExp = publicKeyExp;
-  }
-
   public String getKeyTimestamp() {
     return keyTimestamp;
   }
 
   public void setKeyTimestamp(String keyTimestamp) {
     this.keyTimestamp = keyTimestamp;
+  }
+
+  public Boolean getValid() {
+    return valid;
+  }
+
+  public void setValid(Boolean valid) {
+    this.valid = valid;
   }
 
   public BigInteger getPublicKeyMod() {

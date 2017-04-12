@@ -43,7 +43,7 @@ public class Signatures {
   static final String TABLE_NAME = "isis_signatures";
   private static final String INDEX_NAME = "isis_signatures_valid_index";
   static final String KEY_TIMESTAMP_COLUMN = "key_timestamp";
-  private static final String VALID_COLUMN = "valid";
+  static final String VALID_COLUMN = "valid";
   static final String PRIVATE_KEY_MOD_COLUMN = "private_key_mod";
   static final String PRIVATE_KEY_EXP_COLUMN = "private_key_exp";
   static final String PUBLIC_KEY_MOD_COLUMN = "public_key_mod";
@@ -110,7 +110,8 @@ public class Signatures {
     final Mapper<SignatureEntity> signatureEntityMapper
             = tenantAwareCassandraMapperProvider.getMapper(SignatureEntity.class);
 
-    return Optional.ofNullable(signatureEntityMapper.get(keyTimestamp));
+    final Optional<SignatureEntity> ret = Optional.ofNullable(signatureEntityMapper.get(keyTimestamp));
+    return ret.filter(SignatureEntity::getValid);
   }
 
   /**
@@ -130,7 +131,8 @@ public class Signatures {
     final Mapper<PrivateSignatureEntity> privateSignatureEntityMapper
             = tenantAwareCassandraMapperProvider.getMapper(PrivateSignatureEntity.class);
 
-    return Optional.ofNullable(privateSignatureEntityMapper.get(keyTimestamp));
+    final Optional<PrivateSignatureEntity> ret = Optional.ofNullable(privateSignatureEntityMapper.get(keyTimestamp));
+    return ret.filter(PrivateSignatureEntity::getValid);
   }
 
   public List<String> getAllKeyTimestamps() {

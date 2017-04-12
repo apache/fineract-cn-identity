@@ -30,7 +30,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @SuppressWarnings("unused")
 @RestController
-@RequestMapping("/initialize")
+@RequestMapping()
 public class InitializeRestController {
   private final TenantService tenantService;
   private final Provisioner provisioner;
@@ -44,9 +44,10 @@ public class InitializeRestController {
     this.provisioner = provisioner;
   }
 
-  @RequestMapping(method = RequestMethod.POST,
-      consumes = {MediaType.ALL_VALUE},
-      produces = {MediaType.APPLICATION_JSON_VALUE})
+  @RequestMapping(value = "/initialize",
+          method = RequestMethod.POST,
+          consumes = {MediaType.ALL_VALUE},
+          produces = {MediaType.APPLICATION_JSON_VALUE})
   @Permittable(AcceptedTokenType.SYSTEM)
   public @ResponseBody ResponseEntity<String> initializeTenant(
       @RequestParam("password") final String adminPassword)
@@ -61,5 +62,14 @@ public class InitializeRestController {
 
     return new ResponseEntity<>(signatureTimestamp,
         HttpStatus.OK);
+  }
+
+  @RequestMapping(value = "/signatures",
+          method = RequestMethod.POST,
+          consumes = {MediaType.ALL_VALUE},
+          produces = {MediaType.APPLICATION_JSON_VALUE})
+  @Permittable(AcceptedTokenType.SYSTEM)
+  public @ResponseBody ResponseEntity<String> createSignatureSet() {
+    return ResponseEntity.ok(tenantService.createSignatureSet());
   }
 }
