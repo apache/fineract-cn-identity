@@ -18,7 +18,6 @@ package io.mifos.identity.internal.repository;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
@@ -119,9 +118,12 @@ public class Signatures {
    */
   public Optional<PrivateSignatureEntity> getPrivateSignature()
   {
-    final String query = "SELECT " + KEY_TIMESTAMP_COLUMN + ", MAX(" + KEY_TIMESTAMP_COLUMN + ") FROM " + TABLE_NAME + " WHERE " + VALID_COLUMN + " = true";
-    final Optional<Row> maximumKeyTimestampRow = Optional.ofNullable(cassandraSessionProvider.getTenantSession().execute(query).one());
-    final Optional<String> maximumKeyTimestamp = maximumKeyTimestampRow.map(x -> x.get(KEY_TIMESTAMP_COLUMN, String.class));
+    final Select.Where query = QueryBuilder.select(KEY_TIMESTAMP_COLUMN).from(TABLE_NAME).where(QueryBuilder.eq(VALID_COLUMN, Boolean.TRUE));
+    final ResultSet result = cassandraSessionProvider.getTenantSession().execute(query);
+    final Optional<String> maximumKeyTimestamp =
+            StreamSupport.stream(result.spliterator(), false)
+            .map(x -> x.get(KEY_TIMESTAMP_COLUMN, String.class))
+            .max(String::compareTo);
 
     return maximumKeyTimestamp.flatMap(this::getPrivateSignatureEntity);
   }
