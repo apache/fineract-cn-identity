@@ -20,6 +20,7 @@ import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.anubis.config.TenantSignatureRepository;
 import io.mifos.core.lang.security.RsaKeyPairFactory;
+import io.mifos.identity.internal.mapper.SignatureMapper;
 import io.mifos.identity.internal.repository.SignatureEntity;
 import io.mifos.identity.internal.repository.Signatures;
 import io.mifos.identity.internal.repository.Tenants;
@@ -57,7 +58,7 @@ public class TenantService implements TenantSignatureRepository {
   @Override
   public Optional<ApplicationSignatureSet> getSignatureSet(final String keyTimestamp) {
     final Optional<SignatureEntity> signatureEntity = signatures.getSignature(keyTimestamp);
-    return signatureEntity.map(this::mapSignatureEntityToApplicationSignatureSet);
+    return signatureEntity.map(SignatureMapper::mapToApplicationSignatureSet);
   }
 
   @Override
@@ -84,13 +85,6 @@ public class TenantService implements TenantSignatureRepository {
   public ApplicationSignatureSet createSignatureSet() {
     final RsaKeyPairFactory.KeyPairHolder keys = RsaKeyPairFactory.createKeyPair();
     final SignatureEntity signatureEntity = signatures.add(keys);
-    return mapSignatureEntityToApplicationSignatureSet(signatureEntity);
-  }
-
-  private ApplicationSignatureSet mapSignatureEntityToApplicationSignatureSet(final SignatureEntity signatureEntity) {
-    return new ApplicationSignatureSet(
-            signatureEntity.getKeyTimestamp(),
-            new Signature(signatureEntity.getPublicKeyMod(), signatureEntity.getPublicKeyExp()),
-            new Signature(signatureEntity.getPublicKeyMod(), signatureEntity.getPublicKeyExp()));
+    return SignatureMapper.mapToApplicationSignatureSet(signatureEntity);
   }
 }

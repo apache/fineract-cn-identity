@@ -15,6 +15,7 @@
  */
 
 import io.mifos.anubis.api.v1.RoleConstants;
+import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.anubis.test.v1.TenantApplicationSecurityEnvironmentTestRule;
 import io.mifos.anubis.token.SystemAccessTokenSerializer;
@@ -95,7 +96,7 @@ public class TestProvisioning {
     final IdentityManager testSubject = getTestSubject();
 
 
-    final String firstTenantSignatureTimestamp;
+    final ApplicationSignatureSet firstTenantSignatureSet;
     Signature firstTenantIdentityManagerSignature = null;
     try (final TenantDataStoreTestContext ignored = TenantDataStoreTestContext.forRandomTenantName(cassandraInitializer)) {
 
@@ -130,10 +131,10 @@ public class TestProvisioning {
       }
 
       try (final AutoUserContext ignored2 = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-        firstTenantSignatureTimestamp = testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        firstTenantSignatureSet = testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
 
-        final Signature applicationSignature = tenantApplicationSecurityEnvironment.getAnubis().getApplicationSignature(firstTenantSignatureTimestamp);
-        firstTenantIdentityManagerSignature = tenantApplicationSecurityEnvironment.getAnubis().getSignatureSet(firstTenantSignatureTimestamp).getIdentityManagerSignature();
+        final Signature applicationSignature = tenantApplicationSecurityEnvironment.getAnubis().getApplicationSignature(firstTenantSignatureSet.getTimestamp());
+        firstTenantIdentityManagerSignature = tenantApplicationSecurityEnvironment.getAnubis().getSignatureSet(firstTenantSignatureSet.getTimestamp()).getIdentityManagerSignature();
         Assert.assertEquals(applicationSignature, firstTenantIdentityManagerSignature);
 
 
@@ -148,12 +149,12 @@ public class TestProvisioning {
     }
 
 
-    final String secondTenantSignatureTimestamp;
+    final ApplicationSignatureSet secondTenantSignatureSet;
     try (final TenantDataStoreTestContext ignored = TenantDataStoreTestContext.forRandomTenantName(cassandraInitializer)) {
       try (final AutoUserContext ignored2
                    = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-        secondTenantSignatureTimestamp = testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
-        final Signature secondTenantIdentityManagerSignature = tenantApplicationSecurityEnvironment.getAnubis().getApplicationSignature(secondTenantSignatureTimestamp);
+        secondTenantSignatureSet = testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        final Signature secondTenantIdentityManagerSignature = tenantApplicationSecurityEnvironment.getAnubis().getApplicationSignature(secondTenantSignatureSet.getTimestamp());
         Assert.assertNotEquals(firstTenantIdentityManagerSignature, secondTenantIdentityManagerSignature);
       }
     }

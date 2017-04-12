@@ -16,9 +16,11 @@
 package io.mifos.identity.internal.command.handler;
 
 import com.datastax.driver.core.exceptions.InvalidQueryException;
+import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.core.lang.ServiceException;
 import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.identity.api.v1.PermittableGroupIds;
+import io.mifos.identity.internal.mapper.SignatureMapper;
 import io.mifos.identity.internal.repository.*;
 import io.mifos.identity.internal.util.IdentityConstants;
 import io.mifos.tool.crypto.SaltGenerator;
@@ -78,7 +80,7 @@ public class Provisioner {
     this.saltGenerator = saltGenerator;
   }
 
-  public String provisionTenant(final String initialPasswordHash) {
+  public ApplicationSignatureSet provisionTenant(final String initialPasswordHash) {
     final RsaKeyPairFactory.KeyPairHolder keys = RsaKeyPairFactory.createKeyPair();
 
     byte[] fixedSalt = this.saltGenerator.createRandomSalt();
@@ -90,7 +92,7 @@ public class Provisioner {
       permittableGroups.buildTable();
       roles.buildTable();
 
-      signature.add(keys);
+      final SignatureEntity signatureEntity = signature.add(keys);
       tenant.add(fixedSalt, passwordExpiresInDays, timeToChangePasswordAfterExpirationInDays);
 
       createPermittablesGroup(PermittableGroupIds.ROLE_MANAGEMENT, "/roles/*", "/permittablegroups/*");
@@ -111,14 +113,14 @@ public class Provisioner {
               .build(IdentityConstants.SU_NAME, IdentityConstants.SU_ROLE, initialPasswordHash, true,
                       fixedSalt, timeToChangePasswordAfterExpirationInDays);
       users.add(suUser);
+
+      return SignatureMapper.mapToApplicationSignatureSet(signatureEntity);
     }
     catch (final InvalidQueryException e)
     {
       logger.error("Failed to provision cassandra tables for tenant.", e);
       throw ServiceException.internalError("Failed to provision tenant.");
     }
-
-    return keys.getTimestamp();
   }
 
   private PermissionType fullAccess(final String permittableGroupIdentifier) {

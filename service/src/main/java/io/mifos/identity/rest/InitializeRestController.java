@@ -50,7 +50,7 @@ public class InitializeRestController {
           consumes = {MediaType.ALL_VALUE},
           produces = {MediaType.APPLICATION_JSON_VALUE})
   @Permittable(AcceptedTokenType.SYSTEM)
-  public @ResponseBody ResponseEntity<String> initializeTenant(
+  public @ResponseBody ResponseEntity<ApplicationSignatureSet> initializeTenant(
       @RequestParam("password") final String adminPassword)
   {
     if (tenantService.tenantAlreadyProvisioned())
@@ -59,9 +59,9 @@ public class InitializeRestController {
     }
 
 
-    final String signatureTimestamp = provisioner.provisionTenant(adminPassword);
+    final ApplicationSignatureSet signatureSet = provisioner.provisionTenant(adminPassword);
 
-    return new ResponseEntity<>(signatureTimestamp,
+    return new ResponseEntity<>(signatureSet,
         HttpStatus.OK);
   }
 
