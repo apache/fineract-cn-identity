@@ -87,4 +87,21 @@ public class TenantService implements TenantSignatureRepository {
     final SignatureEntity signatureEntity = signatures.add(keys);
     return SignatureMapper.mapToApplicationSignatureSet(signatureEntity);
   }
+
+  @Override
+  public Optional<ApplicationSignatureSet> getLatestSignatureSet() {
+    Optional<String> timestamp = getMostRecentTimestamp();
+    return timestamp.flatMap(this::getSignatureSet);
+  }
+
+  @Override
+  public Optional<Signature> getLatestApplicationSignature() {
+    Optional<String> timestamp = getMostRecentTimestamp();
+    return timestamp.flatMap(this::getApplicationSignature);
+  }
+
+  private Optional<String> getMostRecentTimestamp() {
+    return getAllSignatureSetKeyTimestamps().stream()
+            .max(String::compareTo);
+  }
 }
