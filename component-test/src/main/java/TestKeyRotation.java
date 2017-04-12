@@ -38,7 +38,7 @@ public class TestKeyRotation extends AbstractComponentTest {
 
     try (final AutoSeshat ignored1 = new AutoSeshat(systemToken)) {
       //Create a signature set then test that it is listed.
-      final String timestamp = getTestSubject().createSignatureSet();
+      final String timestamp = getTestSubject().createSignatureSet().getTimestamp();
       {
         final List<String> signatureSets = anubis.getAllSignatureSets();
         Assert.assertTrue(signatureSets.contains(timestamp));
@@ -60,7 +60,7 @@ public class TestKeyRotation extends AbstractComponentTest {
       TimeUnit.SECONDS.sleep(2); //Timestamp has resolution at seconds level -- Make sure that second signature set has different timestamp from the first one.
 
       //Create a second signature set and test that it and the previous signature set are listed.
-      final String timestamp2 = getTestSubject().createSignatureSet();
+      final String timestamp2 = getTestSubject().createSignatureSet().getTimestamp();
       {
         final List<String> signatureSets = anubis.getAllSignatureSets();
         Assert.assertTrue(signatureSets.contains(timestamp));

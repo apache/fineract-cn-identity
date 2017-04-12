@@ -57,11 +57,7 @@ public class TenantService implements TenantSignatureRepository {
   @Override
   public Optional<ApplicationSignatureSet> getSignatureSet(final String keyTimestamp) {
     final Optional<SignatureEntity> signatureEntity = signatures.getSignature(keyTimestamp);
-    return signatureEntity.map(x ->
-            new ApplicationSignatureSet(
-                    x.getKeyTimestamp(),
-                    new Signature(x.getPublicKeyMod(), x.getPublicKeyExp()),
-                    new Signature(x.getPublicKeyMod(), x.getPublicKeyExp())));
+    return signatureEntity.map(this::mapSignatureEntityToApplicationSignatureSet);
   }
 
   @Override
@@ -85,9 +81,16 @@ public class TenantService implements TenantSignatureRepository {
     }
   }
 
-  public String createSignatureSet() {
+  public ApplicationSignatureSet createSignatureSet() {
     final RsaKeyPairFactory.KeyPairHolder keys = RsaKeyPairFactory.createKeyPair();
-    signatures.add(keys);
-    return keys.getTimestamp();
+    final SignatureEntity signatureEntity = signatures.add(keys);
+    return mapSignatureEntityToApplicationSignatureSet(signatureEntity);
+  }
+
+  private ApplicationSignatureSet mapSignatureEntityToApplicationSignatureSet(final SignatureEntity signatureEntity) {
+    return new ApplicationSignatureSet(
+            signatureEntity.getKeyTimestamp(),
+            new Signature(signatureEntity.getPublicKeyMod(), signatureEntity.getPublicKeyExp()),
+            new Signature(signatureEntity.getPublicKeyMod(), signatureEntity.getPublicKeyExp()));
   }
 }

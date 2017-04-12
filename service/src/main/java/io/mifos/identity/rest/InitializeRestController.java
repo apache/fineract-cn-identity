@@ -17,6 +17,7 @@ package io.mifos.identity.rest;
 
 import io.mifos.anubis.annotation.AcceptedTokenType;
 import io.mifos.anubis.annotation.Permittable;
+import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.identity.internal.command.handler.Provisioner;
 import io.mifos.identity.internal.service.TenantService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +70,7 @@ public class InitializeRestController {
           consumes = {MediaType.ALL_VALUE},
           produces = {MediaType.APPLICATION_JSON_VALUE})
   @Permittable(AcceptedTokenType.SYSTEM)
-  public @ResponseBody ResponseEntity<String> createSignatureSet() {
+  public @ResponseBody ResponseEntity<ApplicationSignatureSet> createSignatureSet() {
     return ResponseEntity.ok(tenantService.createSignatureSet());
   }
 }

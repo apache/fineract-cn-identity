@@ -81,7 +81,7 @@ public class Signatures {
     cassandraSessionProvider.getTenantSession().execute(createValidIndex);
   }
 
-  public void add(final RsaKeyPairFactory.KeyPairHolder keys)
+  public SignatureEntity add(final RsaKeyPairFactory.KeyPairHolder keys)
   {
     //There will only be one entry in this table.
     final BoundStatement tenantCreationStatement =
@@ -103,6 +103,14 @@ public class Signatures {
     tenantCreationStatement.setVarint(PUBLIC_KEY_EXP_COLUMN, keys.getPublicKeyExp());
 
     cassandraSessionProvider.getTenantSession().execute(tenantCreationStatement);
+
+    final SignatureEntity ret = new SignatureEntity();
+    ret.setKeyTimestamp(keys.getTimestamp());
+    ret.setPublicKeyMod(keys.getPublicKeyMod());
+    ret.setPublicKeyExp(keys.getPublicKeyExp());
+    ret.setValid(true);
+
+    return ret;
   }
 
   public Optional<SignatureEntity> getSignature(final String keyTimestamp) {

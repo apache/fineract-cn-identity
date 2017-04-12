@@ -15,6 +15,7 @@
  */
 package io.mifos.identity.api.v1.client;
 
+import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.core.api.annotation.ThrowsException;
 import io.mifos.core.api.util.CustomFeignClientsConfiguration;
 import io.mifos.identity.api.v1.domain.*;
@@ -128,5 +129,5 @@ public interface IdentityManager {
   @RequestMapping(value = "/signatures", method = RequestMethod.POST,
           consumes = {MediaType.APPLICATION_JSON_VALUE},
           produces = {MediaType.ALL_VALUE})
-  String createSignatureSet();
+  ApplicationSignatureSet createSignatureSet();
 }
