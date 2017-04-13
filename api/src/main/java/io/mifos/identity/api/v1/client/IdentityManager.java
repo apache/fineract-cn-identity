@@ -15,6 +15,7 @@
  */
 package io.mifos.identity.api.v1.client;
 
+import io.mifos.anubis.api.v1.client.Anubis;
 import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.core.api.annotation.ThrowsException;
 import io.mifos.core.api.util.CustomFeignClientsConfiguration;
@@ -32,7 +33,7 @@ import java.util.Set;
  */
 @SuppressWarnings("unused")
 @FeignClient(name="identity-v1", path="/identity/v1", configuration=CustomFeignClientsConfiguration.class)
-public interface IdentityManager {
+public interface IdentityManager extends Anubis {
   @RequestMapping(value = "/token?grant_type=password", method = RequestMethod.POST,
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       produces = {MediaType.ALL_VALUE})
