@@ -16,39 +16,60 @@
 package io.mifos.identity.internal.service;
 
 import com.datastax.driver.core.exceptions.InvalidQueryException;
-import io.mifos.anubis.api.v1.TokenConstants;
+import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.anubis.api.v1.domain.Signature;
-import io.mifos.anubis.config.TenantSignatureProvider;
+import io.mifos.anubis.config.TenantSignatureRepository;
+import io.mifos.core.lang.security.RsaKeyPairFactory;
+import io.mifos.identity.internal.mapper.SignatureMapper;
 import io.mifos.identity.internal.repository.SignatureEntity;
+import io.mifos.identity.internal.repository.Signatures;
 import io.mifos.identity.internal.repository.Tenants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
  * @author Myrle Krantz
  */
 @Service
-public class TenantService implements TenantSignatureProvider {
+public class TenantService implements TenantSignatureRepository {
   private final Tenants tenants;
+  private final Signatures signatures;
 
-  @Autowired TenantService(final Tenants tenants)
+  @Autowired
+  TenantService(final Tenants tenants, final Signatures signatures)
   {
     this.tenants = tenants;
+    this.signatures = signatures;
   }
 
-  public Optional<Signature> getSignature(final String version)
-  {
-    if (!version.equals(TokenConstants.VERSION))
-      return Optional.empty();
-
-    return Optional.of(getSignature());
+  public Optional<Signature> getIdentityManagerSignature(final String keyTimestamp) {
+    final Optional<SignatureEntity> signature = signatures.getSignature(keyTimestamp);
+    return signature.map(x -> new Signature(x.getPublicKeyMod(), x.getPublicKeyExp()));
   }
 
-  public Signature getSignature() {
-    final SignatureEntity signature = tenants.getSignature();
-    return new Signature(signature.getPublicKeyMod(), signature.getPublicKeyExp());
+  @Override
+  public List<String> getAllSignatureSetKeyTimestamps() {
+    return signatures.getAllKeyTimestamps();
+  }
+
+  @Override
+  public Optional<ApplicationSignatureSet> getSignatureSet(final String keyTimestamp) {
+    final Optional<SignatureEntity> signatureEntity = signatures.getSignature(keyTimestamp);
+    return signatureEntity.map(SignatureMapper::mapToApplicationSignatureSet);
+  }
+
+  @Override
+  public void deleteSignatureSet(final String keyTimestamp) {
+    signatures.invalidateEntry(keyTimestamp);
+  }
+
+  @Override
+  public Optional<Signature> getApplicationSignature(final String keyTimestamp) {
+    final Optional<SignatureEntity> signatureEntity = signatures.getSignature(keyTimestamp);
+    return signatureEntity.map(x -> new Signature(x.getPublicKeyMod(), x.getPublicKeyExp()));
   }
 
   public boolean tenantAlreadyProvisioned() {
@@ -59,5 +80,28 @@ public class TenantService implements TenantSignatureProvider {
     {
       return false;
     }
+  }
+
+  public ApplicationSignatureSet createSignatureSet() {
+    final RsaKeyPairFactory.KeyPairHolder keys = RsaKeyPairFactory.createKeyPair();
+    final SignatureEntity signatureEntity = signatures.add(keys);
+    return SignatureMapper.mapToApplicationSignatureSet(signatureEntity);
+  }
+
+  @Override
+  public Optional<ApplicationSignatureSet> getLatestSignatureSet() {
+    Optional<String> timestamp = getMostRecentTimestamp();
+    return timestamp.flatMap(this::getSignatureSet);
+  }
+
+  @Override
+  public Optional<Signature> getLatestApplicationSignature() {
+    Optional<String> timestamp = getMostRecentTimestamp();
+    return timestamp.flatMap(this::getApplicationSignature);
+  }
+
+  private Optional<String> getMostRecentTimestamp() {
+    return getAllSignatureSetKeyTimestamps().stream()
+            .max(String::compareTo);
   }
 }

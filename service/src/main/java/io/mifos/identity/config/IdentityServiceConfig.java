@@ -45,7 +45,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableCommandProcessing
 @EnableServiceException
 @EnableCrypto
-@EnableAnubis(storeTenantKeysAtInitialization = false)
+@EnableAnubis(provideSignatureStorage = false)
 @ComponentScan({
     "io.mifos.identity.rest",
     "io.mifos.identity.internal.service",

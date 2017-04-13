@@ -17,7 +17,7 @@ package io.mifos.identity.rest;
 
 import io.mifos.anubis.annotation.AcceptedTokenType;
 import io.mifos.anubis.annotation.Permittable;
-import io.mifos.anubis.api.v1.domain.Signature;
+import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.identity.internal.command.handler.Provisioner;
 import io.mifos.identity.internal.service.TenantService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +29,9 @@ import org.springframework.web.bind.annotation.*;
 /**
  * @author Myrle Krantz
  */
+@SuppressWarnings("unused")
 @RestController
-@RequestMapping("/initialize")
+@RequestMapping()
 public class InitializeRestController {
   private final TenantService tenantService;
   private final Provisioner provisioner;
@@ -44,11 +45,12 @@ public class InitializeRestController {
     this.provisioner = provisioner;
   }
 
-  @RequestMapping(method = RequestMethod.POST,
-      consumes = {MediaType.ALL_VALUE},
-      produces = {MediaType.APPLICATION_JSON_VALUE})
+  @RequestMapping(value = "/initialize",
+          method = RequestMethod.POST,
+          consumes = {MediaType.ALL_VALUE},
+          produces = {MediaType.APPLICATION_JSON_VALUE})
   @Permittable(AcceptedTokenType.SYSTEM)
-  public @ResponseBody ResponseEntity<Signature> initializeTenant(
+  public @ResponseBody ResponseEntity<ApplicationSignatureSet> initializeTenant(
       @RequestParam("password") final String adminPassword)
   {
     if (tenantService.tenantAlreadyProvisioned())
@@ -57,9 +59,18 @@ public class InitializeRestController {
     }
 
 
-    final Signature signature = provisioner.provisionTenant(adminPassword);
+    final ApplicationSignatureSet signatureSet = provisioner.provisionTenant(adminPassword);
 
-    return new ResponseEntity<>(signature,
+    return new ResponseEntity<>(signatureSet,
         HttpStatus.OK);
+  }
+
+  @RequestMapping(value = "/signatures",
+          method = RequestMethod.POST,
+          consumes = {MediaType.ALL_VALUE},
+          produces = {MediaType.APPLICATION_JSON_VALUE})
+  @Permittable(AcceptedTokenType.SYSTEM)
+  public @ResponseBody ResponseEntity<ApplicationSignatureSet> createSignatureSet() {
+    return ResponseEntity.ok(tenantService.createSignatureSet());
   }
 }

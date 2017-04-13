@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import io.mifos.anubis.api.v1.client.Anubis;
 import io.mifos.anubis.api.v1.domain.*;
 import io.mifos.anubis.test.v1.SystemSecurityEnvironment;
 import io.mifos.core.api.context.AutoUserContext;
@@ -26,10 +27,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.security.PublicKey;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 import static io.mifos.identity.api.v1.EventConstants.*;
 
@@ -169,7 +167,10 @@ public class TestAuthentication extends AbstractComponentTest {
   public PublicKey getPublicKey() {
     try (final AutoUserContext ignored = tenantApplicationSecurityEnvironment.createAutoSeshatContext())
     {
-      final Signature sig = getTestSubject().getSignature();
+      final Anubis anubis = tenantApplicationSecurityEnvironment.getAnubis();
+      final List<String> signatureKeyTimestamps = anubis.getAllSignatureSets();
+      Assert.assertTrue(!signatureKeyTimestamps.isEmpty());
+      final Signature sig = anubis.getApplicationSignature(signatureKeyTimestamps.get(0));
 
       return new RsaPublicKeyBuilder()
               .setPublicKeyMod(sig.getPublicKeyMod())

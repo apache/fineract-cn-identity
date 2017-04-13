@@ -16,10 +16,11 @@
 package io.mifos.identity.internal.command.handler;
 
 import com.datastax.driver.core.exceptions.InvalidQueryException;
-import io.mifos.anubis.api.v1.domain.Signature;
+import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.core.lang.ServiceException;
 import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.identity.api.v1.PermittableGroupIds;
+import io.mifos.identity.internal.mapper.SignatureMapper;
 import io.mifos.identity.internal.repository.*;
 import io.mifos.identity.internal.util.IdentityConstants;
 import io.mifos.tool.crypto.SaltGenerator;
@@ -40,6 +41,7 @@ import java.util.stream.Stream;
  */
 @Component
 public class Provisioner {
+  private final Signatures signature;
   private final Tenants tenant;
   private final Users users;
   private final PermittableGroups permittableGroups;
@@ -59,6 +61,7 @@ public class Provisioner {
 
   @Autowired
   Provisioner(
+          final Signatures signature,
           final Tenants tenant,
           final Users users,
           final Roles roles,
@@ -67,6 +70,7 @@ public class Provisioner {
           @Qualifier(IdentityConstants.LOGGER_NAME) final Logger logger,
           final SaltGenerator saltGenerator)
   {
+    this.signature = signature;
     this.tenant = tenant;
     this.users = users;
     this.permittableGroups = permittableGroups;
@@ -76,18 +80,20 @@ public class Provisioner {
     this.saltGenerator = saltGenerator;
   }
 
-  public Signature provisionTenant(final String initialPasswordHash) {
+  public ApplicationSignatureSet provisionTenant(final String initialPasswordHash) {
     final RsaKeyPairFactory.KeyPairHolder keys = RsaKeyPairFactory.createKeyPair();
 
     byte[] fixedSalt = this.saltGenerator.createRandomSalt();
 
     try {
+      signature.buildTable();
       tenant.buildTable();
       users.buildTable();
       permittableGroups.buildTable();
       roles.buildTable();
 
-      tenant.add(fixedSalt, keys, passwordExpiresInDays, timeToChangePasswordAfterExpirationInDays);
+      final SignatureEntity signatureEntity = signature.add(keys);
+      tenant.add(fixedSalt, passwordExpiresInDays, timeToChangePasswordAfterExpirationInDays);
 
       createPermittablesGroup(PermittableGroupIds.ROLE_MANAGEMENT, "/roles/*", "/permittablegroups/*");
       createPermittablesGroup(PermittableGroupIds.IDENTITY_MANAGEMENT, "/users/*");
@@ -107,14 +113,14 @@ public class Provisioner {
               .build(IdentityConstants.SU_NAME, IdentityConstants.SU_ROLE, initialPasswordHash, true,
                       fixedSalt, timeToChangePasswordAfterExpirationInDays);
       users.add(suUser);
+
+      return SignatureMapper.mapToApplicationSignatureSet(signatureEntity);
     }
     catch (final InvalidQueryException e)
     {
       logger.error("Failed to provision cassandra tables for tenant.", e);
       throw ServiceException.internalError("Failed to provision tenant.");
     }
-
-    return new Signature(keys.getPublicKeyMod(), keys.getPublicKeyExp());
   }
 
   private PermissionType fullAccess(final String permittableGroupIdentifier) {
