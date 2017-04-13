@@ -15,7 +15,7 @@
  */
 import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.identity.api.v1.EventConstants;
+import io.mifos.identity.api.v1.events.EventConstants;
 import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.domain.*;
 import org.junit.Assert;

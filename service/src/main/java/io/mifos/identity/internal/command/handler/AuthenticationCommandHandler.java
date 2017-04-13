@@ -30,7 +30,7 @@ import io.mifos.core.lang.ServiceException;
 import io.mifos.core.lang.TenantContextHolder;
 import io.mifos.core.lang.config.TenantHeaderFilter;
 import io.mifos.core.lang.security.RsaPrivateKeyBuilder;
-import io.mifos.identity.api.v1.EventConstants;
+import io.mifos.identity.api.v1.events.EventConstants;
 import io.mifos.identity.internal.command.AuthenticationCommandResponse;
 import io.mifos.identity.internal.command.PasswordAuthenticationCommand;
 import io.mifos.identity.internal.command.RefreshTokenAuthenticationCommand;

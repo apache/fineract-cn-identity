@@ -46,6 +46,7 @@ public class Provisioner {
   private final Users users;
   private final PermittableGroups permittableGroups;
   private final Roles roles;
+  private final ApplicationSignatures applicationSignatures;
   private final UserEntityCreator userEntityCreator;
   private final Logger logger;
   private final SaltGenerator saltGenerator;
@@ -66,6 +67,7 @@ public class Provisioner {
           final Users users,
           final Roles roles,
           final PermittableGroups permittableGroups,
+          final ApplicationSignatures applicationSignatures,
           final UserEntityCreator userEntityCreator,
           @Qualifier(IdentityConstants.LOGGER_NAME) final Logger logger,
           final SaltGenerator saltGenerator)
@@ -75,6 +77,7 @@ public class Provisioner {
     this.users = users;
     this.permittableGroups = permittableGroups;
     this.roles = roles;
+    this.applicationSignatures = applicationSignatures;
     this.userEntityCreator = userEntityCreator;
     this.logger = logger;
     this.saltGenerator = saltGenerator;
@@ -91,6 +94,7 @@ public class Provisioner {
       users.buildTable();
       permittableGroups.buildTable();
       roles.buildTable();
+      applicationSignatures.buildTable();
 
       final SignatureEntity signatureEntity = signature.add(keys);
       tenant.add(fixedSalt, passwordExpiresInDays, timeToChangePasswordAfterExpirationInDays);

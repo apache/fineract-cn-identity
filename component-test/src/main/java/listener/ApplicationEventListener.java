@@ -17,6 +17,7 @@ package listener;
 
 import io.mifos.core.lang.config.TenantHeaderFilter;
 import io.mifos.core.test.listener.EventRecorder;
+import io.mifos.identity.api.v1.events.ApplicationSignatureEvent;
 import io.mifos.identity.api.v1.events.EventConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
@@ -28,24 +29,35 @@ import org.springframework.stereotype.Component;
  */
 @SuppressWarnings("unused")
 @Component
-public class AuthenticationEventListener {
+public class ApplicationEventListener {
 
   private final EventRecorder eventRecorder;
 
   @Autowired
-  public AuthenticationEventListener(@SuppressWarnings("SpringJavaAutowiringInspection") final EventRecorder eventRecorder)
+  public ApplicationEventListener(@SuppressWarnings("SpringJavaAutowiringInspection") final EventRecorder eventRecorder)
   {
     this.eventRecorder = eventRecorder;
   }
 
   @JmsListener(
-      subscription = EventConstants.DESTINATION,
-      destination = EventConstants.DESTINATION,
-      selector = EventConstants.SELECTOR_AUTHENTICATE
+          subscription = EventConstants.DESTINATION,
+          destination = EventConstants.DESTINATION,
+          selector = EventConstants.SELECTOR_PUT_APPLICATION_SIGNATURE
   )
-  public void onAuthentication(
-      @Header(TenantHeaderFilter.TENANT_HEADER)final String tenant,
-      final String payload) throws Exception {
-    eventRecorder.event(tenant, EventConstants.OPERATION_AUTHENTICATE, payload, String.class);
+  public void onSetApplicationSignature(
+          @Header(TenantHeaderFilter.TENANT_HEADER)final String tenant,
+          final String payload) throws Exception {
+    eventRecorder.event(tenant, EventConstants.OPERATION_PUT_APPLICATION_SIGNATURE, payload, ApplicationSignatureEvent.class);
+  }
+
+  @JmsListener(
+          subscription = EventConstants.DESTINATION,
+          destination = EventConstants.DESTINATION,
+          selector = EventConstants.SELECTOR_DELETE_APPLICATION
+  )
+  public void onDeleteApplication(
+          @Header(TenantHeaderFilter.TENANT_HEADER)final String tenant,
+          final String payload) throws Exception {
+    eventRecorder.event(tenant, EventConstants.OPERATION_DELETE_APPLICATION, payload, String.class);
   }
 }

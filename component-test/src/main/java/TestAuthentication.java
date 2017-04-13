@@ -29,7 +29,7 @@ import org.junit.Test;
 import java.security.PublicKey;
 import java.util.*;
 
-import static io.mifos.identity.api.v1.EventConstants.*;
+import static io.mifos.identity.api.v1.events.EventConstants.*;
 
 /**
  * @author Myrle Krantz

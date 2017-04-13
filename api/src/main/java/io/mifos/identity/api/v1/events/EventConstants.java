@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.mifos.identity.api.v1;
+package io.mifos.identity.api.v1.events;
 
 /**
  * @author Myrle Krantz
@@ -26,7 +26,7 @@ public interface EventConstants {
 
   String OPERATION_AUTHENTICATE = "auth";
 
-  String OPERATION_POST_PERMITTABLE_GROUP = "post-role";
+  String OPERATION_POST_PERMITTABLE_GROUP = "post-permittablegroup";
 
   String OPERATION_POST_ROLE = "post-role";
   String OPERATION_PUT_ROLE = "put-role";
@@ -35,6 +35,11 @@ public interface EventConstants {
   String OPERATION_POST_USER = "post-user";
   String OPERATION_PUT_USER_ROLEIDENTIFIER = "put-user-roleidentifier";
   String OPERATION_PUT_USER_PASSWORD = "put-user-password";
+
+  String OPERATION_DELETE_APPLICATION = "delete-application";
+  String OPERATION_POST_APPLICATION_PERMISSION = "post-application-permission";
+  String OPERATION_DELETE_APPLICATION_PERMISSION = "delete-application-permission";
+  String OPERATION_PUT_APPLICATION_SIGNATURE =   "put-application-signature";
 
   String SELECTOR_AUTHENTICATE = OPERATION_HEADER + " = '" + OPERATION_AUTHENTICATE + "'";
 
@@ -47,4 +52,9 @@ public interface EventConstants {
   String SELECTOR_POST_USER = OPERATION_HEADER + " = '" + OPERATION_POST_USER + "'";
   String SELECTOR_PUT_USER_ROLEIDENTIFIER = OPERATION_HEADER + " = '" + OPERATION_PUT_USER_ROLEIDENTIFIER + "'";
   String SELECTOR_PUT_USER_PASSWORD = OPERATION_HEADER + " = '" + OPERATION_PUT_USER_PASSWORD + "'";
+
+  String SELECTOR_DELETE_APPLICATION = OPERATION_HEADER + " = '" + OPERATION_DELETE_APPLICATION + "'";
+  String SELECTOR_POST_APPLICATION_PERMISSION = OPERATION_HEADER + " = '" + OPERATION_POST_APPLICATION_PERMISSION + "'";
+  String SELECTOR_DELETE_APPLICATION_PERMISSION = OPERATION_HEADER + " = '" + OPERATION_DELETE_APPLICATION_PERMISSION + "'";
+  String SELECTOR_PUT_APPLICATION_SIGNATURE = OPERATION_HEADER + " = '" + OPERATION_PUT_APPLICATION_SIGNATURE + "'";
 }

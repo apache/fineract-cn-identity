@@ -16,7 +16,7 @@
 import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.NotFoundException;
 import io.mifos.core.test.domain.DateStampChecker;
-import io.mifos.identity.api.v1.EventConstants;
+import io.mifos.identity.api.v1.events.EventConstants;
 import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.api.v1.domain.Password;
 import io.mifos.identity.api.v1.domain.UserWithPassword;
