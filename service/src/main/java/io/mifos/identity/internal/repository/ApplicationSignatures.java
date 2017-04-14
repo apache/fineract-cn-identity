@@ -16,12 +16,14 @@
 package io.mifos.identity.internal.repository;
 
 import com.datastax.driver.core.DataType;
+import com.datastax.driver.core.ResultSet;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
+import com.datastax.driver.core.querybuilder.Delete;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.schemabuilder.Create;
 import com.datastax.driver.core.schemabuilder.SchemaBuilder;
-import com.datastax.driver.core.schemabuilder.SchemaStatement;
 import com.datastax.driver.mapping.Mapper;
 import io.mifos.core.cassandra.core.CassandraSessionProvider;
 import io.mifos.core.cassandra.core.TenantAwareCassandraMapperProvider;
@@ -39,7 +41,6 @@ import java.util.Optional;
 @Component
 public class ApplicationSignatures {
   static final java.lang.String TABLE_NAME = "isis_application_signatures";
-  private static final String INDEX_NAME = "isis_application_signatures_timestamp_index";
   static final String APPLICATION_IDENTIFIER_COLUMN = "application_identifier";
   static final String KEY_TIMESTAMP_COLUMN = "key_timestamp";
   static final String PUBLIC_KEY_MOD_COLUMN = "public_key_mod";
@@ -62,18 +63,11 @@ public class ApplicationSignatures {
   {
     final Create createTable = SchemaBuilder.createTable(TABLE_NAME)
             .addPartitionKey(APPLICATION_IDENTIFIER_COLUMN, DataType.text())
-            .addColumn(KEY_TIMESTAMP_COLUMN, DataType.text())
+            .addClusteringColumn(KEY_TIMESTAMP_COLUMN, DataType.text())
             .addColumn(PUBLIC_KEY_MOD_COLUMN, DataType.varint())
             .addColumn(PUBLIC_KEY_EXP_COLUMN, DataType.varint());
 
     cassandraSessionProvider.getTenantSession().execute(createTable);
-
-    final SchemaStatement createIndex = SchemaBuilder.createIndex(INDEX_NAME)
-            .ifNotExists()
-            .onTable(TABLE_NAME)
-            .andColumn(KEY_TIMESTAMP_COLUMN);
-
-    cassandraSessionProvider.getTenantSession().execute(createIndex);
   }
 
   public void add(final ApplicationSignatureEntity entity) {
@@ -105,11 +99,16 @@ public class ApplicationSignatures {
   }
 
   public void delete(final String applicationIdentifier) {
-    Optional<ApplicationSignatureEntity> applicationSignatureEntity = tenantAwareEntityTemplate.findById(ApplicationSignatureEntity.class, applicationIdentifier);
-    applicationSignatureEntity.ifPresent(tenantAwareEntityTemplate::delete);
+    final Delete.Where deleteStatement = QueryBuilder.delete().from(TABLE_NAME)
+            .where(QueryBuilder.eq(APPLICATION_IDENTIFIER_COLUMN, applicationIdentifier));
+    cassandraSessionProvider.getTenantSession().execute(deleteStatement);
   }
 
   public boolean signaturesExistForApplication(final String applicationIdentifier) {
-    return tenantAwareEntityTemplate.findById(ApplicationSignatureEntity.class, applicationIdentifier).isPresent();
+    final Select.Where selectStatement = QueryBuilder.select().from(TABLE_NAME)
+            .where(QueryBuilder.eq(APPLICATION_IDENTIFIER_COLUMN, applicationIdentifier));
+    final ResultSet selected = cassandraSessionProvider.getTenantSession().execute(selectStatement);
+    final int count = selected.getAvailableWithoutFetching();
+    return count > 0;
   }
 }

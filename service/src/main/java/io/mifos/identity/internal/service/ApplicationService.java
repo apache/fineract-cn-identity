@@ -16,11 +16,16 @@
 package io.mifos.identity.internal.service;
 
 import io.mifos.anubis.api.v1.domain.Signature;
+import io.mifos.identity.api.v1.domain.Permission;
+import io.mifos.identity.internal.mapper.PermissionMapper;
+import io.mifos.identity.internal.mapper.SignatureMapper;
+import io.mifos.identity.internal.repository.ApplicationPermissions;
 import io.mifos.identity.internal.repository.ApplicationSignatureEntity;
 import io.mifos.identity.internal.repository.ApplicationSignatures;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,32 +36,39 @@ import java.util.stream.Collectors;
 @Service
 public class ApplicationService {
 
-  private final ApplicationSignatures repository;
+  private final ApplicationSignatures applicationSignaturesRepository;
+  private final ApplicationPermissions applicationPermissionsRepository;
 
   @Autowired
-  public ApplicationService(final ApplicationSignatures repository) {
-    this.repository = repository;
+  public ApplicationService(final ApplicationSignatures applicationSignaturesRepository,
+                            final ApplicationPermissions applicationPermissionsRepository) {
+    this.applicationSignaturesRepository = applicationSignaturesRepository;
+    this.applicationPermissionsRepository = applicationPermissionsRepository;
   }
 
-  public List<String> findAll() {
-    return repository.getAll().stream()
+  public List<String> getAllApplications() {
+    return applicationSignaturesRepository.getAll().stream()
             .map(ApplicationSignatureEntity::getApplicationIdentifier)
             .collect(Collectors.toList());
   }
 
-  public boolean exists(final String applicationIdentifier) {
-    return repository.signaturesExistForApplication(applicationIdentifier);
+  public List<Permission> getAllPermissionsForApplication(final String applicationIdentifier) {
+    return applicationPermissionsRepository.getAllPermissionsForApplication(applicationIdentifier).stream()
+            .map(PermissionMapper::mapToPermission)
+            .collect(Collectors.toList());
   }
 
   public Optional<Signature> getSignatureForApplication(final String applicationIdentifier, final String timestamp) {
-    return repository.get(applicationIdentifier, timestamp)
-            .map(this::mapToSignature);
+    return applicationSignaturesRepository.get(applicationIdentifier, timestamp)
+            .map(SignatureMapper::mapToSignature);
   }
 
-  private Signature mapToSignature(final ApplicationSignatureEntity entity) {
-    final Signature ret = new Signature();
-    ret.setPublicKeyExp(entity.getPublicKeyExp());
-    ret.setPublicKeyMod(entity.getPublicKeyMod());
-    return ret;
+  public boolean applicationExists(final String applicationIdentifier) {
+    return applicationSignaturesRepository.signaturesExistForApplication(applicationIdentifier);
+  }
+
+  public boolean applicationPermissionExists(final @Nonnull String applicationIdentifier,
+                                             final @Nonnull String permittableGroupIdentifier) {
+    return applicationPermissionsRepository.exists(applicationIdentifier, permittableGroupIdentifier);
   }
 }

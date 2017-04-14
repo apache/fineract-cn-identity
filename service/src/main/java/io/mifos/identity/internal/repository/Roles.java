@@ -24,12 +24,10 @@ import com.datastax.driver.mapping.Mapper;
 import io.mifos.core.cassandra.core.CassandraSessionProvider;
 import io.mifos.core.cassandra.core.TenantAwareCassandraMapperProvider;
 import io.mifos.core.cassandra.core.TenantAwareEntityTemplate;
-import io.mifos.core.cassandra.util.CodecRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,10 +40,6 @@ public class Roles {
   static final String TABLE_NAME = "isis_roles";
   static final String IDENTIFIER_COLUMN = "identifier";
   static final String PERMISSIONS_COLUMN = "permissions";
-
-  static final String TYPE_NAME = "isis_permission";
-  static final String PERMITTABLE_GROUP_IDENTIFIER_FIELD = "permittable_group_identifier";
-  static final String ALLOWED_OPERATIONS_FIELD = "allowed_operations";
 
   private final CassandraSessionProvider cassandraSessionProvider;
   private final TenantAwareEntityTemplate tenantAwareEntityTemplate;
@@ -62,28 +56,15 @@ public class Roles {
   }
 
   public void buildTable() {
-    final String type_statement =
-            SchemaBuilder.createType(TYPE_NAME)
-                    .addColumn(PERMITTABLE_GROUP_IDENTIFIER_FIELD, DataType.text())
-                    .addColumn(ALLOWED_OPERATIONS_FIELD, DataType.set(DataType.text()))
-                    .buildInternal();
-    cassandraSessionProvider.getTenantSession().execute(type_statement);
 
     final String table_statement =
             SchemaBuilder.createTable(TABLE_NAME)
                     .addPartitionKey(IDENTIFIER_COLUMN, DataType.text())
-                    .addUDTListColumn(PERMISSIONS_COLUMN, SchemaBuilder.frozen(TYPE_NAME))
+                    .addUDTListColumn(PERMISSIONS_COLUMN, SchemaBuilder.frozen(Permissions.TYPE_NAME))
                     .buildInternal();
 
     cassandraSessionProvider.getTenantSession().execute(table_statement);
 
-  }
-
-  @SuppressWarnings("unchecked")
-  @PostConstruct
-  public void initialize()
-  {
-    CodecRegistry.register(AllowedOperationType.getCodec());
   }
 
   public void add(final RoleEntity instance) {

@@ -23,7 +23,9 @@ import io.mifos.anubis.api.v1.validation.ValidKeyTimestamp;
 import io.mifos.core.command.gateway.CommandGateway;
 import io.mifos.core.lang.ServiceException;
 import io.mifos.identity.api.v1.domain.Permission;
+import io.mifos.identity.internal.command.CreateApplicationPermissionCommand;
 import io.mifos.identity.internal.command.DeleteApplicationCommand;
+import io.mifos.identity.internal.command.DeleteApplicationPermissionCommand;
 import io.mifos.identity.internal.command.SetApplicationSignatureCommand;
 import io.mifos.identity.internal.service.ApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +33,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.Nonnull;
 import javax.validation.Valid;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,7 +59,7 @@ public class ApplicationRestController {
   public @ResponseBody
   ResponseEntity<List<String>>
   getApplications() {
-    return ResponseEntity.ok(service.findAll());
+    return ResponseEntity.ok(service.getAllApplications());
   }
 
   @RequestMapping(value = "/{applicationidentifier}", method = RequestMethod.DELETE,
@@ -66,7 +68,7 @@ public class ApplicationRestController {
   @Permittable(value = AcceptedTokenType.SYSTEM)
   public @ResponseBody
   ResponseEntity<Void>
-  deleteApplication(@PathVariable("applicationidentifier") String applicationIdentifier) {
+  deleteApplication(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier) {
     checkApplicationIdentifier(applicationIdentifier);
     commandGateway.process(new DeleteApplicationCommand(applicationIdentifier));
     return ResponseEntity.accepted().build();
@@ -78,9 +80,10 @@ public class ApplicationRestController {
   @Permittable(value = AcceptedTokenType.SYSTEM)
   public @ResponseBody
   ResponseEntity<Void>
-  createApplicationPermission(@PathVariable("applicationidentifier") String applicationIdentifier,
+  createApplicationPermission(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier,
                               @RequestBody @Valid Permission permission) {
     checkApplicationIdentifier(applicationIdentifier);
+    commandGateway.process(new CreateApplicationPermissionCommand(applicationIdentifier, permission));
     return ResponseEntity.accepted().build();
   }
 
@@ -90,9 +93,9 @@ public class ApplicationRestController {
   @Permittable(value = AcceptedTokenType.SYSTEM)
   public @ResponseBody
   ResponseEntity<List<Permission>>
-  getApplicationPermissions(@PathVariable("applicationidentifier") String applicationIdentifier) {
+  getApplicationPermissions(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier) {
     checkApplicationIdentifier(applicationIdentifier);
-    return ResponseEntity.ok(new ArrayList<>());
+    return ResponseEntity.ok(service.getAllPermissionsForApplication(applicationIdentifier));
   }
 
   @RequestMapping(value = "/{applicationidentifier}/permissions/{permissionidentifier}", method = RequestMethod.DELETE,
@@ -101,9 +104,11 @@ public class ApplicationRestController {
   @Permittable(value = AcceptedTokenType.SYSTEM)
   public @ResponseBody
   ResponseEntity<Void>
-  deleteApplicationPermission(@PathVariable("applicationidentifier") String applicationIdentifier,
-                              @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier)
+  deleteApplicationPermission(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier,
+                              @PathVariable("permissionidentifier") @Nonnull String permittableEndpointGroupIdentifier)
   {
+    checkApplicationPermissionIdentifier(applicationIdentifier, permittableEndpointGroupIdentifier);
+    commandGateway.process(new DeleteApplicationPermissionCommand(applicationIdentifier, permittableEndpointGroupIdentifier));
     return ResponseEntity.accepted().build();
   }
 
@@ -113,9 +118,9 @@ public class ApplicationRestController {
   @Permittable(value = AcceptedTokenType.SYSTEM)
   public @ResponseBody
   ResponseEntity<Void>
-  createApplicationPermissionUserApproval(@PathVariable("applicationidentifier") String applicationIdentifier,
-                                          @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier,
-                                          @PathVariable("useridentifier") String userIdentifier)
+  createApplicationPermissionUserApproval(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier,
+                                          @PathVariable("permissionidentifier") @Nonnull String permittableEndpointGroupIdentifier,
+                                          @PathVariable("useridentifier") @Nonnull String userIdentifier)
   {
     return ResponseEntity.accepted().build();
   }
@@ -126,9 +131,9 @@ public class ApplicationRestController {
   @Permittable(value = AcceptedTokenType.SYSTEM)
   public @ResponseBody
   ResponseEntity<Void>
-  deleteApplicationPermissionUserApproval(@PathVariable("applicationidentifier") String applicationIdentifier,
-                                          @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier,
-                                          @PathVariable("useridentifier") String userIdentifier)
+  deleteApplicationPermissionUserApproval(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier,
+                                          @PathVariable("permissionidentifier") @Nonnull String permittableEndpointGroupIdentifier,
+                                          @PathVariable("useridentifier") @Nonnull String userIdentifier)
   {
     return ResponseEntity.accepted().build();
   }
@@ -139,7 +144,7 @@ public class ApplicationRestController {
   @Permittable(value = AcceptedTokenType.SYSTEM)
   public @ResponseBody
   ResponseEntity<Void>
-  setApplicationSignature(@PathVariable("applicationidentifier") String applicationIdentifier,
+  setApplicationSignature(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier,
                           @PathVariable("timestamp") @ValidKeyTimestamp String timestamp,
                           @RequestBody @Valid Signature signature) {
     commandGateway.process(new SetApplicationSignatureCommand(applicationIdentifier, timestamp, signature));
@@ -153,18 +158,22 @@ public class ApplicationRestController {
   @Permittable(value = AcceptedTokenType.SYSTEM)
   public @ResponseBody
   ResponseEntity<Signature>
-  getApplicationSignature(@PathVariable("applicationidentifier") String applicationIdentifier,
+  getApplicationSignature(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier,
                           @PathVariable("timestamp") @ValidKeyTimestamp String timestamp) {
     return service.getSignatureForApplication(applicationIdentifier, timestamp)
             .map(ResponseEntity::ok)
             .orElseThrow(() -> ServiceException.notFound("Signature for application " + applicationIdentifier + " and key timestamp " + timestamp + "doesn't exist."));
   }
 
-  private void checkApplicationIdentifier(final String identifier) {
-    if (identifier == null)
-      throw ServiceException.badRequest("identifier may not be null.");
-
-    if (!service.exists(identifier))
+  private void checkApplicationIdentifier(final @Nonnull String identifier) {
+    if (!service.applicationExists(identifier))
       throw ServiceException.notFound("Application with identifier " + identifier + " doesn't exist.");
+  }
+
+  private void checkApplicationPermissionIdentifier(final @Nonnull String applicationIdentifier,
+                                                    final @Nonnull String permittableEndpointGroupIdentifier) {
+    if (!service.applicationPermissionExists(applicationIdentifier, permittableEndpointGroupIdentifier))
+      throw ServiceException.notFound("Application permission '"
+              + applicationIdentifier + "." + permittableEndpointGroupIdentifier + "' doesn't exist.");
   }
 }
