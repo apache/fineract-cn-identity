@@ -57,7 +57,7 @@ public class AuthenticationCommandHandlerTest {
   private static final String ROLE = "I";
   private static final String PASSWORD = "mine";
   private static final int ITERATION_COUNT = 20;
-  private static final String TEST_APPLICATION_NAME = "test/v1";
+  private static final String TEST_APPLICATION_NAME = "test-v1";
   private static final long ACCESS_TOKEN_TIME_TO_LIVE = 20;
   private static final long REFRESH_TOKEN_TIME_TO_LIVE = 40;
   private static final int GRACE_PERIOD = 2;
@@ -123,7 +123,7 @@ public class AuthenticationCommandHandlerTest {
     final TokenSerializationResult refreshTokenSerializationResult = new TokenSerializationResult("blah", LocalDateTime.now(ZoneId.of("UTC")).plusSeconds(REFRESH_TOKEN_TIME_TO_LIVE));
     when(tenantRefreshTokenSerializer.build(anyObject())).thenReturn(refreshTokenSerializationResult);
 
-    final TenantRefreshTokenSerializer.Deserialized deserialized = new TenantRefreshTokenSerializer.Deserialized(USER_NAME, Date.from(Instant.now().plusSeconds(REFRESH_TOKEN_TIME_TO_LIVE)));
+    final TenantRefreshTokenSerializer.Deserialized deserialized = new TenantRefreshTokenSerializer.Deserialized(USER_NAME, Date.from(Instant.now().plusSeconds(REFRESH_TOKEN_TIME_TO_LIVE)), TEST_APPLICATION_NAME);
     when(tenantRefreshTokenSerializer.deserialize(anyObject())).thenReturn(deserialized);
 
     when(hashGenerator.isEqual(any(), any(), any(), any(), anyInt(), anyInt())).thenReturn(true);

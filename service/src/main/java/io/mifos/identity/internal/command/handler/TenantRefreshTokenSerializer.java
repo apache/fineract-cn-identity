@@ -52,6 +52,7 @@ class TenantRefreshTokenSerializer {
     private PrivateKey privateKey;
     private String user;
     private long secondsToLive;
+    private String sourceApplication;
 
     Specification setKeyTimestamp(final String keyTimestamp) {
       this.keyTimestamp = keyTimestamp;
@@ -72,15 +73,22 @@ class TenantRefreshTokenSerializer {
       this.secondsToLive = secondsToLive;
       return this;
     }
+
+    Specification setSourceApplication(final String sourceApplication) {
+      this.sourceApplication = sourceApplication;
+      return this;
+    }
   }
 
   static class Deserialized {
     final private String userIdentifier;
     final private Date expiration;
+    final private String sourceApplication;
 
-    Deserialized(final String userIdentifier, final Date expiration) {
+    Deserialized(final String userIdentifier, final Date expiration, final String sourceApplication) {
       this.userIdentifier = userIdentifier;
       this.expiration = expiration;
+      this.sourceApplication = sourceApplication;
     }
 
     String getUserIdentifier() {
@@ -89,6 +97,10 @@ class TenantRefreshTokenSerializer {
 
     Date getExpiration() {
       return expiration;
+    }
+
+    String getSourceApplication() {
+      return sourceApplication;
     }
   }
 
@@ -102,9 +114,13 @@ class TenantRefreshTokenSerializer {
     if (specification.privateKey == null) {
       throw new IllegalArgumentException("token signature privateKey must not be null.");
     }
+    if (specification.sourceApplication == null) {
+      throw new IllegalArgumentException("token source application must not be null.");
+    }
 
     final JwtBuilder jwtBuilder =
         Jwts.builder()
+            .setIssuer(specification.sourceApplication)
             .setSubject(specification.user)
             .claim(TokenConstants.JWT_SIGNATURE_TIMESTAMP_CLAIM, specification.keyTimestamp)
             .setIssuer(TokenType.TENANT.getIssuer())
@@ -152,7 +168,7 @@ class TenantRefreshTokenSerializer {
 
       @SuppressWarnings("unchecked") Jwt<Header, Claims> jwt = parser.parse(token);
 
-      return new Deserialized(jwt.getBody().getSubject(), jwt.getBody().getExpiration());
+      return new Deserialized(jwt.getBody().getSubject(), jwt.getBody().getExpiration(), jwt.getBody().getIssuer());
     }
     catch (final JwtException e) {
       throw AmitAuthenticationException.invalidToken();

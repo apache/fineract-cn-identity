@@ -317,7 +317,8 @@ public class AuthenticationCommandHandler {
             .setKeyTimestamp(privateSignatureEntity.getKeyTimestamp())
             .setPrivateKey(privateKey)
             .setSecondsToLive(refreshTtl)
-            .setUser(user.getIdentifier());
+            .setUser(user.getIdentifier())
+            .setSourceApplication(applicationName.toString());
 
     return tenantRefreshTokenSerializer.build(x);
   }
