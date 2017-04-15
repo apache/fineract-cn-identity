@@ -112,6 +112,14 @@ public class AuthenticationCommandHandler {
   public AuthenticationCommandResponse process(final PasswordAuthenticationCommand command)
       throws AmitAuthenticationException
   {
+    final byte[] base64decodedPassword;
+    try {
+      base64decodedPassword = Base64Utils.decodeFromString(command.getPassword());
+    }
+    catch (final IllegalArgumentException e)
+    {
+      throw ServiceException.badRequest("Password was not base64 encoded.");
+    }
 
     final PrivateTenantInfoEntity privateTenantInfo = checkedGetPrivateTenantInfo();
     final PrivateSignatureEntity privateSignature = checkedGetPrivateSignature();
@@ -120,12 +128,12 @@ public class AuthenticationCommandHandler {
     final UserEntity user = getUser(command.getUseridentifier());
 
     if (!this.hashGenerator.isEqual(
-        user.getPassword().array(),
-        Base64Utils.decodeFromString(command.getPassword()),
-        fixedSalt,
-        user.getSalt().array(),
-        user.getIterationCount(),
-        256))
+            user.getPassword().array(),
+            base64decodedPassword,
+            fixedSalt,
+            user.getSalt().array(),
+            user.getIterationCount(),
+            256))
     {
       throw AmitAuthenticationException.userPasswordCombinationNotFound();
     }

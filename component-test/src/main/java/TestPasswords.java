@@ -20,6 +20,7 @@ import io.mifos.identity.api.v1.events.EventConstants;
 import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.api.v1.domain.Password;
 import io.mifos.identity.api.v1.domain.UserWithPassword;
+import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -150,5 +151,19 @@ public class TestPasswords extends AbstractComponentTest {
       try (final AutoUserContext ignored2 = enableAndLoginAdmin()) { //logging into admin with the old password should *not* fail.
       }
     }
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void loginWithUnencodedPasswordShouldThrowIllegalArgumentException() throws InterruptedException {
+
+    try (final AutoUserContext ignored = enableAndLoginAdmin()) {
+      final String selfManagementRoleId = createSelfManagementRole();
+
+      final String userPassword = RandomStringUtils.randomAlphanumeric(5);
+      final String userid = createUserWithNonexpiredPassword(userPassword, selfManagementRoleId);
+
+      getTestSubject().login(userid, userPassword);
+    }
+
   }
 }

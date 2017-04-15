@@ -158,6 +158,20 @@ public class AuthorizationRestController {
       {
         throw AmitAuthenticationException.class.cast(e.getCause());
       }
+      else if (CommandProcessingException.class.isAssignableFrom(e.getCause().getClass()))
+      {
+        final CommandProcessingException commandProcessingException = (CommandProcessingException) e.getCause();
+        if (ServiceException.class.isAssignableFrom(commandProcessingException.getCause().getClass()))
+          throw (ServiceException)commandProcessingException.getCause();
+        else {
+          logger.error("Authentication failed with an unexpected error.", e);
+          throw ServiceException.internalError("An error occurred while attempting to authenticate a user.");
+        }
+      }
+      else if (ServiceException.class.isAssignableFrom(e.getCause().getClass()))
+      {
+        throw (ServiceException)e.getCause();
+      }
       else {
         logger.error("Authentication failed with an unexpected error.", e);
         throw ServiceException.internalError("An error occurred while attempting to authenticate a user.");
