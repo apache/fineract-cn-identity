@@ -17,6 +17,7 @@ package io.mifos.identity.internal.mapper;
 
 import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.anubis.api.v1.domain.Signature;
+import io.mifos.identity.internal.repository.ApplicationSignatureEntity;
 import io.mifos.identity.internal.repository.SignatureEntity;
 
 /**
@@ -28,5 +29,12 @@ public interface SignatureMapper {
             signatureEntity.getKeyTimestamp(),
             new Signature(signatureEntity.getPublicKeyMod(), signatureEntity.getPublicKeyExp()),
             new Signature(signatureEntity.getPublicKeyMod(), signatureEntity.getPublicKeyExp()));
+  }
+
+  static Signature mapToSignature(final ApplicationSignatureEntity entity) {
+    final Signature ret = new Signature();
+    ret.setPublicKeyExp(entity.getPublicKeyExp());
+    ret.setPublicKeyMod(entity.getPublicKeyMod());
+    return ret;
   }
 }

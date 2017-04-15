@@ -26,13 +26,13 @@ import java.util.Set;
  * @author Myrle Krantz
  */
 @SuppressWarnings({"unused", "WeakerAccess"})
-@UDT(name = Roles.TYPE_NAME)
+@UDT(name = Permissions.TYPE_NAME)
 public class PermissionType {
 
-  @Field(name = Roles.PERMITTABLE_GROUP_IDENTIFIER_FIELD)
+  @Field(name = Permissions.PERMITTABLE_GROUP_IDENTIFIER_FIELD)
   private String permittableGroupIdentifier;
 
-  @Field(name = Roles.ALLOWED_OPERATIONS_FIELD)
+  @Field(name = Permissions.ALLOWED_OPERATIONS_FIELD)
   private Set<AllowedOperationType> allowedOperations;
 
   public PermissionType() {

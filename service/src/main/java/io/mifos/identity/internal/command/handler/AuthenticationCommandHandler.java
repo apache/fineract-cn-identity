@@ -30,7 +30,7 @@ import io.mifos.core.lang.ServiceException;
 import io.mifos.core.lang.TenantContextHolder;
 import io.mifos.core.lang.config.TenantHeaderFilter;
 import io.mifos.core.lang.security.RsaPrivateKeyBuilder;
-import io.mifos.identity.api.v1.EventConstants;
+import io.mifos.identity.api.v1.events.EventConstants;
 import io.mifos.identity.internal.command.AuthenticationCommandResponse;
 import io.mifos.identity.internal.command.PasswordAuthenticationCommand;
 import io.mifos.identity.internal.command.RefreshTokenAuthenticationCommand;
@@ -112,6 +112,14 @@ public class AuthenticationCommandHandler {
   public AuthenticationCommandResponse process(final PasswordAuthenticationCommand command)
       throws AmitAuthenticationException
   {
+    final byte[] base64decodedPassword;
+    try {
+      base64decodedPassword = Base64Utils.decodeFromString(command.getPassword());
+    }
+    catch (final IllegalArgumentException e)
+    {
+      throw ServiceException.badRequest("Password was not base64 encoded.");
+    }
 
     final PrivateTenantInfoEntity privateTenantInfo = checkedGetPrivateTenantInfo();
     final PrivateSignatureEntity privateSignature = checkedGetPrivateSignature();
@@ -120,12 +128,12 @@ public class AuthenticationCommandHandler {
     final UserEntity user = getUser(command.getUseridentifier());
 
     if (!this.hashGenerator.isEqual(
-        user.getPassword().array(),
-        Base64Utils.decodeFromString(command.getPassword()),
-        fixedSalt,
-        user.getSalt().array(),
-        user.getIterationCount(),
-        256))
+            user.getPassword().array(),
+            base64decodedPassword,
+            fixedSalt,
+            user.getSalt().array(),
+            user.getIterationCount(),
+            256))
     {
       throw AmitAuthenticationException.userPasswordCombinationNotFound();
     }
@@ -317,7 +325,8 @@ public class AuthenticationCommandHandler {
             .setKeyTimestamp(privateSignatureEntity.getKeyTimestamp())
             .setPrivateKey(privateKey)
             .setSecondsToLive(refreshTtl)
-            .setUser(user.getIdentifier());
+            .setUser(user.getIdentifier())
+            .setSourceApplication(applicationName.toString());
 
     return tenantRefreshTokenSerializer.build(x);
   }

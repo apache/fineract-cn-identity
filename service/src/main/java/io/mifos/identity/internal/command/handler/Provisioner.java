@@ -45,7 +45,11 @@ public class Provisioner {
   private final Tenants tenant;
   private final Users users;
   private final PermittableGroups permittableGroups;
+  private final Permissions permissions;
   private final Roles roles;
+  private final ApplicationSignatures applicationSignatures;
+  private final ApplicationPermissions applicationPermissions;
+  private final ApplicationPermissionUsers applicationPermissionUsers;
   private final UserEntityCreator userEntityCreator;
   private final Logger logger;
   private final SaltGenerator saltGenerator;
@@ -64,8 +68,12 @@ public class Provisioner {
           final Signatures signature,
           final Tenants tenant,
           final Users users,
-          final Roles roles,
           final PermittableGroups permittableGroups,
+          final Permissions permissions,
+          final Roles roles,
+          final ApplicationSignatures applicationSignatures,
+          final ApplicationPermissions applicationPermissions,
+          final ApplicationPermissionUsers applicationPermissionUsers,
           final UserEntityCreator userEntityCreator,
           @Qualifier(IdentityConstants.LOGGER_NAME) final Logger logger,
           final SaltGenerator saltGenerator)
@@ -74,7 +82,11 @@ public class Provisioner {
     this.tenant = tenant;
     this.users = users;
     this.permittableGroups = permittableGroups;
+    this.permissions = permissions;
     this.roles = roles;
+    this.applicationSignatures = applicationSignatures;
+    this.applicationPermissions = applicationPermissions;
+    this.applicationPermissionUsers = applicationPermissionUsers;
     this.userEntityCreator = userEntityCreator;
     this.logger = logger;
     this.saltGenerator = saltGenerator;
@@ -90,14 +102,18 @@ public class Provisioner {
       tenant.buildTable();
       users.buildTable();
       permittableGroups.buildTable();
+      permissions.buildType();
       roles.buildTable();
+      applicationSignatures.buildTable();
+      applicationPermissions.buildTable();
+      applicationPermissionUsers.buildTable();
 
       final SignatureEntity signatureEntity = signature.add(keys);
       tenant.add(fixedSalt, passwordExpiresInDays, timeToChangePasswordAfterExpirationInDays);
 
       createPermittablesGroup(PermittableGroupIds.ROLE_MANAGEMENT, "/roles/*", "/permittablegroups/*");
       createPermittablesGroup(PermittableGroupIds.IDENTITY_MANAGEMENT, "/users/*");
-      createPermittablesGroup(PermittableGroupIds.SELF_MANAGEMENT, "/users/{useridentifier}/password");
+      createPermittablesGroup(PermittableGroupIds.SELF_MANAGEMENT, "/users/{useridentifier}/password", "/applications/*/permissions/*/users/{useridentifier}/enabled");
 
       final List<PermissionType> permissions = new ArrayList<>();
       permissions.add(fullAccess(PermittableGroupIds.ROLE_MANAGEMENT));

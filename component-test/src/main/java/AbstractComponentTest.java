@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.anubis.test.v1.TenantApplicationSecurityEnvironmentTestRule;
 import io.mifos.core.api.config.EnableApiFactory;
 import io.mifos.core.api.context.AutoUserContext;
@@ -23,11 +24,10 @@ import io.mifos.core.test.fixture.TenantDataStoreContextTestRule;
 import io.mifos.core.test.fixture.cassandra.CassandraInitializer;
 import io.mifos.core.test.listener.EnableEventRecording;
 import io.mifos.core.test.listener.EventRecorder;
-import io.mifos.identity.api.v1.EventConstants;
+import io.mifos.identity.api.v1.PermittableGroupIds;
+import io.mifos.identity.api.v1.domain.*;
+import io.mifos.identity.api.v1.events.EventConstants;
 import io.mifos.identity.api.v1.client.IdentityManager;
-import io.mifos.identity.api.v1.domain.Authentication;
-import io.mifos.identity.api.v1.domain.Password;
-import io.mifos.identity.api.v1.domain.UserWithPassword;
 import io.mifos.identity.config.IdentityServiceConfig;
 import org.junit.After;
 import org.junit.Assert;
@@ -44,6 +44,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.PostConstruct;
+import java.util.Collections;
 
 /**
  * @author Myrle Krantz
@@ -183,5 +184,67 @@ public class AbstractComponentTest {
       }
     }
     return username;
+  }
+
+  String generateRoleIdentifier() {
+    return Helpers.generateRandomIdentifier("scribe");
+  }
+
+  Role buildRole(final String identifier, final Permission rolePermission) {
+    final Role scribe = new Role();
+    scribe.setIdentifier(identifier);
+    scribe.setPermissions(Collections.emptyList());
+    scribe.setPermissions(Collections.singletonList(rolePermission));
+    return scribe;
+  }
+
+  Permission buildRolePermission() {
+    final Permission permission = new Permission();
+    permission.setAllowedOperations(AllowedOperation.ALL);
+    permission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.ROLE_MANAGEMENT);
+    return permission;
+  }
+
+  Permission buildUserPermission() {
+    final Permission permission = new Permission();
+    permission.setAllowedOperations(AllowedOperation.ALL);
+    permission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.IDENTITY_MANAGEMENT);
+    return permission;
+  }
+
+  private Permission buildSelfPermission() {
+    final Permission permission = new Permission();
+    permission.setAllowedOperations(AllowedOperation.ALL);
+    permission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.SELF_MANAGEMENT);
+    return permission;
+  }
+
+  String createRoleManagementRole() throws InterruptedException {
+    final String roleIdentifier = generateRoleIdentifier();
+    final Permission rolePermission = buildRolePermission();
+    final Role scribe = buildRole(roleIdentifier, rolePermission);
+
+    getTestSubject().createRole(scribe);
+
+    eventRecorder.wait(EventConstants.OPERATION_POST_ROLE, scribe.getIdentifier());
+
+    return roleIdentifier;
+  }
+
+  String createSelfManagementRole() throws InterruptedException {
+    final String roleIdentifier = generateRoleIdentifier();
+    final Permission rolePermission = buildSelfPermission();
+    final Role scribe = buildRole(roleIdentifier, rolePermission);
+
+    getTestSubject().createRole(scribe);
+
+    eventRecorder.wait(EventConstants.OPERATION_POST_ROLE, scribe.getIdentifier());
+
+    return roleIdentifier;
+  }
+
+  AutoUserContext loginUser(final String userId, final String password) {
+    final Authentication authentication = getTestSubject().login(userId, Helpers.encodePassword(password));
+    return new AutoUserContext(userId, authentication.getAccessToken());
   }
 }

@@ -17,7 +17,7 @@ package listener;
 
 import io.mifos.core.lang.config.TenantHeaderFilter;
 import io.mifos.core.test.listener.EventRecorder;
-import io.mifos.identity.api.v1.EventConstants;
+import io.mifos.identity.api.v1.events.EventConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.messaging.handler.annotation.Header;
@@ -33,8 +33,7 @@ public class AuthenticationEventListener {
   private final EventRecorder eventRecorder;
 
   @Autowired
-  public AuthenticationEventListener(
-      final EventRecorder eventRecorder)
+  public AuthenticationEventListener(@SuppressWarnings("SpringJavaAutowiringInspection") final EventRecorder eventRecorder)
   {
     this.eventRecorder = eventRecorder;
   }

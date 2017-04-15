@@ -15,28 +15,23 @@
  */
 package io.mifos.identity.internal.command.handler;
 
-import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
 import io.mifos.core.command.annotation.EventEmitter;
-import io.mifos.identity.api.v1.EventConstants;
 import io.mifos.identity.api.v1.domain.Role;
+import io.mifos.identity.api.v1.events.EventConstants;
+import io.mifos.identity.internal.command.ChangeRoleCommand;
 import io.mifos.identity.internal.command.CreateRoleCommand;
 import io.mifos.identity.internal.command.DeleteRoleCommand;
+import io.mifos.identity.internal.mapper.PermissionMapper;
 import io.mifos.identity.internal.repository.RoleEntity;
-import io.mifos.identity.internal.command.ChangeRoleCommand;
-import io.mifos.identity.internal.repository.AllowedOperationType;
-import io.mifos.identity.internal.repository.PermissionType;
 import io.mifos.identity.internal.repository.Roles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -92,28 +87,9 @@ public class RoleCommandHandler {
     final RoleEntity ret = new RoleEntity();
     ret.setIdentifier(role.getIdentifier());
     ret.setPermissions(role.getPermissions().stream()
-            .map(i -> new PermissionType(i.getPermittableEndpointGroupIdentifier(), mapAllowedOperations(i.getAllowedOperations())))
-                    .collect(Collectors.toList()));
+            .map(PermissionMapper::mapToPermissionType)
+            .collect(Collectors.toList()));
 
     return ret;
-  }
-
-  private Set<AllowedOperationType> mapAllowedOperations(
-      @Nullable final Set<AllowedOperation> allowedOperations) {
-    if (allowedOperations == null)
-      return Collections.emptySet();
-
-    return allowedOperations.stream().map(op -> {
-      switch (op) {
-        case READ:
-          return AllowedOperationType.READ;
-        case CHANGE:
-          return AllowedOperationType.CHANGE;
-        case DELETE:
-          return AllowedOperationType.DELETE;
-        default:
-          return null;
-      }
-    }).filter(op -> (op != null)).collect(Collectors.toSet());
   }
 }

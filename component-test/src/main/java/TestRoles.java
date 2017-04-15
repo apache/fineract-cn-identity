@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.NotFoundException;
-import io.mifos.identity.api.v1.EventConstants;
-import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.domain.Permission;
 import io.mifos.identity.api.v1.domain.Role;
+import io.mifos.identity.api.v1.events.EventConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -33,7 +31,7 @@ import java.util.List;
 public class TestRoles extends AbstractComponentTest {
 
   @Test
-  public void createRole() throws InterruptedException {
+  public void testCreateRole() throws InterruptedException {
     try (final AutoUserContext ignore = enableAndLoginAdmin()) {
       final String roleIdentifier = generateRoleIdentifier();
 
@@ -70,7 +68,7 @@ public class TestRoles extends AbstractComponentTest {
   @Test
   public void deleteRole() throws InterruptedException {
     try (final AutoUserContext ignore = enableAndLoginAdmin()) {
-      final String roleIdentifier = createRoleHelper();
+      final String roleIdentifier = createRoleManagementRole();
 
       final Role role = getTestSubject().getRole(roleIdentifier);
       Assert.assertNotNull(role);
@@ -99,7 +97,7 @@ public class TestRoles extends AbstractComponentTest {
   @Test()
   public void changeRole() throws InterruptedException {
     try (final AutoUserContext ignore = enableAndLoginAdmin()) {
-      final String roleIdentifier = createRoleHelper();
+      final String roleIdentifier = createRoleManagementRole();
 
       final Role role = getTestSubject().getRole(roleIdentifier);
       role.getPermissions().add(buildUserPermission());
@@ -114,43 +112,5 @@ public class TestRoles extends AbstractComponentTest {
       final Role changedRole = getTestSubject().getRole(roleIdentifier);
       Assert.assertEquals(role, changedRole);
     }
-  }
-
-  private String generateRoleIdentifier() {
-    return Helpers.generateRandomIdentifier("scribe");
-  }
-
-  private Role buildRole(final String identifier, final Permission rolePermission) {
-    final Role scribe = new Role();
-    scribe.setIdentifier(identifier);
-    scribe.setPermissions(Collections.emptyList());
-    scribe.setPermissions(Collections.singletonList(rolePermission));
-    return scribe;
-  }
-
-  private Permission buildRolePermission() {
-    final Permission permission = new Permission();
-    permission.setAllowedOperations(AllowedOperation.ALL);
-    permission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.ROLE_MANAGEMENT);
-    return permission;
-  }
-
-  private Permission buildUserPermission() {
-    final Permission permission = new Permission();
-    permission.setAllowedOperations(AllowedOperation.ALL);
-    permission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.IDENTITY_MANAGEMENT);
-    return permission;
-  }
-
-  private String createRoleHelper() throws InterruptedException {
-    final String roleIdentifier = generateRoleIdentifier();
-    final Permission rolePermission = buildRolePermission();
-    final Role scribe = buildRole(roleIdentifier, rolePermission);
-
-    getTestSubject().createRole(scribe);
-
-    eventRecorder.wait(EventConstants.OPERATION_POST_ROLE, scribe.getIdentifier());
-
-    return roleIdentifier;
   }
 }
