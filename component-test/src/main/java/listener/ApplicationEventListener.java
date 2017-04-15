@@ -18,6 +18,7 @@ package listener;
 import io.mifos.core.lang.config.TenantHeaderFilter;
 import io.mifos.core.test.listener.EventRecorder;
 import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
+import io.mifos.identity.api.v1.events.ApplicationPermissionUserEvent;
 import io.mifos.identity.api.v1.events.ApplicationSignatureEvent;
 import io.mifos.identity.api.v1.events.EventConstants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,5 +83,16 @@ public class ApplicationEventListener {
           @Header(TenantHeaderFilter.TENANT_HEADER)final String tenant,
           final String payload) throws Exception {
     eventRecorder.event(tenant, EventConstants.OPERATION_DELETE_APPLICATION_PERMISSION, payload, ApplicationPermissionEvent.class);
+  }
+
+  @JmsListener(
+          subscription = EventConstants.DESTINATION,
+          destination = EventConstants.DESTINATION,
+          selector = EventConstants.SELECTOR_PUT_APPLICATION_PERMISSION_USER_ENABLED
+  )
+  public void onPutApplicationPermissionEnabledForUser(
+          @Header(TenantHeaderFilter.TENANT_HEADER)final String tenant,
+          final String payload) throws Exception {
+    eventRecorder.event(tenant, EventConstants.OPERATION_PUT_APPLICATION_PERMISSION_USER_ENABLED, payload, ApplicationPermissionUserEvent.class);
   }
 }

@@ -128,6 +128,19 @@ public interface IdentityManager extends Anubis {
           produces = {MediaType.ALL_VALUE})
   List<String> getApplications();
 
+  @RequestMapping(value = "/applications/{applicationidentifier}/signatures/{timestamp}", method = RequestMethod.PUT,
+          consumes = {MediaType.APPLICATION_JSON_VALUE},
+          produces = {MediaType.ALL_VALUE})
+  void setApplicationSignature(@PathVariable("applicationidentifier") String applicationIdentifier,
+                               @PathVariable("timestamp") @ValidKeyTimestamp String timestamp,
+                               Signature signature);
+
+  @RequestMapping(value = "/applications/{applicationidentifier}/signatures/{timestamp}", method = RequestMethod.GET,
+          consumes = {MediaType.APPLICATION_JSON_VALUE},
+          produces = {MediaType.ALL_VALUE})
+  Signature getApplicationSignature(@PathVariable("applicationidentifier") String applicationIdentifier,
+                                    @PathVariable("timestamp") @ValidKeyTimestamp String timestamp);
+
   @RequestMapping(value = "/applications/{applicationidentifier}", method = RequestMethod.DELETE,
           consumes = {MediaType.APPLICATION_JSON_VALUE},
           produces = {MediaType.ALL_VALUE})
@@ -149,32 +162,20 @@ public interface IdentityManager extends Anubis {
   void deleteApplicationPermission(@PathVariable("applicationidentifier") String applicationIdentifier,
                                    @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier);
 
-  @RequestMapping(value = "/applications/{applicationidentifier}/permissions/{permissionidentifier}/approvals/{useridentifier}", method = RequestMethod.POST,
+  @RequestMapping(value = "/applications/{applicationidentifier}/permissions/{permissionidentifier}/users/{useridentifier}/enabled", method = RequestMethod.PUT,
           consumes = {MediaType.APPLICATION_JSON_VALUE},
           produces = {MediaType.ALL_VALUE})
-  void createApplicationPermissionUserApproval(@PathVariable("applicationidentifier") String applicationIdentifier,
-                                               @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier,
-                                               @PathVariable("useridentifier") String userIdentifier);
+  void setApplicationPermissionEnabledForUser(@PathVariable("applicationidentifier") String applicationIdentifier,
+                                              @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier,
+                                              @PathVariable("useridentifier") String userIdentifier,
+                                              Boolean enabled);
 
-  @RequestMapping(value = "/applications/{applicationidentifier}/permissions/{permissionidentifier}/approvals/{useridentifier}", method = RequestMethod.DELETE,
+  @RequestMapping(value = "/applications/{applicationidentifier}/permissions/{permissionidentifier}/users/{useridentifier}/enabled", method = RequestMethod.GET,
           consumes = {MediaType.APPLICATION_JSON_VALUE},
-          produces = {MediaType.ALL_VALUE})
-  void deleteApplicationPermissionUserApproval(@PathVariable("applicationidentifier") String applicationIdentifier,
-                                               @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier,
-                                               @PathVariable("useridentifier") String userIdentifier);
-
-  @RequestMapping(value = "/applications/{applicationidentifier}/signatures/{timestamp}", method = RequestMethod.PUT,
-          consumes = {MediaType.APPLICATION_JSON_VALUE},
-          produces = {MediaType.ALL_VALUE})
-  void setApplicationSignature(@PathVariable("applicationidentifier") String applicationIdentifier,
-                               @PathVariable("timestamp") @ValidKeyTimestamp String timestamp,
-                               Signature signature);
-
-  @RequestMapping(value = "/applications/{applicationidentifier}/signatures/{timestamp}", method = RequestMethod.GET,
-          consumes = {MediaType.APPLICATION_JSON_VALUE},
-          produces = {MediaType.ALL_VALUE})
-  Signature getApplicationSignature(@PathVariable("applicationidentifier") String applicationIdentifier,
-                                    @PathVariable("timestamp") @ValidKeyTimestamp String timestamp);
+          produces = {MediaType.APPLICATION_JSON_VALUE})
+  boolean getApplicationPermissionEnabledForUser(@PathVariable("applicationidentifier") String applicationIdentifier,
+                                              @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier,
+                                              @PathVariable("useridentifier") String userIdentifier);
 
   @RequestMapping(value = "/initialize", method = RequestMethod.POST,
       consumes = {MediaType.APPLICATION_JSON_VALUE},

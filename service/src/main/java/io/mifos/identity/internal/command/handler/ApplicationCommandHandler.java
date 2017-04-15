@@ -19,17 +19,12 @@ import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
 import io.mifos.core.command.annotation.EventEmitter;
 import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
+import io.mifos.identity.api.v1.events.ApplicationPermissionUserEvent;
 import io.mifos.identity.api.v1.events.ApplicationSignatureEvent;
 import io.mifos.identity.api.v1.events.EventConstants;
-import io.mifos.identity.internal.command.CreateApplicationPermissionCommand;
-import io.mifos.identity.internal.command.DeleteApplicationCommand;
-import io.mifos.identity.internal.command.DeleteApplicationPermissionCommand;
-import io.mifos.identity.internal.command.SetApplicationSignatureCommand;
+import io.mifos.identity.internal.command.*;
 import io.mifos.identity.internal.mapper.PermissionMapper;
-import io.mifos.identity.internal.repository.ApplicationPermissionEntity;
-import io.mifos.identity.internal.repository.ApplicationPermissions;
-import io.mifos.identity.internal.repository.ApplicationSignatureEntity;
-import io.mifos.identity.internal.repository.ApplicationSignatures;
+import io.mifos.identity.internal.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,12 +36,15 @@ import org.springframework.stereotype.Component;
 public class ApplicationCommandHandler {
   private final ApplicationSignatures applicationSignatures;
   private final ApplicationPermissions applicationPermissions;
+  private final ApplicationPermissionUsers applicationPermissionUsers;
 
   @Autowired
   public ApplicationCommandHandler(final ApplicationSignatures applicationSignatures,
-                                   final ApplicationPermissions applicationPermissions) {
+                                   final ApplicationPermissions applicationPermissions,
+                                   final ApplicationPermissionUsers applicationPermissionUsers) {
     this.applicationSignatures = applicationSignatures;
     this.applicationPermissions = applicationPermissions;
+    this.applicationPermissionUsers = applicationPermissionUsers;
   }
 
   @CommandHandler
@@ -84,5 +82,12 @@ public class ApplicationCommandHandler {
   public ApplicationPermissionEvent process(final DeleteApplicationPermissionCommand command) {
     applicationPermissions.delete(command.getApplicationIdentifier(), command.getPermittableGroupIdentifier());
     return new ApplicationPermissionEvent(command.getApplicationIdentifier(), command.getPermittableGroupIdentifier());
+  }
+
+  @CommandHandler
+  @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_PUT_APPLICATION_PERMISSION_USER_ENABLED)
+  public ApplicationPermissionUserEvent process(final SetApplicationPermissionUserEnabledCommand command) {
+    applicationPermissionUsers.setEnabled(command.getApplicationIdentifier(), command.getPermittableGroupIdentifier(), command.getUserIdentifier(), command.isEnabled());
+    return new ApplicationPermissionUserEvent(command.getApplicationIdentifier(), command.getPermittableGroupIdentifier(), command.getUserIdentifier());
   }
 }

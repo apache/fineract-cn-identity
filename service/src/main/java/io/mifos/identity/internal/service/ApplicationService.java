@@ -19,6 +19,7 @@ import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.identity.api.v1.domain.Permission;
 import io.mifos.identity.internal.mapper.PermissionMapper;
 import io.mifos.identity.internal.mapper.SignatureMapper;
+import io.mifos.identity.internal.repository.ApplicationPermissionUsers;
 import io.mifos.identity.internal.repository.ApplicationPermissions;
 import io.mifos.identity.internal.repository.ApplicationSignatureEntity;
 import io.mifos.identity.internal.repository.ApplicationSignatures;
@@ -38,12 +39,15 @@ public class ApplicationService {
 
   private final ApplicationSignatures applicationSignaturesRepository;
   private final ApplicationPermissions applicationPermissionsRepository;
+  private final ApplicationPermissionUsers applicationPermissionsUserRepository;
 
   @Autowired
   public ApplicationService(final ApplicationSignatures applicationSignaturesRepository,
-                            final ApplicationPermissions applicationPermissionsRepository) {
+                            final ApplicationPermissions applicationPermissionsRepository,
+                            final ApplicationPermissionUsers applicationPermissionsUserRepository) {
     this.applicationSignaturesRepository = applicationSignaturesRepository;
     this.applicationPermissionsRepository = applicationPermissionsRepository;
+    this.applicationPermissionsUserRepository = applicationPermissionsUserRepository;
   }
 
   public List<String> getAllApplications() {
@@ -70,5 +74,11 @@ public class ApplicationService {
   public boolean applicationPermissionExists(final @Nonnull String applicationIdentifier,
                                              final @Nonnull String permittableGroupIdentifier) {
     return applicationPermissionsRepository.exists(applicationIdentifier, permittableGroupIdentifier);
+  }
+
+  public boolean applicationPermissionEnabledForUser(final String applicationIdentifier,
+                                                     final String permittableEndpointGroupIdentifier,
+                                                     final String userIdentifier) {
+    return applicationPermissionsUserRepository.enabled(applicationIdentifier, permittableEndpointGroupIdentifier, userIdentifier);
   }
 }

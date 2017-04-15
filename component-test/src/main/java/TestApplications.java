@@ -22,6 +22,7 @@ import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.domain.Permission;
 import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
+import io.mifos.identity.api.v1.events.ApplicationPermissionUserEvent;
 import io.mifos.identity.api.v1.events.ApplicationSignatureEvent;
 import io.mifos.identity.api.v1.events.EventConstants;
 import org.apache.commons.lang.RandomStringUtils;
@@ -122,6 +123,90 @@ public class TestApplications extends AbstractComponentTest {
 
       }
     }
+  }
+
+  @Test
+  public void testApplicationApprovals() throws InterruptedException {
+    final ApplicationSignatureEvent appPlusSig;
+    final Permission identityManagementPermission;
+    try (final AutoUserContext ignored
+                 = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
+      appPlusSig = setApplicationSignature();
+
+      identityManagementPermission = new Permission(
+              PermittableGroupIds.ROLE_MANAGEMENT,
+              Collections.singleton(AllowedOperation.READ));
+
+      getTestSubject().createApplicationPermission(appPlusSig.getApplicationIdentifier(), identityManagementPermission);
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
+              new ApplicationPermissionEvent(appPlusSig.getApplicationIdentifier(),
+                      identityManagementPermission.getPermittableEndpointGroupIdentifier())));
+    }
+
+    final String user1Password;
+    final String user1id;
+    final String user2Password;
+    final String user2id;
+    try (final AutoUserContext ignored = enableAndLoginAdmin()) {
+      final String selfManagementRoleId = createSelfManagementRole();
+      final String roleManagementRoleId = createRoleManagementRole();
+
+      user1Password = RandomStringUtils.randomAlphanumeric(5);
+      user1id = createUserWithNonexpiredPassword(user1Password, selfManagementRoleId);
+
+      user2Password = RandomStringUtils.randomAlphanumeric(5);
+      user2id = createUserWithNonexpiredPassword(user2Password, roleManagementRoleId);
+    }
+
+    try (final AutoUserContext ignored = loginUser(user1id, user1Password)) {
+      Assert.assertFalse(getTestSubject().getApplicationPermissionEnabledForUser(
+              appPlusSig.getApplicationIdentifier(),
+              identityManagementPermission.getPermittableEndpointGroupIdentifier(),
+              user1id));
+
+      getTestSubject().setApplicationPermissionEnabledForUser(
+              appPlusSig.getApplicationIdentifier(),
+              identityManagementPermission.getPermittableEndpointGroupIdentifier(),
+              user1id,
+              true);
+
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_PUT_APPLICATION_PERMISSION_USER_ENABLED,
+              new ApplicationPermissionUserEvent(
+                      appPlusSig.getApplicationIdentifier(),
+                      identityManagementPermission.getPermittableEndpointGroupIdentifier(),
+                      user1id)));
+
+      Assert.assertTrue(getTestSubject().getApplicationPermissionEnabledForUser(
+              appPlusSig.getApplicationIdentifier(),
+              identityManagementPermission.getPermittableEndpointGroupIdentifier(),
+              user1id));
+    }
+
+    try (final AutoUserContext ignored = loginUser(user2id, user2Password)) {
+      Assert.assertFalse(getTestSubject().getApplicationPermissionEnabledForUser(
+              appPlusSig.getApplicationIdentifier(),
+              identityManagementPermission.getPermittableEndpointGroupIdentifier(),
+              user2id));
+    }
+
+    try (final AutoUserContext ignored = loginUser(user1id, user1Password)) {
+      getTestSubject().setApplicationPermissionEnabledForUser(
+              appPlusSig.getApplicationIdentifier(),
+              identityManagementPermission.getPermittableEndpointGroupIdentifier(),
+              user1id,
+              false);
+
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_PUT_APPLICATION_PERMISSION_USER_ENABLED,
+              new ApplicationPermissionUserEvent(
+                      appPlusSig.getApplicationIdentifier(),
+                      identityManagementPermission.getPermittableEndpointGroupIdentifier(),
+                      user1id)));
+    }
+
+    //Note that at this point, our imaginary application still cannot do anything in the name of any user,
+    //because neither of the users has the permission it enabled for the application.
+
+    //TODO: check that the permissions actually work when accessing endpoints as an application.
   }
 
   private ApplicationSignatureEvent setApplicationSignature() throws InterruptedException {
