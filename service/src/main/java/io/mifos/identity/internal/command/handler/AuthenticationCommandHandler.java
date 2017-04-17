@@ -272,6 +272,10 @@ public class AuthenticationCommandHandler {
 
     tokenPermissions.add(
         new TokenPermission(
+            applicationName + "/applications/*/permissions/*/users/{useridentifier}/enabled",
+            AllowedOperation.ALL));
+    tokenPermissions.add(
+        new TokenPermission(
             applicationName + "/users/{useridentifier}/password",
             Collections.singleton(AllowedOperation.CHANGE)));
     tokenPermissions.add(
