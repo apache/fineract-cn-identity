@@ -25,9 +25,9 @@ import io.mifos.core.test.fixture.cassandra.CassandraInitializer;
 import io.mifos.core.test.listener.EnableEventRecording;
 import io.mifos.core.test.listener.EventRecorder;
 import io.mifos.identity.api.v1.PermittableGroupIds;
+import io.mifos.identity.api.v1.client.IdentityManager;
 import io.mifos.identity.api.v1.domain.*;
 import io.mifos.identity.api.v1.events.EventConstants;
-import io.mifos.identity.api.v1.client.IdentityManager;
 import io.mifos.identity.config.IdentityServiceConfig;
 import org.junit.After;
 import org.junit.Assert;
@@ -44,7 +44,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.PostConstruct;
-import java.util.Collections;
+import java.util.Arrays;
 
 /**
  * @author Myrle Krantz
@@ -74,7 +74,7 @@ public class AbstractComponentTest {
   static final String AHMES_PASSWORD = "fractions";
   static final String AHMES_FRIENDS_PASSWORD = "sekhem";
 
-  private final static TestEnvironment testEnvironment = new TestEnvironment(APP_NAME);
+  final static TestEnvironment testEnvironment = new TestEnvironment(APP_NAME);
   final static CassandraInitializer cassandraInitializer = new CassandraInitializer();
   private final static TenantDataStoreContextTestRule tenantDataStoreContext = TenantDataStoreContextTestRule.forRandomTenantName(cassandraInitializer);
   private static boolean alreadyInitialized = false;
@@ -89,7 +89,7 @@ public class AbstractComponentTest {
   static final TenantApplicationSecurityEnvironmentTestRule tenantApplicationSecurityEnvironment = new TenantApplicationSecurityEnvironmentTestRule(testEnvironment);
 
   @Autowired
-  private ApiFactory apiFactory;
+  ApiFactory apiFactory;
 
   @SuppressWarnings("SpringJavaAutowiringInspection")
   @Autowired
@@ -190,11 +190,10 @@ public class AbstractComponentTest {
     return Helpers.generateRandomIdentifier("scribe");
   }
 
-  Role buildRole(final String identifier, final Permission rolePermission) {
+  Role buildRole(final String identifier, final Permission... permission) {
     final Role scribe = new Role();
     scribe.setIdentifier(identifier);
-    scribe.setPermissions(Collections.emptyList());
-    scribe.setPermissions(Collections.singletonList(rolePermission));
+    scribe.setPermissions(Arrays.asList(permission));
     return scribe;
   }
 
@@ -220,25 +219,20 @@ public class AbstractComponentTest {
   }
 
   String createRoleManagementRole() throws InterruptedException {
-    final String roleIdentifier = generateRoleIdentifier();
-    final Permission rolePermission = buildRolePermission();
-    final Role scribe = buildRole(roleIdentifier, rolePermission);
-
-    getTestSubject().createRole(scribe);
-
-    eventRecorder.wait(EventConstants.OPERATION_POST_ROLE, scribe.getIdentifier());
-
-    return roleIdentifier;
+    return createRole(buildRolePermission());
   }
 
   String createSelfManagementRole() throws InterruptedException {
+    return createRole(buildSelfPermission());
+  }
+
+  String createRole(final Permission... permission) throws InterruptedException {
     final String roleIdentifier = generateRoleIdentifier();
-    final Permission rolePermission = buildSelfPermission();
-    final Role scribe = buildRole(roleIdentifier, rolePermission);
+    final Role role = buildRole(roleIdentifier, permission);
 
-    getTestSubject().createRole(scribe);
+    getTestSubject().createRole(role);
 
-    eventRecorder.wait(EventConstants.OPERATION_POST_ROLE, scribe.getIdentifier());
+    eventRecorder.wait(EventConstants.OPERATION_POST_ROLE, roleIdentifier);
 
     return roleIdentifier;
   }

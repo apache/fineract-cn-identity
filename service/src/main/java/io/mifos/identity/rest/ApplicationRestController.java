@@ -22,11 +22,12 @@ import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.anubis.api.v1.validation.ValidKeyTimestamp;
 import io.mifos.core.command.gateway.CommandGateway;
 import io.mifos.core.lang.ServiceException;
-import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.domain.Permission;
-import io.mifos.identity.internal.command.*;
+import io.mifos.identity.internal.command.CreateApplicationPermissionCommand;
+import io.mifos.identity.internal.command.DeleteApplicationCommand;
+import io.mifos.identity.internal.command.DeleteApplicationPermissionCommand;
+import io.mifos.identity.internal.command.SetApplicationSignatureCommand;
 import io.mifos.identity.internal.service.ApplicationService;
-import io.mifos.identity.internal.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -39,20 +40,18 @@ import java.util.List;
 /**
  * @author Myrle Krantz
  */
+@SuppressWarnings("WeakerAccess")
 @RestController
 @RequestMapping("/applications")
 public class ApplicationRestController {
   private final ApplicationService service;
-  private final UserService userService;
   private final CommandGateway commandGateway;
 
   @Autowired
   public ApplicationRestController(
           final ApplicationService service,
-          final UserService userService,
           final CommandGateway commandGateway) {
     this.service = service;
-    this.userService = userService;
     this.commandGateway = commandGateway;
   }
 
@@ -138,40 +137,9 @@ public class ApplicationRestController {
   deleteApplicationPermission(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier,
                               @PathVariable("permissionidentifier") @Nonnull String permittableEndpointGroupIdentifier)
   {
-    checkApplicationPermissionIdentifier(applicationIdentifier, permittableEndpointGroupIdentifier);
+    checkApplicationPermissionIdentifier(service, applicationIdentifier, permittableEndpointGroupIdentifier);
     commandGateway.process(new DeleteApplicationPermissionCommand(applicationIdentifier, permittableEndpointGroupIdentifier));
     return ResponseEntity.accepted().build();
-  }
-
-  @RequestMapping(value = "/{applicationidentifier}/permissions/{permissionidentifier}/users/{useridentifier}/enabled", method = RequestMethod.PUT,
-          consumes = {MediaType.ALL_VALUE},
-          produces = {MediaType.APPLICATION_JSON_VALUE})
-  @Permittable(value = AcceptedTokenType.TENANT, permittedEndpoint = "/applications/*/permissions/*/users/{useridentifier}/enabled", groupId = PermittableGroupIds.SELF_MANAGEMENT)
-  public @ResponseBody
-  ResponseEntity<Void>
-  setApplicationPermissionEnabledForUser(@PathVariable("applicationidentifier") String applicationIdentifier,
-                                         @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier,
-                                         @PathVariable("useridentifier") String userIdentifier,
-                                         @RequestBody Boolean enabled)
-  {
-    checkApplicationPermissionIdentifier(applicationIdentifier, permittableEndpointGroupIdentifier);
-    checkUserIdentifier(userIdentifier);
-    commandGateway.process(new SetApplicationPermissionUserEnabledCommand(applicationIdentifier, permittableEndpointGroupIdentifier, userIdentifier, enabled));
-    return ResponseEntity.accepted().build();
-  }
-
-  @RequestMapping(value = "/{applicationidentifier}/permissions/{permissionidentifier}/users/{useridentifier}/enabled", method = RequestMethod.GET,
-          consumes = {MediaType.APPLICATION_JSON_VALUE},
-          produces = {MediaType.APPLICATION_JSON_VALUE})
-  @Permittable(value = AcceptedTokenType.TENANT, permittedEndpoint = "/applications/*/permissions/*/users/{useridentifier}/enabled", groupId = PermittableGroupIds.SELF_MANAGEMENT)
-  public @ResponseBody
-  ResponseEntity<Boolean>
-  getApplicationPermissionEnabledForUser(@PathVariable("applicationidentifier") String applicationIdentifier,
-                                         @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier,
-                                         @PathVariable("useridentifier") String userIdentifier) {
-    checkApplicationPermissionIdentifier(applicationIdentifier, permittableEndpointGroupIdentifier);
-    checkUserIdentifier(userIdentifier);
-    return ResponseEntity.ok(service.applicationPermissionEnabledForUser(applicationIdentifier, permittableEndpointGroupIdentifier, userIdentifier));
   }
 
   private void checkApplicationIdentifier(final @Nonnull String identifier) {
@@ -179,15 +147,11 @@ public class ApplicationRestController {
       throw ServiceException.notFound("Application with identifier " + identifier + " doesn't exist.");
   }
 
-  private void checkApplicationPermissionIdentifier(final @Nonnull String applicationIdentifier,
-                                                    final @Nonnull String permittableEndpointGroupIdentifier) {
+  static void checkApplicationPermissionIdentifier(final @Nonnull ApplicationService service,
+                                                   final @Nonnull String applicationIdentifier,
+                                                   final @Nonnull String permittableEndpointGroupIdentifier) {
     if (!service.applicationPermissionExists(applicationIdentifier, permittableEndpointGroupIdentifier))
       throw ServiceException.notFound("Application permission '"
               + applicationIdentifier + "." + permittableEndpointGroupIdentifier + "' doesn't exist.");
-  }
-
-  private void checkUserIdentifier(final @Nonnull String identifier) {
-    userService.findByIdentifier(identifier).orElseThrow(
-            () -> ServiceException.notFound("User '" + identifier + "' doesn't exist."));
   }
 }
