@@ -20,7 +20,6 @@ import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.NotFoundException;
 import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.identity.api.v1.PermittableGroupIds;
-import io.mifos.identity.api.v1.client.IdentityManagerForApplications;
 import io.mifos.identity.api.v1.domain.Permission;
 import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
 import io.mifos.identity.api.v1.events.ApplicationPermissionUserEvent;
@@ -30,7 +29,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
 
@@ -38,17 +36,6 @@ import java.util.List;
  * @author Myrle Krantz
  */
 public class TestApplications extends AbstractComponentTest {
-  private IdentityManagerForApplications identityManagerForApplications;
-
-  @PostConstruct
-  public void provision() throws Exception {
-    identityManagerForApplications =  apiFactory.create(IdentityManagerForApplications.class, testEnvironment.serverURI());
-    super.provision();
-  }
-
-  private IdentityManagerForApplications getIMForApplications() {
-    return identityManagerForApplications;
-  }
 
   @Test
   public void testSetApplicationSignature() throws InterruptedException {
@@ -75,12 +62,12 @@ public class TestApplications extends AbstractComponentTest {
       identityManagementPermission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.IDENTITY_MANAGEMENT);
       identityManagementPermission.setAllowedOperations(Collections.singleton(AllowedOperation.READ));
 
-      getIMForApplications().createApplicationPermission(appPlusSig.getApplicationIdentifier(), identityManagementPermission);
+      getTestSubject().createApplicationPermission(appPlusSig.getApplicationIdentifier(), identityManagementPermission);
       Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
               new ApplicationPermissionEvent(appPlusSig.getApplicationIdentifier(), PermittableGroupIds.IDENTITY_MANAGEMENT)));
 
       {
-        final List<Permission> applicationPermissions = getIMForApplications().getApplicationPermissions(appPlusSig.getApplicationIdentifier());
+        final List<Permission> applicationPermissions = getTestSubject().getApplicationPermissions(appPlusSig.getApplicationIdentifier());
         Assert.assertTrue(applicationPermissions.contains(identityManagementPermission));
       }
 
@@ -88,21 +75,21 @@ public class TestApplications extends AbstractComponentTest {
       roleManagementPermission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.ROLE_MANAGEMENT);
       roleManagementPermission.setAllowedOperations(Collections.singleton(AllowedOperation.READ));
 
-      getIMForApplications().createApplicationPermission(appPlusSig.getApplicationIdentifier(), roleManagementPermission);
+      getTestSubject().createApplicationPermission(appPlusSig.getApplicationIdentifier(), roleManagementPermission);
       Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
               new ApplicationPermissionEvent(appPlusSig.getApplicationIdentifier(), PermittableGroupIds.ROLE_MANAGEMENT)));
       {
-        final List<Permission> applicationPermissions = getIMForApplications().getApplicationPermissions(appPlusSig.getApplicationIdentifier());
+        final List<Permission> applicationPermissions = getTestSubject().getApplicationPermissions(appPlusSig.getApplicationIdentifier());
         Assert.assertTrue(applicationPermissions.contains(identityManagementPermission));
         Assert.assertTrue(applicationPermissions.contains(roleManagementPermission));
       }
 
-      getIMForApplications().deleteApplicationPermission(appPlusSig.getApplicationIdentifier(), identityManagementPermission.getPermittableEndpointGroupIdentifier());
+      getTestSubject().deleteApplicationPermission(appPlusSig.getApplicationIdentifier(), identityManagementPermission.getPermittableEndpointGroupIdentifier());
       Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_DELETE_APPLICATION_PERMISSION,
               new ApplicationPermissionEvent(appPlusSig.getApplicationIdentifier(), PermittableGroupIds.IDENTITY_MANAGEMENT)));
 
       {
-        final List<Permission> applicationPermissions = getIMForApplications().getApplicationPermissions(appPlusSig.getApplicationIdentifier());
+        final List<Permission> applicationPermissions = getTestSubject().getApplicationPermissions(appPlusSig.getApplicationIdentifier());
         Assert.assertFalse(applicationPermissions.contains(identityManagementPermission));
         Assert.assertTrue(applicationPermissions.contains(roleManagementPermission));
       }
@@ -146,7 +133,7 @@ public class TestApplications extends AbstractComponentTest {
               PermittableGroupIds.ROLE_MANAGEMENT,
               Collections.singleton(AllowedOperation.READ));
 
-      getIMForApplications().createApplicationPermission(appPlusSig.getApplicationIdentifier(), identityManagementPermission);
+      getTestSubject().createApplicationPermission(appPlusSig.getApplicationIdentifier(), identityManagementPermission);
       Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
               new ApplicationPermissionEvent(appPlusSig.getApplicationIdentifier(),
                       identityManagementPermission.getPermittableEndpointGroupIdentifier())));
@@ -225,8 +212,8 @@ public class TestApplications extends AbstractComponentTest {
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
       appPlusSig = setApplicationSignature();
 
-      getIMForApplications().createApplicationPermission(appPlusSig.getApplicationIdentifier(), rolePermission);
-      getIMForApplications().createApplicationPermission(appPlusSig.getApplicationIdentifier(), userPermission);
+      getTestSubject().createApplicationPermission(appPlusSig.getApplicationIdentifier(), rolePermission);
+      getTestSubject().createApplicationPermission(appPlusSig.getApplicationIdentifier(), userPermission);
       Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
               new ApplicationPermissionEvent(appPlusSig.getApplicationIdentifier(),
                       rolePermission.getPermittableEndpointGroupIdentifier())));
