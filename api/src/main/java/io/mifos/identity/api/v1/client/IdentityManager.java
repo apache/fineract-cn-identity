@@ -15,6 +15,7 @@
  */
 package io.mifos.identity.api.v1.client;
 
+import io.mifos.anubis.api.v1.TokenConstants;
 import io.mifos.anubis.api.v1.client.Anubis;
 import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.anubis.api.v1.domain.Signature;
@@ -145,6 +146,11 @@ public interface IdentityManager extends Anubis {
           consumes = {MediaType.APPLICATION_JSON_VALUE},
           produces = {MediaType.ALL_VALUE})
   void deleteApplication(@PathVariable("applicationidentifier") String applicationIdentifier);
+
+  @RequestMapping(value = "/token?grant_type=refresh_token", method = RequestMethod.POST,
+          consumes = {MediaType.APPLICATION_JSON_VALUE},
+          produces = {MediaType.ALL_VALUE})
+  Authentication refresh(@CookieValue(TokenConstants.REFRESH_TOKEN_COOKIE_NAME) String refreshToken);
 
   @RequestMapping(value = "/applications/{applicationidentifier}/permissions", method = RequestMethod.POST,
           consumes = {MediaType.APPLICATION_JSON_VALUE},

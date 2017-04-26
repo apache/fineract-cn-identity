@@ -21,6 +21,8 @@ import io.mifos.anubis.api.v1.domain.TokenContent;
 import io.mifos.anubis.api.v1.domain.TokenPermission;
 import io.mifos.anubis.security.AmitAuthenticationException;
 import io.mifos.anubis.token.TenantAccessTokenSerializer;
+import io.mifos.anubis.token.TenantRefreshTokenSerializer;
+import io.mifos.anubis.token.TokenDeserializationResult;
 import io.mifos.anubis.token.TokenSerializationResult;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
@@ -89,7 +91,8 @@ public class AuthenticationCommandHandler {
                                       final HashGenerator hashGenerator,
                                       @SuppressWarnings("SpringJavaAutowiringInspection")
                                       final TenantAccessTokenSerializer tenantAccessTokenSerializer,
-                                      final TenantRefreshTokenSerializer tenantRefreshTokenSerializer,
+                                      @SuppressWarnings("SpringJavaAutowiringInspection")
+                                        final TenantRefreshTokenSerializer tenantRefreshTokenSerializer,
                                       final JmsTemplate jmsTemplate,
                                       final ApplicationName applicationName,
                                       @Qualifier(IdentityConstants.JSON_SERIALIZER_NAME) final Gson gson,
@@ -177,7 +180,7 @@ public class AuthenticationCommandHandler {
   public AuthenticationCommandResponse process(final RefreshTokenAuthenticationCommand command)
       throws AmitAuthenticationException
   {
-    final TenantRefreshTokenSerializer.Deserialized deserializedRefreshToken =
+    final TokenDeserializationResult deserializedRefreshToken =
         tenantRefreshTokenSerializer.deserialize(command.getRefreshToken());
 
     final PrivateTenantInfoEntity privateTenantInfo = checkedGetPrivateTenantInfo();
@@ -270,6 +273,10 @@ public class AuthenticationCommandHandler {
               .orElse(new HashSet<>());
     }
 
+    tokenPermissions.add(
+        new TokenPermission(
+            applicationName + "/applications/*/permissions/*/users/{useridentifier}/enabled",
+            AllowedOperation.ALL));
     tokenPermissions.add(
         new TokenPermission(
             applicationName + "/users/{useridentifier}/password",
