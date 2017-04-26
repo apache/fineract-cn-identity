@@ -34,6 +34,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
 @Configuration
 @EnableAutoConfiguration
@@ -52,7 +54,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
     "io.mifos.identity.internal.repository",
     "io.mifos.identity.internal.command.handler"
 })
-public class IdentityServiceConfig {
+public class IdentityServiceConfig extends WebMvcConfigurerAdapter {
 
   public IdentityServiceConfig() {}
 
@@ -65,6 +67,11 @@ public class IdentityServiceConfig {
   @Bean(name = IdentityConstants.LOGGER_NAME)
   public Logger logger() {
     return LoggerFactory.getLogger(IdentityConstants.LOGGER_NAME);
+  }
+
+  @Override
+  public void configurePathMatch(final PathMatchConfigurer configurer) {
+    configurer.setUseSuffixPatternMatch(Boolean.FALSE);
   }
 
   public static void main(String[] args) {
