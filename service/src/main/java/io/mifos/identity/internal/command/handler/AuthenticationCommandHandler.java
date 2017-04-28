@@ -19,11 +19,10 @@ import com.google.gson.Gson;
 import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.anubis.api.v1.domain.TokenContent;
 import io.mifos.anubis.api.v1.domain.TokenPermission;
+import io.mifos.anubis.provider.InvalidKeyTimestampException;
+import io.mifos.anubis.provider.TenantRsaKeyProvider;
 import io.mifos.anubis.security.AmitAuthenticationException;
-import io.mifos.anubis.token.TenantAccessTokenSerializer;
-import io.mifos.anubis.token.TenantRefreshTokenSerializer;
-import io.mifos.anubis.token.TokenDeserializationResult;
-import io.mifos.anubis.token.TokenSerializationResult;
+import io.mifos.anubis.token.*;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
 import io.mifos.core.lang.ApplicationName;
@@ -49,6 +48,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Base64Utils;
 
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -69,6 +69,7 @@ public class AuthenticationCommandHandler {
   private final HashGenerator hashGenerator;
   private final TenantAccessTokenSerializer tenantAccessTokenSerializer;
   private final TenantRefreshTokenSerializer tenantRefreshTokenSerializer;
+  private final TenantRsaKeyProvider tenantRsaKeyProvider;
   private final JmsTemplate jmsTemplate;
   private final Gson gson;
   private final Logger logger;
@@ -93,6 +94,8 @@ public class AuthenticationCommandHandler {
                                       final TenantAccessTokenSerializer tenantAccessTokenSerializer,
                                       @SuppressWarnings("SpringJavaAutowiringInspection")
                                         final TenantRefreshTokenSerializer tenantRefreshTokenSerializer,
+                                      @SuppressWarnings("SpringJavaAutowiringInspection")
+                                        final TenantRsaKeyProvider tenantRsaKeyProvider,
                                       final JmsTemplate jmsTemplate,
                                       final ApplicationName applicationName,
                                       @Qualifier(IdentityConstants.JSON_SERIALIZER_NAME) final Gson gson,
@@ -105,6 +108,7 @@ public class AuthenticationCommandHandler {
     this.hashGenerator = hashGenerator;
     this.tenantAccessTokenSerializer = tenantAccessTokenSerializer;
     this.tenantRefreshTokenSerializer = tenantRefreshTokenSerializer;
+    this.tenantRsaKeyProvider = tenantRsaKeyProvider;
     this.jmsTemplate = jmsTemplate;
     this.gson = gson;
     this.logger = logger;
@@ -176,12 +180,21 @@ public class AuthenticationCommandHandler {
     return privateTenantInfo.get();
   }
 
+  private class TenantIdentityRsaKeyProvider implements TenantApplicationRsaKeyProvider {
+    @Override
+    public PublicKey getApplicationPublicKey(final String tokenApplicationName, final String timestamp) throws InvalidKeyTimestampException {
+      if (!applicationName.toString().equals(tokenApplicationName))
+        throw new IllegalArgumentException("Currently only supporting refresh tokens issued by identity");
+      return tenantRsaKeyProvider.getPublicKey(timestamp);
+    }
+  }
+
   @CommandHandler
   public AuthenticationCommandResponse process(final RefreshTokenAuthenticationCommand command)
       throws AmitAuthenticationException
   {
     final TokenDeserializationResult deserializedRefreshToken =
-        tenantRefreshTokenSerializer.deserialize(command.getRefreshToken());
+        tenantRefreshTokenSerializer.deserialize(new TenantIdentityRsaKeyProvider(), command.getRefreshToken());
 
     final PrivateTenantInfoEntity privateTenantInfo = checkedGetPrivateTenantInfo();
     final PrivateSignatureEntity privateSignature = checkedGetPrivateSignature();
