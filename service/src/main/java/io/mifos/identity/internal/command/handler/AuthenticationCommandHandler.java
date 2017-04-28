@@ -50,6 +50,8 @@ import org.springframework.util.Base64Utils;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -145,7 +147,7 @@ public class AuthenticationCommandHandler {
       throw AmitAuthenticationException.userPasswordCombinationNotFound();
     }
 
-    final LocalDate passwordExpiration = getExpiration(user);
+    final Optional<LocalDateTime> passwordExpiration = getExpiration(user);
 
     final TokenSerializationResult accessToken = getAccessToken(
             user.getIdentifier(),
@@ -159,7 +161,7 @@ public class AuthenticationCommandHandler {
     return new AuthenticationCommandResponse(
         accessToken.getToken(), DateConverter.toIsoString(accessToken.getExpiration()),
         refreshToken.getToken(), DateConverter.toIsoString(refreshToken.getExpiration()),
-            DateConverter.toIsoString(passwordExpiration));
+            passwordExpiration.map(DateConverter::toIsoString).orElse(null));
   }
 
   private PrivateSignatureEntity checkedGetPrivateSignature() {
@@ -201,7 +203,7 @@ public class AuthenticationCommandHandler {
 
     final UserEntity user = getUser(deserializedRefreshToken.getUserIdentifier());
 
-    final LocalDate passwordExpiration = getExpiration(user);
+    final Optional<LocalDateTime> passwordExpiration = getExpiration(user);
 
     final TokenSerializationResult accessToken = getAccessToken(
             user.getIdentifier(),
@@ -211,12 +213,17 @@ public class AuthenticationCommandHandler {
     return new AuthenticationCommandResponse(
         accessToken.getToken(), DateConverter.toIsoString(accessToken.getExpiration()),
         command.getRefreshToken(), DateConverter.toIsoString(deserializedRefreshToken.getExpiration()),
-        DateConverter.toIsoString(passwordExpiration));
+        passwordExpiration.map(DateConverter::toIsoString).orElse(null));
   }
 
-  private LocalDate getExpiration(final UserEntity user)
+  private Optional<LocalDateTime> getExpiration(final UserEntity user)
   {
-    return LocalDate.ofEpochDay(user.getPasswordExpiresOn().getDaysSinceEpoch());
+    if (user.getIdentifier().equals(IdentityConstants.SU_NAME))
+      return Optional.empty();
+    else
+      return Optional.of(LocalDateTime.of(
+              LocalDate.ofEpochDay(user.getPasswordExpiresOn().getDaysSinceEpoch()), //Convert from cassandra LocalDate to java LocalDate.
+              LocalTime.MIDNIGHT));
   }
 
   private UserEntity getUser(final String identifier) throws AmitAuthenticationException {
@@ -270,7 +277,8 @@ public class AuthenticationCommandHandler {
 
   private Set<TokenPermission> getTokenPermissions(
           final UserEntity user,
-          final LocalDate passwordExpiration,
+          @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+          final Optional<LocalDateTime> passwordExpiration,
           final long gracePeriod) throws AmitAuthenticationException {
     final Optional<RoleEntity> userRole = roles.get(user.getRole());
     final Set<TokenPermission> tokenPermissions;
@@ -306,12 +314,15 @@ public class AuthenticationCommandHandler {
     return tokenPermissions;
   }
 
-  static boolean pastExpiration(final LocalDate passwordExpiration) {
-    return LocalDate.now().compareTo(passwordExpiration) >= 0;
+  static boolean pastExpiration(
+          @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<LocalDateTime> passwordExpiration) {
+    return passwordExpiration.map(x -> LocalDateTime.now().compareTo(x) >= 0).orElse(false);
   }
 
-  static boolean pastGracePeriod(final LocalDate passwordExpiration, final long gracePeriod) {
-    return LocalDate.now().compareTo(passwordExpiration.plusDays(gracePeriod)) >= 0;
+  static boolean pastGracePeriod(
+          @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<LocalDateTime> passwordExpiration,
+          final long gracePeriod) {
+    return passwordExpiration.map(x -> (LocalDateTime.now().compareTo(x.plusDays(gracePeriod)) >= 0)).orElse(false);
   }
 
   private Stream<TokenPermission> mapPermissions(final PermissionType permission) {

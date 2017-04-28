@@ -16,6 +16,7 @@
 import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.anubis.test.v1.TenantApplicationSecurityEnvironmentTestRule;
 import io.mifos.core.api.config.EnableApiFactory;
+import io.mifos.core.api.context.AutoGuest;
 import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.ApiFactory;
 import io.mifos.core.api.util.UserContextHolder;
@@ -74,7 +75,7 @@ public class AbstractComponentTest {
   static final String AHMES_PASSWORD = "fractions";
   static final String AHMES_FRIENDS_PASSWORD = "sekhem";
 
-  final static TestEnvironment testEnvironment = new TestEnvironment(APP_NAME);
+  private final static TestEnvironment testEnvironment = new TestEnvironment(APP_NAME);
   final static CassandraInitializer cassandraInitializer = new CassandraInitializer();
   private final static TenantDataStoreContextTestRule tenantDataStoreContext = TenantDataStoreContextTestRule.forRandomTenantName(cassandraInitializer);
   private static boolean alreadyInitialized = false;
@@ -123,28 +124,6 @@ public class AbstractComponentTest {
   }
 
   AutoUserContext enableAndLoginAdmin() throws InterruptedException {
-    final Authentication adminAuthenticationToChangePassword =
-            getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
-    Assert.assertNotNull(adminAuthenticationToChangePassword);
-
-    {
-      final boolean found = eventRecorder
-              .wait(EventConstants.OPERATION_AUTHENTICATE, ADMIN_IDENTIFIER);
-      Assert.assertTrue(found);
-    }
-
-    //Change password, then re-authenticate
-    try (final AutoUserContext ignore = new AutoUserContext(ADMIN_IDENTIFIER, adminAuthenticationToChangePassword.getAccessToken()))
-    {
-      getTestSubject().changeUserPassword(ADMIN_IDENTIFIER, new Password(Helpers.encodePassword(ADMIN_PASSWORD)));
-
-      {
-        final boolean found = eventRecorder
-                .wait(EventConstants.OPERATION_PUT_USER_PASSWORD, ADMIN_IDENTIFIER);
-        Assert.assertTrue(found);
-      }
-    }
-
     final Authentication adminAuthentication =
             getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
     Assert.assertNotNull(adminAuthentication);
@@ -154,8 +133,6 @@ public class AbstractComponentTest {
               .wait(EventConstants.OPERATION_AUTHENTICATE, ADMIN_IDENTIFIER);
       Assert.assertTrue(found);
     }
-
-    eventRecorder.clear();
 
     return new AutoUserContext(ADMIN_IDENTIFIER, adminAuthentication.getAccessToken());
   }
@@ -211,7 +188,7 @@ public class AbstractComponentTest {
     return permission;
   }
 
-  private Permission buildSelfPermission() {
+  Permission buildSelfPermission() {
     final Permission permission = new Permission();
     permission.setAllowedOperations(AllowedOperation.ALL);
     permission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.SELF_MANAGEMENT);
@@ -238,7 +215,10 @@ public class AbstractComponentTest {
   }
 
   AutoUserContext loginUser(final String userId, final String password) {
-    final Authentication authentication = getTestSubject().login(userId, Helpers.encodePassword(password));
+    final Authentication authentication;
+    try (AutoUserContext ignored = new AutoGuest()) {
+      authentication = getTestSubject().login(userId, Helpers.encodePassword(password));
+    }
     return new AutoUserContext(userId, authentication.getAccessToken());
   }
 }

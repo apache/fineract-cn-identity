@@ -15,14 +15,17 @@
  */
 import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.NotFoundException;
-import io.mifos.core.test.domain.DateStampChecker;
-import io.mifos.identity.api.v1.events.EventConstants;
+import io.mifos.core.test.domain.TimeStampChecker;
 import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.api.v1.domain.Password;
 import io.mifos.identity.api.v1.domain.UserWithPassword;
+import io.mifos.identity.api.v1.events.EventConstants;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Myrle Krantz
@@ -108,10 +111,7 @@ public class TestPasswords extends AbstractComponentTest {
   public void testUserChangeOwnPasswordButNotAdminPassword() throws InterruptedException {
     final String username = createUserWithNonexpiredPassword(AHMES_PASSWORD, "scribe");
 
-    final Authentication userAuthentication =
-            getTestSubject().login(username, Helpers.encodePassword(AHMES_PASSWORD));
-
-    try (AutoUserContext ignored = new AutoUserContext(username, userAuthentication.getAccessToken()))
+    try (final AutoUserContext ignored = loginUser(username, AHMES_PASSWORD))
     {
       final String newPassword = "new password";
       {
@@ -123,7 +123,7 @@ public class TestPasswords extends AbstractComponentTest {
 
       Thread.sleep(100);
 
-      final DateStampChecker passwordExpirationChecker = DateStampChecker.inTheFuture(93);
+      final TimeStampChecker passwordExpirationChecker = TimeStampChecker.inTheFutureWithWiggleRoom(Duration.ofDays(93), Duration.ofHours(24));
       final Authentication userAuthenticationAfterPasswordChange = getTestSubject().login(username, Helpers.encodePassword(newPassword));
       final String passwordExpiration = userAuthenticationAfterPasswordChange.getPasswordExpiration();
       passwordExpirationChecker.assertCorrect(passwordExpiration);
@@ -165,5 +165,35 @@ public class TestPasswords extends AbstractComponentTest {
       getTestSubject().login(userid, userPassword);
     }
 
+  }
+
+  @Test
+  public void activatedAntonyPasswordDoesntExpire() throws InterruptedException {
+
+    try (final AutoUserContext ignored = enableAndLoginAdmin()) {
+      final Authentication adminAuthentication =
+              getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+      Assert.assertEquals(null, adminAuthentication.getPasswordExpiration());
+    }
+  }
+
+  @Test
+  public void onlyAntonyCanSetAntonyPassword() throws InterruptedException {
+    try (final AutoUserContext ignored = enableAndLoginAdmin()) {
+
+      final String roleIdentifier = createRole(buildUserPermission(), buildSelfPermission(), buildRolePermission());
+      final String username = createUserWithNonexpiredPassword(AHMES_PASSWORD, roleIdentifier);
+
+      TimeUnit.SECONDS.sleep(1);
+      try (final AutoUserContext ignored2 = loginUser(username, AHMES_PASSWORD)) {
+        getTestSubject().changeUserPassword(ADMIN_IDENTIFIER, new Password(Helpers.encodePassword(AHMES_FRIENDS_PASSWORD)));
+        Assert.fail("Should not be able to change antony's password from any account other than antony's.");
+      }
+      catch (final IllegalArgumentException expected) {
+        //noinspection EmptyCatchBlock
+      }
+    }
+
+    getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
   }
 }

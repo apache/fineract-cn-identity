@@ -16,6 +16,7 @@
 package io.mifos.identity.api.v1.domain;
 
 import io.mifos.core.lang.validation.constraints.ValidIdentifier;
+import io.mifos.identity.api.v1.validation.ChangeableRole;
 import org.hibernate.validator.constraints.ScriptAssert;
 import org.springframework.util.Assert;
 
@@ -29,9 +30,9 @@ import java.util.Objects;
  * @author Myrle Krantz
  */
 @SuppressWarnings("unused")
-@ScriptAssert(lang = "javascript", script = "_this.identifier !== \"deactivated\"")
 public class Role {
   @ValidIdentifier
+  @ChangeableRole
   private String identifier;
 
   @NotNull
