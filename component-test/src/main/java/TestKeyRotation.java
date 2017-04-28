@@ -16,6 +16,7 @@
 import io.mifos.anubis.api.v1.client.Anubis;
 import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.anubis.api.v1.domain.Signature;
+import io.mifos.core.api.context.AutoGuest;
 import io.mifos.core.api.context.AutoSeshat;
 import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.NotFoundException;
@@ -51,7 +52,7 @@ public class TestKeyRotation extends AbstractComponentTest {
 
     final String systemToken = tenantApplicationSecurityEnvironment.getSystemSecurityEnvironment().systemToken(APP_NAME);
 
-    try (final AutoSeshat ignored1 = new AutoSeshat(systemToken)) {
+    try (final AutoUserContext ignored1 = new AutoSeshat(systemToken)) {
       //Create a signature set then test that it is listed.
       final String timestamp = getTestSubject().createSignatureSet().getTimestamp();
       {
@@ -60,8 +61,10 @@ public class TestKeyRotation extends AbstractComponentTest {
       }
 
 
-      final Authentication adminAuthenticationOnFirstKeyset =
-              getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+      final Authentication adminAuthenticationOnFirstKeyset;
+      try (final AutoUserContext ignored2 = new AutoGuest()) {
+        adminAuthenticationOnFirstKeyset = getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+      }
 
       //TODO: Assert.assertTrue(canAccessResources(adminAuthenticationOnFirstKeyset));
 
@@ -82,8 +85,10 @@ public class TestKeyRotation extends AbstractComponentTest {
         Assert.assertTrue(signatureSets.contains(timestamp2));
       }
 
-      final Authentication adminAuthenticationOnSecondKeyset =
-              getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+      //final Authentication adminAuthenticationOnSecondKeyset;
+      try (final AutoUserContext ignored2 = new AutoGuest()) {
+        getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+      }
 
       //TODO: Assert.assertTrue(canAccessResources(adminAuthenticationOnFirstKeyset));
       //TODO: Assert.assertTrue(canAccessResources(adminAuthenticationOnSecondKeyset));
@@ -119,7 +124,7 @@ public class TestKeyRotation extends AbstractComponentTest {
     }
   }
 
-  private boolean canAccessResources(Authentication adminAuthentication) {
+  private boolean canAccessResources(final Authentication adminAuthentication) {
     try (final AutoUserContext ignored = new AutoUserContext(ADMIN_IDENTIFIER, adminAuthentication.getAccessToken())) {
       getTestSubject().getUsers();
       return true;
