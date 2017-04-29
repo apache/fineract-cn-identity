@@ -16,6 +16,7 @@
 
 import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.core.api.context.AutoUserContext;
+import io.mifos.core.test.env.TestEnvironment;
 import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.domain.*;
 import io.mifos.identity.api.v1.events.EventConstants;
@@ -48,13 +49,13 @@ public class TestUsers extends AbstractComponentTest {
     }
 
     final Authentication userAuthentication =
-            getTestSubject().login(username, Helpers.encodePassword(AHMES_PASSWORD));
+            getTestSubject().login(username, TestEnvironment.encodePassword(AHMES_PASSWORD));
 
     Assert.assertNotNull(userAuthentication);
 
     try (final AutoUserContext ignored = new AutoUserContext(username, userAuthentication.getAccessToken())) {
       getTestSubject().createUser(new UserWithPassword("Ahmes_friend", "scribe",
-              Helpers.encodePassword(AHMES_FRIENDS_PASSWORD)));
+              TestEnvironment.encodePassword(AHMES_FRIENDS_PASSWORD)));
 
       final boolean found = eventRecorder.wait(EventConstants.OPERATION_POST_USER, "Ahmes_friend");
       Assert.assertTrue(found);
@@ -72,7 +73,7 @@ public class TestUsers extends AbstractComponentTest {
     final String userIdentifier = createUserWithNonexpiredPassword(AHMES_PASSWORD, ADMIN_ROLE);
 
     final Authentication ahmesAuthentication =
-            getTestSubject().login(userIdentifier, Helpers.encodePassword(AHMES_PASSWORD));
+            getTestSubject().login(userIdentifier, TestEnvironment.encodePassword(AHMES_PASSWORD));
 
     try (final AutoUserContext ignored = new AutoUserContext(userIdentifier, ahmesAuthentication.getAccessToken())) {
       List<User> users = getTestSubject().getUsers();
@@ -99,7 +100,7 @@ public class TestUsers extends AbstractComponentTest {
     final String userIdentifier = createUserWithNonexpiredPassword(AHMES_PASSWORD, ADMIN_ROLE);
 
     final Authentication ahmesAuthentication =
-            getTestSubject().login(userIdentifier, Helpers.encodePassword(AHMES_PASSWORD));
+            getTestSubject().login(userIdentifier, TestEnvironment.encodePassword(AHMES_PASSWORD));
 
     try (final AutoUserContext ignored = new AutoUserContext(userIdentifier, ahmesAuthentication.getAccessToken())) {
       try {

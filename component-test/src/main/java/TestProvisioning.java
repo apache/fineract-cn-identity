@@ -102,7 +102,7 @@ public class TestProvisioning {
 
       final String invalidSeshatToken = "notBearer";
       try (final AutoSeshat ignored2 = new AutoSeshat(invalidSeshatToken)){
-        testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        testSubject.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
         Assert.fail("The key had the wrong format.  This should've failed.");
       }
       catch (final InvalidTokenException ignored2)
@@ -112,7 +112,7 @@ public class TestProvisioning {
 
       final String wrongSystemToken = systemTokenFromWrongKey();
       try (final AutoSeshat ignored2 = new AutoSeshat(wrongSystemToken)){
-        testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        testSubject.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
         Assert.fail("The key was signed by the wrong source.  This should've failed.");
       }
       catch (final Exception e)
@@ -122,7 +122,7 @@ public class TestProvisioning {
 
 
       try (final AutoUserContext ignored2 = tenantApplicationSecurityEnvironment.createAutoSeshatContext("goober")) {
-        testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        testSubject.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
         Assert.fail("The key was intended for a different tenant.  This should've failed.");
       }
       catch (final Exception e)
@@ -131,7 +131,7 @@ public class TestProvisioning {
       }
 
       try (final AutoUserContext ignored2 = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-        firstTenantSignatureSet = testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        firstTenantSignatureSet = testSubject.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
 
         final Signature applicationSignature = tenantApplicationSecurityEnvironment.getAnubis().getApplicationSignature(firstTenantSignatureSet.getTimestamp());
         firstTenantIdentityManagerSignature = tenantApplicationSecurityEnvironment.getAnubis().getSignatureSet(firstTenantSignatureSet.getTimestamp()).getIdentityManagerSignature();
@@ -153,7 +153,7 @@ public class TestProvisioning {
     try (final TenantDataStoreTestContext ignored = TenantDataStoreTestContext.forRandomTenantName(cassandraInitializer)) {
       try (final AutoUserContext ignored2
                    = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-        secondTenantSignatureSet = testSubject.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        secondTenantSignatureSet = testSubject.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
         final Signature secondTenantIdentityManagerSignature = tenantApplicationSecurityEnvironment.getAnubis().getApplicationSignature(secondTenantSignatureSet.getTimestamp());
         Assert.assertNotEquals(firstTenantIdentityManagerSignature, secondTenantIdentityManagerSignature);
       }

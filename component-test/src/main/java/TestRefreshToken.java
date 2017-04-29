@@ -17,6 +17,7 @@
 import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.InvalidTokenException;
 import io.mifos.core.test.domain.TimeStampChecker;
+import io.mifos.core.test.env.TestEnvironment;
 import io.mifos.core.test.fixture.TenantDataStoreTestContext;
 import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.api.v1.domain.Password;
@@ -51,7 +52,7 @@ public class TestRefreshToken extends AbstractComponentTest {
 
   @Test(expected = InvalidTokenException.class)
   public void adminLoginRefreshTokenShouldTimeOut() throws InterruptedException {
-    getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+    getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
 
     Thread.sleep(TimeUnit.SECONDS.toMillis(REFRESH_TOKEN_TIME_TO_LIVE + 1));
 
@@ -60,7 +61,7 @@ public class TestRefreshToken extends AbstractComponentTest {
 
   @Test
   public void afterAccessTokenExpiresRefreshTokenShouldAcquireNewAccessToken() throws InterruptedException {
-    getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+    getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
 
     Thread.sleep(TimeUnit.SECONDS.toMillis(ACCESS_TOKEN_TIME_TO_LIVE + 1));
 
@@ -68,19 +69,19 @@ public class TestRefreshToken extends AbstractComponentTest {
             getTestSubject().refresh();
 
     try (final AutoUserContext ignored = new AutoUserContext(ADMIN_IDENTIFIER, refreshAccessTokenAuthentication.getAccessToken())) {
-      getTestSubject().changeUserPassword(ADMIN_IDENTIFIER, new Password(Helpers.encodePassword(ADMIN_PASSWORD)));
+      getTestSubject().changeUserPassword(ADMIN_IDENTIFIER, new Password(TestEnvironment.encodePassword(ADMIN_PASSWORD)));
     }
   }
 
   @Test(expected = InvalidTokenException.class)
   public void refreshTokenShouldGrantAccessOnlyToOneTenant()
   {
-    getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+    getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
 
     try (final TenantDataStoreTestContext ignored = TenantDataStoreTestContext.forRandomTenantName(cassandraInitializer)) {
       try (final AutoUserContext ignored2
                    = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-        getTestSubject().initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        getTestSubject().initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
       }
 
       getTestSubject().refresh();
@@ -90,7 +91,7 @@ public class TestRefreshToken extends AbstractComponentTest {
   @Test
   public void expirationDatesShouldBeCorrectIsoDateTimes() throws InterruptedException {
     final Authentication authentication =
-            getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+            getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
 
     final TimeStampChecker preRefreshAccessTokenTimeStampChecker = TimeStampChecker.inTheFuture(Duration.ofSeconds(ACCESS_TOKEN_TIME_TO_LIVE));
     final TimeStampChecker refreshTokenTimeStampChecker = TimeStampChecker.inTheFuture(Duration.ofSeconds(REFRESH_TOKEN_TIME_TO_LIVE));

@@ -75,7 +75,7 @@ public class AbstractComponentTest {
   static final String AHMES_PASSWORD = "fractions";
   static final String AHMES_FRIENDS_PASSWORD = "sekhem";
 
-  private final static TestEnvironment testEnvironment = new TestEnvironment(APP_NAME);
+  final static TestEnvironment testEnvironment = new TestEnvironment(APP_NAME);
   final static CassandraInitializer cassandraInitializer = new CassandraInitializer();
   private final static TenantDataStoreContextTestRule tenantDataStoreContext = TenantDataStoreContextTestRule.forRandomTenantName(cassandraInitializer);
   private static boolean alreadyInitialized = false;
@@ -106,7 +106,7 @@ public class AbstractComponentTest {
     if (!alreadyInitialized) {
       try (final AutoUserContext ignored
                    = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-        identityManager.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        identityManager.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
       }
       alreadyInitialized = true;
     }
@@ -125,7 +125,7 @@ public class AbstractComponentTest {
 
   AutoUserContext enableAndLoginAdmin() throws InterruptedException {
     final Authentication adminAuthentication =
-            getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+            getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
     Assert.assertNotNull(adminAuthentication);
 
     {
@@ -142,20 +142,20 @@ public class AbstractComponentTest {
    * to access any other endpoint.
    */
   String createUserWithNonexpiredPassword(final String password, final String role) throws InterruptedException {
-    final String username = Helpers.generateRandomIdentifier("Ahmes");
+    final String username = testEnvironment.generateUniqueIdentifer("Ahmes");
     try (final AutoUserContext ignore = enableAndLoginAdmin()) {
-      getTestSubject().createUser(new UserWithPassword(username, role, Helpers.encodePassword(password)));
+      getTestSubject().createUser(new UserWithPassword(username, role, TestEnvironment.encodePassword(password)));
 
       {
         final boolean found = eventRecorder.wait(EventConstants.OPERATION_POST_USER, username);
         Assert.assertTrue(found);
       }
 
-      final Authentication passwordOnlyAuthentication = getTestSubject().login(username, Helpers.encodePassword(password));
+      final Authentication passwordOnlyAuthentication = getTestSubject().login(username, TestEnvironment.encodePassword(password));
 
       try (final AutoUserContext ignore2 = new AutoUserContext(username, passwordOnlyAuthentication.getAccessToken()))
       {
-        getTestSubject().changeUserPassword(username, new Password(Helpers.encodePassword(password)));
+        getTestSubject().changeUserPassword(username, new Password(TestEnvironment.encodePassword(password)));
         final boolean found = eventRecorder.wait(EventConstants.OPERATION_PUT_USER_PASSWORD, username);
         Assert.assertTrue(found);
       }
@@ -164,7 +164,7 @@ public class AbstractComponentTest {
   }
 
   String generateRoleIdentifier() {
-    return Helpers.generateRandomIdentifier("scribe");
+    return testEnvironment.generateUniqueIdentifer("scribe");
   }
 
   Role buildRole(final String identifier, final Permission... permission) {
@@ -217,7 +217,7 @@ public class AbstractComponentTest {
   AutoUserContext loginUser(final String userId, final String password) {
     final Authentication authentication;
     try (AutoUserContext ignored = new AutoGuest()) {
-      authentication = getTestSubject().login(userId, Helpers.encodePassword(password));
+      authentication = getTestSubject().login(userId, TestEnvironment.encodePassword(password));
     }
     return new AutoUserContext(userId, authentication.getAccessToken());
   }

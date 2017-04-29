@@ -20,6 +20,7 @@ import io.mifos.core.api.context.AutoGuest;
 import io.mifos.core.api.context.AutoSeshat;
 import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.NotFoundException;
+import io.mifos.core.test.env.TestEnvironment;
 import io.mifos.identity.api.v1.domain.Authentication;
 import org.junit.Assert;
 import org.junit.Test;
@@ -63,7 +64,7 @@ public class TestKeyRotation extends AbstractComponentTest {
 
       final Authentication adminAuthenticationOnFirstKeyset;
       try (final AutoUserContext ignored2 = new AutoGuest()) {
-        adminAuthenticationOnFirstKeyset = getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+        adminAuthenticationOnFirstKeyset = getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
       }
 
       //TODO: Assert.assertTrue(canAccessResources(adminAuthenticationOnFirstKeyset));
@@ -87,7 +88,7 @@ public class TestKeyRotation extends AbstractComponentTest {
 
       //final Authentication adminAuthenticationOnSecondKeyset;
       try (final AutoUserContext ignored2 = new AutoGuest()) {
-        getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+        getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
       }
 
       //TODO: Assert.assertTrue(canAccessResources(adminAuthenticationOnFirstKeyset));

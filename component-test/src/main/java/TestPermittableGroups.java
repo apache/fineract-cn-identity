@@ -51,7 +51,7 @@ public class TestPermittableGroups extends AbstractComponentTest {
   @Test(expected = IllegalArgumentException.class)
   public void createWithIllegalMethodThrows() throws InterruptedException {
     try (final AutoUserContext ignore = enableAndLoginAdmin()) {
-      final String identifier = Helpers.generateRandomIdentifier("group");
+      final String identifier = testEnvironment.generateUniqueIdentifer("group");
 
       final PermittableEndpoint permittableEndpoint = buildPermittableEndpoint();
       permittableEndpoint.setMethod("blah");
@@ -65,7 +65,7 @@ public class TestPermittableGroups extends AbstractComponentTest {
   @Test
   public void create() throws InterruptedException {
     try (final AutoUserContext ignore = enableAndLoginAdmin()) {
-      final String identifier = Helpers.generateRandomIdentifier("group");
+      final String identifier = testEnvironment.generateUniqueIdentifer("group");
 
       final PermittableEndpoint permittableEndpoint = buildPermittableEndpoint();
       final PermittableGroup group = buildPermittableGroup(identifier, permittableEndpoint);

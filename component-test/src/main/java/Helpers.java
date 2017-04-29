@@ -29,12 +29,4 @@ class Helpers {
       final String identifier) {
     return users.stream().map(getIdentifier).filter(i -> i.equals(identifier)).findAny().isPresent();
   }
-
-  static String generateRandomIdentifier(final String prefix) {
-    return prefix + Math.abs(new Random().nextInt());
-  }
-
-  static String encodePassword(final String password) {
-    return Base64Utils.encodeToString(password.getBytes());
-  }
 }
