@@ -17,10 +17,7 @@ package listener;
 
 import io.mifos.core.lang.config.TenantHeaderFilter;
 import io.mifos.core.test.listener.EventRecorder;
-import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
-import io.mifos.identity.api.v1.events.ApplicationPermissionUserEvent;
-import io.mifos.identity.api.v1.events.ApplicationSignatureEvent;
-import io.mifos.identity.api.v1.events.EventConstants;
+import io.mifos.identity.api.v1.events.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.messaging.handler.annotation.Header;
@@ -94,5 +91,38 @@ public class ApplicationEventListener {
           @Header(TenantHeaderFilter.TENANT_HEADER)final String tenant,
           final String payload) throws Exception {
     eventRecorder.event(tenant, EventConstants.OPERATION_PUT_APPLICATION_PERMISSION_USER_ENABLED, payload, ApplicationPermissionUserEvent.class);
+  }
+
+  @JmsListener(
+          subscription = EventConstants.DESTINATION,
+          destination = EventConstants.DESTINATION,
+          selector = EventConstants.SELECTOR_POST_APPLICATION_CALLENDPOINTSET
+  )
+  public void onCreateApplicationEndpointSet(
+          @Header(TenantHeaderFilter.TENANT_HEADER)final String tenant,
+          final String payload) throws Exception {
+    eventRecorder.event(tenant, EventConstants.OPERATION_POST_APPLICATION_CALLENDPOINTSET, payload, ApplicationCallEndpointSetEvent.class);
+  }
+
+  @JmsListener(
+          subscription = EventConstants.DESTINATION,
+          destination = EventConstants.DESTINATION,
+          selector = EventConstants.SELECTOR_PUT_APPLICATION_CALLENDPOINTSET
+  )
+  public void onSetApplicationEndpointSet(
+          @Header(TenantHeaderFilter.TENANT_HEADER)final String tenant,
+          final String payload) throws Exception {
+    eventRecorder.event(tenant, EventConstants.OPERATION_PUT_APPLICATION_CALLENDPOINTSET, payload, ApplicationCallEndpointSetEvent.class);
+  }
+
+  @JmsListener(
+          subscription = EventConstants.DESTINATION,
+          destination = EventConstants.DESTINATION,
+          selector = EventConstants.SELECTOR_DELETE_APPLICATION_CALLENDPOINTSET
+  )
+  public void onDeleteApplicationEndpointSet(
+          @Header(TenantHeaderFilter.TENANT_HEADER)final String tenant,
+          final String payload) throws Exception {
+    eventRecorder.event(tenant, EventConstants.OPERATION_DELETE_APPLICATION_CALLENDPOINTSET, payload, ApplicationCallEndpointSetEvent.class);
   }
 }

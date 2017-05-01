@@ -20,11 +20,9 @@ import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.NotFoundException;
 import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.identity.api.v1.PermittableGroupIds;
+import io.mifos.identity.api.v1.domain.CallEndpointSet;
 import io.mifos.identity.api.v1.domain.Permission;
-import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
-import io.mifos.identity.api.v1.events.ApplicationPermissionUserEvent;
-import io.mifos.identity.api.v1.events.ApplicationSignatureEvent;
-import io.mifos.identity.api.v1.events.EventConstants;
+import io.mifos.identity.api.v1.events.*;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -201,6 +199,56 @@ public class TestApplications extends AbstractComponentTest {
 
     //Note that at this point, our imaginary application still cannot do anything in the name of any user,
     //because neither of the users has the permission the user enabled for the application.
+  }
+
+  @Test
+  public void manageApplicationEndpointSet() throws InterruptedException {
+    try (final AutoUserContext ignored
+                 = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
+      final ApplicationSignatureEvent appPlusSig = setApplicationSignature();
+
+      final String endpointSetIdentifier = testEnvironment.generateUniqueIdentifer("epset");
+      final CallEndpointSet endpointSet = new CallEndpointSet();
+      endpointSet.setIdentifier(endpointSetIdentifier);
+      endpointSet.setPermittableEndpointGroupIdentifiers(Collections.emptyList());
+
+      getTestSubject().createApplicationCallEndpointSet(appPlusSig.getApplicationIdentifier(), endpointSet);
+
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_CALLENDPOINTSET,
+              new ApplicationCallEndpointSetEvent(appPlusSig.getApplicationIdentifier(), endpointSetIdentifier)));
+
+      final List<CallEndpointSet> applicationEndpointSets = getTestSubject().getApplicationCallEndpointSets(appPlusSig.getApplicationIdentifier());
+      Assert.assertTrue(applicationEndpointSets.contains(endpointSet));
+
+      final CallEndpointSet storedEndpointSet = getTestSubject().getApplicationCallEndpointSet(
+              appPlusSig.getApplicationIdentifier(),
+              endpointSetIdentifier);
+      Assert.assertEquals(endpointSet, storedEndpointSet);
+
+      endpointSet.setPermittableEndpointGroupIdentifiers(Collections.singletonList(PermittableGroupIds.ROLE_MANAGEMENT));
+      getTestSubject().changeApplicationCallEndpointSet(
+              appPlusSig.getApplicationIdentifier(),
+              endpointSetIdentifier,
+              endpointSet);
+
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_PUT_APPLICATION_CALLENDPOINTSET,
+              new ApplicationCallEndpointSetEvent(appPlusSig.getApplicationIdentifier(), endpointSetIdentifier)));
+
+      final CallEndpointSet storedEndpointSet2 = getTestSubject().getApplicationCallEndpointSet(
+              appPlusSig.getApplicationIdentifier(),
+              endpointSetIdentifier);
+      Assert.assertEquals(endpointSet, storedEndpointSet2);
+
+      final List<CallEndpointSet> applicationEndpointSets2 = getTestSubject().getApplicationCallEndpointSets(appPlusSig.getApplicationIdentifier());
+      Assert.assertTrue(applicationEndpointSets2.size() == 1);
+
+      getTestSubject().deleteApplicationCallEndpointSet(appPlusSig.getApplicationIdentifier(), endpointSetIdentifier);
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_DELETE_APPLICATION_CALLENDPOINTSET,
+              new ApplicationCallEndpointSetEvent(appPlusSig.getApplicationIdentifier(), endpointSetIdentifier)));
+
+      final List<CallEndpointSet> applicationEndpointSets3 = getTestSubject().getApplicationCallEndpointSets(appPlusSig.getApplicationIdentifier());
+      Assert.assertTrue(applicationEndpointSets3.isEmpty());
+    }
   }
 
   @Test
