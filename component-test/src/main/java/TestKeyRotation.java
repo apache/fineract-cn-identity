@@ -34,15 +34,6 @@ import java.util.concurrent.TimeUnit;
 public class TestKeyRotation extends AbstractComponentTest {
   @Test
   public void testKeyRotation() throws InterruptedException {
-    //TODO: Asserts on canAccessResources are commented out below because spring cashes credentials.
-    //Once a successful authentication has occurred with in anubis, that user is not reauthenticated across the same
-    //connection, even if the token changes, or if the token is invalidated.  This is a problem we need to find a
-    //solution for.  Simply calling SecurityContextHolder.clearContext is insufficient because the event which leads
-    //to this necessity may have been handled by a separate service.  We'd need to make that call across on threads
-    //in all services.
-    //
-    //To see the offending code, look in the functions principalChanged and requiresAuthentication in
-    // org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter
     final Anubis anubis = tenantApplicationSecurityEnvironment.getAnubis();
 
     //noinspection EmptyTryBlock
@@ -67,7 +58,7 @@ public class TestKeyRotation extends AbstractComponentTest {
         adminAuthenticationOnFirstKeyset = getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
       }
 
-      //TODO: Assert.assertTrue(canAccessResources(adminAuthenticationOnFirstKeyset));
+      Assert.assertTrue(canAccessResources(adminAuthenticationOnFirstKeyset));
 
       //For identity, application signature and identity manager signature should be identical.
       final ApplicationSignatureSet signatureSet = anubis.getSignatureSet(timestamp);
@@ -86,13 +77,13 @@ public class TestKeyRotation extends AbstractComponentTest {
         Assert.assertTrue(signatureSets.contains(timestamp2));
       }
 
-      //final Authentication adminAuthenticationOnSecondKeyset;
+      final Authentication adminAuthenticationOnSecondKeyset;
       try (final AutoUserContext ignored2 = new AutoGuest()) {
-        getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
+        adminAuthenticationOnSecondKeyset = getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
       }
 
-      //TODO: Assert.assertTrue(canAccessResources(adminAuthenticationOnFirstKeyset));
-      //TODO: Assert.assertTrue(canAccessResources(adminAuthenticationOnSecondKeyset));
+      Assert.assertTrue(canAccessResources(adminAuthenticationOnFirstKeyset));
+      Assert.assertTrue(canAccessResources(adminAuthenticationOnSecondKeyset));
 
       //Get the newly created signature set, and test that its contents are correct.
       final ApplicationSignatureSet signatureSet2 = anubis.getSignatureSet(timestamp2);
@@ -106,7 +97,7 @@ public class TestKeyRotation extends AbstractComponentTest {
         Assert.assertTrue(signatureSets.contains(timestamp2));
       }
 
-      //TODO: Assert.assertTrue(canAccessResources(adminAuthenticationOnSecondKeyset));
+      Assert.assertTrue(canAccessResources(adminAuthenticationOnSecondKeyset));
       Assert.assertFalse(canAccessResources(adminAuthenticationOnFirstKeyset));
 
       //Getting the newly deleted signature set should fail.
