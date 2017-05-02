@@ -168,6 +168,35 @@ public interface IdentityManager extends Anubis {
   void deleteApplicationPermission(@PathVariable("applicationidentifier") String applicationIdentifier,
                                    @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier);
 
+  @RequestMapping(value = "/applications/{applicationidentifier}/callendpointset", method = RequestMethod.POST,
+          consumes = {MediaType.APPLICATION_JSON_VALUE},
+          produces = {MediaType.ALL_VALUE})
+  void createApplicationCallEndpointSet(@PathVariable("applicationidentifier") String applicationIdentifier, CallEndpointSet callEndpointSet);
+
+  @RequestMapping(value = "/applications/{applicationidentifier}/callendpointset/{callendpointsetidentifier}", method = RequestMethod.PUT,
+          consumes = {MediaType.APPLICATION_JSON_VALUE},
+          produces = {MediaType.ALL_VALUE})
+  void changeApplicationCallEndpointSet(@PathVariable("applicationidentifier") String applicationIdentifier,
+                                        @PathVariable("callendpointsetidentifier") String callEndpointSetIdentifier,
+                                        CallEndpointSet callEndpointSet);
+
+  @RequestMapping(value = "/applications/{applicationidentifier}/callendpointset", method = RequestMethod.GET,
+          consumes = {MediaType.APPLICATION_JSON_VALUE},
+          produces = {MediaType.ALL_VALUE})
+  List<CallEndpointSet> getApplicationCallEndpointSets(@PathVariable("applicationidentifier") String applicationIdentifier);
+
+  @RequestMapping(value = "/applications/{applicationidentifier}/callendpointset/{callendpointsetidentifier}", method = RequestMethod.GET,
+          consumes = {MediaType.APPLICATION_JSON_VALUE},
+          produces = {MediaType.ALL_VALUE})
+  CallEndpointSet getApplicationCallEndpointSet(@PathVariable("applicationidentifier") String applicationIdentifier,
+                                                @PathVariable("callendpointsetidentifier") String callEndpointSetIdentifier);
+
+  @RequestMapping(value = "/applications/{applicationidentifier}/callendpointset/{callendpointsetidentifier}", method = RequestMethod.DELETE,
+          consumes = {MediaType.APPLICATION_JSON_VALUE},
+          produces = {MediaType.ALL_VALUE})
+  void deleteApplicationCallEndpointSet(@PathVariable("applicationidentifier") String applicationIdentifier,
+                                    @PathVariable("callendpointsetidentifier") String callEndpointSetIdentifier);
+
   @RequestMapping(value = "/applications/{applicationidentifier}/permissions/{permissionidentifier}/users/{useridentifier}/enabled", method = RequestMethod.PUT,
           consumes = {MediaType.APPLICATION_JSON_VALUE},
           produces = {MediaType.ALL_VALUE})

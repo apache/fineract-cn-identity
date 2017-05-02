@@ -20,13 +20,17 @@ import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.anubis.config.TenantSignatureRepository;
 import io.mifos.core.lang.security.RsaKeyPairFactory;
+import io.mifos.core.lang.security.RsaPrivateKeyBuilder;
 import io.mifos.identity.internal.mapper.SignatureMapper;
+import io.mifos.identity.internal.repository.PrivateSignatureEntity;
 import io.mifos.identity.internal.repository.SignatureEntity;
 import io.mifos.identity.internal.repository.Signatures;
 import io.mifos.identity.internal.repository.Tenants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.security.PrivateKey;
+import java.security.interfaces.RSAPrivateKey;
 import java.util.List;
 import java.util.Optional;
 
@@ -98,6 +102,19 @@ public class TenantService implements TenantSignatureRepository {
   public Optional<Signature> getLatestApplicationSignature() {
     Optional<String> timestamp = getMostRecentTimestamp();
     return timestamp.flatMap(this::getApplicationSignature);
+  }
+
+  @Override
+  public Optional<RsaKeyPairFactory.KeyPairHolder> getLatestApplicationSigningKeyPair() {
+    final Optional<PrivateSignatureEntity> privateSignatureEntity = signatures.getPrivateSignature();
+    return privateSignatureEntity.map(x -> {
+      final String timestamp = x.getKeyTimestamp();
+      final PrivateKey privateKey = new RsaPrivateKeyBuilder()
+              .setPrivateKeyExp(x.getPrivateKeyExp())
+              .setPrivateKeyMod(x.getPrivateKeyMod())
+              .build();
+      return new RsaKeyPairFactory.KeyPairHolder(timestamp, null, (RSAPrivateKey)privateKey);
+    });
   }
 
   private Optional<String> getMostRecentTimestamp() {

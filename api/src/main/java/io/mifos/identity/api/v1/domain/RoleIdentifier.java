@@ -15,6 +15,7 @@
  */
 package io.mifos.identity.api.v1.domain;
 
+import io.mifos.identity.api.v1.validation.NotRootRole;
 import org.hibernate.validator.constraints.NotBlank;
 
 import java.util.Objects;
@@ -25,6 +26,7 @@ import java.util.Objects;
 @SuppressWarnings({"unused", "WeakerAccess"})
 public class RoleIdentifier {
   @NotBlank
+  @NotRootRole
   private String identifier;
 
   public RoleIdentifier() {

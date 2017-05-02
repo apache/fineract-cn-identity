@@ -15,14 +15,18 @@
  */
 import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.NotFoundException;
-import io.mifos.core.test.domain.DateStampChecker;
-import io.mifos.identity.api.v1.events.EventConstants;
+import io.mifos.core.test.domain.TimeStampChecker;
+import io.mifos.core.test.env.TestEnvironment;
 import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.api.v1.domain.Password;
 import io.mifos.identity.api.v1.domain.UserWithPassword;
+import io.mifos.identity.api.v1.events.EventConstants;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Myrle Krantz
@@ -34,7 +38,7 @@ public class TestPasswords extends AbstractComponentTest {
     final String username = createUserWithNonexpiredPassword(AHMES_PASSWORD, ADMIN_ROLE);
 
     try (final AutoUserContext ignore = enableAndLoginAdmin()) {
-      final String newPassword = Helpers.encodePassword(
+      final String newPassword = TestEnvironment.encodePassword(
               AHMES_PASSWORD + "make_it_a_little_longer");
 
       {
@@ -48,7 +52,7 @@ public class TestPasswords extends AbstractComponentTest {
       try (final AutoUserContext ignore2 = new AutoUserContext(username, newPasswordAuthentication.getAccessToken()))
       {
         getTestSubject().createUser(new UserWithPassword("Ahmes_friend", "scribe",
-                Helpers.encodePassword(AHMES_FRIENDS_PASSWORD)));
+                TestEnvironment.encodePassword(AHMES_FRIENDS_PASSWORD)));
         Assert.fail("createUser should've thrown an exception because the password is admin reset.");
       }
       catch (final NotFoundException ex)
@@ -68,7 +72,7 @@ public class TestPasswords extends AbstractComponentTest {
       {
         //Now it should be possible to create a user since the user changed the password herself.
         getTestSubject().createUser(new UserWithPassword("Ahmes_friend", "scribe",
-                Helpers.encodePassword(AHMES_FRIENDS_PASSWORD)));
+                TestEnvironment.encodePassword(AHMES_FRIENDS_PASSWORD)));
       }
     }
   }
@@ -76,7 +80,7 @@ public class TestPasswords extends AbstractComponentTest {
   @Test
   public void testAdminChangeAdminPassword() throws InterruptedException {
     try (final AutoUserContext ignore = enableAndLoginAdmin()) {
-      final String newPassword = Helpers.encodePassword(
+      final String newPassword = TestEnvironment.encodePassword(
               ADMIN_PASSWORD + "make_it_a_little_longer");
 
       {
@@ -87,7 +91,7 @@ public class TestPasswords extends AbstractComponentTest {
       }
 
       try {
-        final String oldPassword = Helpers.encodePassword(ADMIN_PASSWORD);
+        final String oldPassword = TestEnvironment.encodePassword(ADMIN_PASSWORD);
         getTestSubject().login(ADMIN_IDENTIFIER, oldPassword);
         Assert.fail("Login with the old password should not succeed.");
       } catch (final NotFoundException ignored) {
@@ -97,7 +101,7 @@ public class TestPasswords extends AbstractComponentTest {
 
       {
         //Change the password back so the tests after this don't fail.
-        getTestSubject().changeUserPassword(ADMIN_IDENTIFIER, new Password(Helpers.encodePassword(ADMIN_PASSWORD)));
+        getTestSubject().changeUserPassword(ADMIN_IDENTIFIER, new Password(TestEnvironment.encodePassword(ADMIN_PASSWORD)));
         boolean found = eventRecorder.wait(EventConstants.OPERATION_PUT_USER_PASSWORD, ADMIN_IDENTIFIER);
         Assert.assertTrue(found);
       }
@@ -108,14 +112,11 @@ public class TestPasswords extends AbstractComponentTest {
   public void testUserChangeOwnPasswordButNotAdminPassword() throws InterruptedException {
     final String username = createUserWithNonexpiredPassword(AHMES_PASSWORD, "scribe");
 
-    final Authentication userAuthentication =
-            getTestSubject().login(username, Helpers.encodePassword(AHMES_PASSWORD));
-
-    try (AutoUserContext ignored = new AutoUserContext(username, userAuthentication.getAccessToken()))
+    try (final AutoUserContext ignored = loginUser(username, AHMES_PASSWORD))
     {
       final String newPassword = "new password";
       {
-        getTestSubject().changeUserPassword(username, new Password(Helpers.encodePassword(newPassword)));
+        getTestSubject().changeUserPassword(username, new Password(TestEnvironment.encodePassword(newPassword)));
 
         boolean found = eventRecorder.wait(EventConstants.OPERATION_PUT_USER_PASSWORD, username);
         Assert.assertTrue(found);
@@ -123,14 +124,14 @@ public class TestPasswords extends AbstractComponentTest {
 
       Thread.sleep(100);
 
-      final DateStampChecker passwordExpirationChecker = DateStampChecker.inTheFuture(93);
-      final Authentication userAuthenticationAfterPasswordChange = getTestSubject().login(username, Helpers.encodePassword(newPassword));
+      final TimeStampChecker passwordExpirationChecker = TimeStampChecker.inTheFutureWithWiggleRoom(Duration.ofDays(93), Duration.ofHours(24));
+      final Authentication userAuthenticationAfterPasswordChange = getTestSubject().login(username, TestEnvironment.encodePassword(newPassword));
       final String passwordExpiration = userAuthenticationAfterPasswordChange.getPasswordExpiration();
       passwordExpirationChecker.assertCorrect(passwordExpiration);
 
       //noinspection EmptyCatchBlock
       try {
-        getTestSubject().changeUserPassword(ADMIN_IDENTIFIER, new Password(Helpers.encodePassword(newPassword)));
+        getTestSubject().changeUserPassword(ADMIN_IDENTIFIER, new Password(TestEnvironment.encodePassword(newPassword)));
         Assert.fail("trying to change the admins password should fail.");
       }
       catch (final NotFoundException ex) {
@@ -140,7 +141,7 @@ public class TestPasswords extends AbstractComponentTest {
 
 
       try {
-        getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(newPassword));
+        getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(newPassword));
         Assert.fail("logging into admin with the new password should likewise fail.");
       }
       catch (final NotFoundException ex) {
@@ -165,5 +166,35 @@ public class TestPasswords extends AbstractComponentTest {
       getTestSubject().login(userid, userPassword);
     }
 
+  }
+
+  @Test
+  public void activatedAntonyPasswordDoesntExpire() throws InterruptedException {
+
+    try (final AutoUserContext ignored = enableAndLoginAdmin()) {
+      final Authentication adminAuthentication =
+              getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
+      Assert.assertEquals(null, adminAuthentication.getPasswordExpiration());
+    }
+  }
+
+  @Test
+  public void onlyAntonyCanSetAntonyPassword() throws InterruptedException {
+    try (final AutoUserContext ignored = enableAndLoginAdmin()) {
+
+      final String roleIdentifier = createRole(buildUserPermission(), buildSelfPermission(), buildRolePermission());
+      final String username = createUserWithNonexpiredPassword(AHMES_PASSWORD, roleIdentifier);
+
+      TimeUnit.SECONDS.sleep(1);
+      try (final AutoUserContext ignored2 = loginUser(username, AHMES_PASSWORD)) {
+        getTestSubject().changeUserPassword(ADMIN_IDENTIFIER, new Password(TestEnvironment.encodePassword(AHMES_FRIENDS_PASSWORD)));
+        Assert.fail("Should not be able to change antony's password from any account other than antony's.");
+      }
+      catch (final IllegalArgumentException expected) {
+        //noinspection EmptyCatchBlock
+      }
+    }
+
+    getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
   }
 }

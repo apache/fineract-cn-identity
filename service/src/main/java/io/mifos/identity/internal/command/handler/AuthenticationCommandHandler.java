@@ -19,11 +19,10 @@ import com.google.gson.Gson;
 import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.anubis.api.v1.domain.TokenContent;
 import io.mifos.anubis.api.v1.domain.TokenPermission;
+import io.mifos.anubis.provider.InvalidKeyTimestampException;
+import io.mifos.anubis.provider.TenantRsaKeyProvider;
 import io.mifos.anubis.security.AmitAuthenticationException;
-import io.mifos.anubis.token.TenantAccessTokenSerializer;
-import io.mifos.anubis.token.TenantRefreshTokenSerializer;
-import io.mifos.anubis.token.TokenDeserializationResult;
-import io.mifos.anubis.token.TokenSerializationResult;
+import io.mifos.anubis.token.*;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
 import io.mifos.core.lang.ApplicationName;
@@ -49,7 +48,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Base64Utils;
 
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -69,6 +71,7 @@ public class AuthenticationCommandHandler {
   private final HashGenerator hashGenerator;
   private final TenantAccessTokenSerializer tenantAccessTokenSerializer;
   private final TenantRefreshTokenSerializer tenantRefreshTokenSerializer;
+  private final TenantRsaKeyProvider tenantRsaKeyProvider;
   private final JmsTemplate jmsTemplate;
   private final Gson gson;
   private final Logger logger;
@@ -93,6 +96,8 @@ public class AuthenticationCommandHandler {
                                       final TenantAccessTokenSerializer tenantAccessTokenSerializer,
                                       @SuppressWarnings("SpringJavaAutowiringInspection")
                                         final TenantRefreshTokenSerializer tenantRefreshTokenSerializer,
+                                      @SuppressWarnings("SpringJavaAutowiringInspection")
+                                        final TenantRsaKeyProvider tenantRsaKeyProvider,
                                       final JmsTemplate jmsTemplate,
                                       final ApplicationName applicationName,
                                       @Qualifier(IdentityConstants.JSON_SERIALIZER_NAME) final Gson gson,
@@ -105,6 +110,7 @@ public class AuthenticationCommandHandler {
     this.hashGenerator = hashGenerator;
     this.tenantAccessTokenSerializer = tenantAccessTokenSerializer;
     this.tenantRefreshTokenSerializer = tenantRefreshTokenSerializer;
+    this.tenantRsaKeyProvider = tenantRsaKeyProvider;
     this.jmsTemplate = jmsTemplate;
     this.gson = gson;
     this.logger = logger;
@@ -141,7 +147,7 @@ public class AuthenticationCommandHandler {
       throw AmitAuthenticationException.userPasswordCombinationNotFound();
     }
 
-    final LocalDate passwordExpiration = getExpiration(user);
+    final Optional<LocalDateTime> passwordExpiration = getExpiration(user);
 
     final TokenSerializationResult accessToken = getAccessToken(
             user.getIdentifier(),
@@ -155,7 +161,7 @@ public class AuthenticationCommandHandler {
     return new AuthenticationCommandResponse(
         accessToken.getToken(), DateConverter.toIsoString(accessToken.getExpiration()),
         refreshToken.getToken(), DateConverter.toIsoString(refreshToken.getExpiration()),
-            DateConverter.toIsoString(passwordExpiration));
+            passwordExpiration.map(DateConverter::toIsoString).orElse(null));
   }
 
   private PrivateSignatureEntity checkedGetPrivateSignature() {
@@ -176,19 +182,28 @@ public class AuthenticationCommandHandler {
     return privateTenantInfo.get();
   }
 
+  private class TenantIdentityRsaKeyProvider implements TenantApplicationRsaKeyProvider {
+    @Override
+    public PublicKey getApplicationPublicKey(final String tokenApplicationName, final String timestamp) throws InvalidKeyTimestampException {
+      if (!applicationName.toString().equals(tokenApplicationName))
+        throw new IllegalArgumentException("Currently only supporting refresh tokens issued by identity");
+      return tenantRsaKeyProvider.getPublicKey(timestamp);
+    }
+  }
+
   @CommandHandler
   public AuthenticationCommandResponse process(final RefreshTokenAuthenticationCommand command)
       throws AmitAuthenticationException
   {
     final TokenDeserializationResult deserializedRefreshToken =
-        tenantRefreshTokenSerializer.deserialize(command.getRefreshToken());
+        tenantRefreshTokenSerializer.deserialize(new TenantIdentityRsaKeyProvider(), command.getRefreshToken());
 
     final PrivateTenantInfoEntity privateTenantInfo = checkedGetPrivateTenantInfo();
     final PrivateSignatureEntity privateSignature = checkedGetPrivateSignature();
 
     final UserEntity user = getUser(deserializedRefreshToken.getUserIdentifier());
 
-    final LocalDate passwordExpiration = getExpiration(user);
+    final Optional<LocalDateTime> passwordExpiration = getExpiration(user);
 
     final TokenSerializationResult accessToken = getAccessToken(
             user.getIdentifier(),
@@ -198,12 +213,17 @@ public class AuthenticationCommandHandler {
     return new AuthenticationCommandResponse(
         accessToken.getToken(), DateConverter.toIsoString(accessToken.getExpiration()),
         command.getRefreshToken(), DateConverter.toIsoString(deserializedRefreshToken.getExpiration()),
-        DateConverter.toIsoString(passwordExpiration));
+        passwordExpiration.map(DateConverter::toIsoString).orElse(null));
   }
 
-  private LocalDate getExpiration(final UserEntity user)
+  private Optional<LocalDateTime> getExpiration(final UserEntity user)
   {
-    return LocalDate.ofEpochDay(user.getPasswordExpiresOn().getDaysSinceEpoch());
+    if (user.getIdentifier().equals(IdentityConstants.SU_NAME))
+      return Optional.empty();
+    else
+      return Optional.of(LocalDateTime.of(
+              LocalDate.ofEpochDay(user.getPasswordExpiresOn().getDaysSinceEpoch()), //Convert from cassandra LocalDate to java LocalDate.
+              LocalTime.MIDNIGHT));
   }
 
   private UserEntity getUser(final String identifier) throws AmitAuthenticationException {
@@ -257,7 +277,8 @@ public class AuthenticationCommandHandler {
 
   private Set<TokenPermission> getTokenPermissions(
           final UserEntity user,
-          final LocalDate passwordExpiration,
+          @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+          final Optional<LocalDateTime> passwordExpiration,
           final long gracePeriod) throws AmitAuthenticationException {
     final Optional<RoleEntity> userRole = roles.get(user.getRole());
     final Set<TokenPermission> tokenPermissions;
@@ -293,12 +314,15 @@ public class AuthenticationCommandHandler {
     return tokenPermissions;
   }
 
-  static boolean pastExpiration(final LocalDate passwordExpiration) {
-    return LocalDate.now().compareTo(passwordExpiration) >= 0;
+  static boolean pastExpiration(
+          @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<LocalDateTime> passwordExpiration) {
+    return passwordExpiration.map(x -> LocalDateTime.now().compareTo(x) >= 0).orElse(false);
   }
 
-  static boolean pastGracePeriod(final LocalDate passwordExpiration, final long gracePeriod) {
-    return LocalDate.now().compareTo(passwordExpiration.plusDays(gracePeriod)) >= 0;
+  static boolean pastGracePeriod(
+          @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<LocalDateTime> passwordExpiration,
+          final long gracePeriod) {
+    return passwordExpiration.map(x -> (LocalDateTime.now().compareTo(x.plusDays(gracePeriod)) >= 0)).orElse(false);
   }
 
   private Stream<TokenPermission> mapPermissions(final PermissionType permission) {

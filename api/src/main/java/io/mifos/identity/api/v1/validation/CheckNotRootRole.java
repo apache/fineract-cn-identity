@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.mifos.identity.api.v1.validation;
 
-import org.springframework.util.Base64Utils;
-
-import java.util.List;
-import java.util.Random;
-import java.util.function.Function;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
 /**
  * @author Myrle Krantz
  */
-class Helpers {
+public class CheckNotRootRole implements ConstraintValidator<NotRootRole, String> {
+  @Override
+  public void initialize(final NotRootRole constraintAnnotation) {
 
-  static <T> boolean instancePresent(final List<T> users, Function<T, String> getIdentifier,
-      final String identifier) {
-    return users.stream().map(getIdentifier).filter(i -> i.equals(identifier)).findAny().isPresent();
+  }
+
+  @Override
+  public boolean isValid(final String value, final ConstraintValidatorContext context) {
+    return !value.equals("pharaoh");
   }
 }

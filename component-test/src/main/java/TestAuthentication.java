@@ -22,6 +22,7 @@ import io.mifos.core.api.util.InvalidTokenException;
 import io.mifos.core.api.util.NotFoundException;
 import io.mifos.core.lang.AutoTenantContext;
 import io.mifos.core.lang.security.RsaPublicKeyBuilder;
+import io.mifos.core.test.env.TestEnvironment;
 import io.mifos.identity.api.v1.domain.*;
 import org.junit.Assert;
 import org.junit.Test;
@@ -61,7 +62,7 @@ public class TestAuthentication extends AbstractComponentTest {
 
   @Test(expected = NotFoundException.class)
   public void testAdminIncorrectLogin() throws InterruptedException {
-    getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword("set"));
+    getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword("set"));
     Assert.fail("login with wrong password should fail with not found exception.");
   }
 
@@ -70,7 +71,7 @@ public class TestAuthentication extends AbstractComponentTest {
     try (final AutoUserContext ignored = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
       try (final AutoTenantContext ignored2 = new AutoTenantContext())
       {
-        getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+        getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
       }
     }
     Assert.fail("login without tenant header set should fail with bad request.");
@@ -80,7 +81,7 @@ public class TestAuthentication extends AbstractComponentTest {
   public void testPermissionsCorrectInAdminToken() throws InterruptedException {
     try (final AutoUserContext ignore = enableAndLoginAdmin()) {
       final Authentication adminAuthentication =
-              getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+              getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
       Assert.assertNotNull(adminAuthentication);
 
       final TokenContent tokenContent = SystemSecurityEnvironment.getTokenContent(adminAuthentication.getAccessToken(), getPublicKey());

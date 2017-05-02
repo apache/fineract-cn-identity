@@ -16,6 +16,7 @@
 import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.anubis.test.v1.TenantApplicationSecurityEnvironmentTestRule;
 import io.mifos.core.api.config.EnableApiFactory;
+import io.mifos.core.api.context.AutoGuest;
 import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.ApiFactory;
 import io.mifos.core.api.util.UserContextHolder;
@@ -105,7 +106,7 @@ public class AbstractComponentTest {
     if (!alreadyInitialized) {
       try (final AutoUserContext ignored
                    = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-        identityManager.initialize(Helpers.encodePassword(ADMIN_PASSWORD));
+        identityManager.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
       }
       alreadyInitialized = true;
     }
@@ -123,30 +124,8 @@ public class AbstractComponentTest {
   }
 
   AutoUserContext enableAndLoginAdmin() throws InterruptedException {
-    final Authentication adminAuthenticationToChangePassword =
-            getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
-    Assert.assertNotNull(adminAuthenticationToChangePassword);
-
-    {
-      final boolean found = eventRecorder
-              .wait(EventConstants.OPERATION_AUTHENTICATE, ADMIN_IDENTIFIER);
-      Assert.assertTrue(found);
-    }
-
-    //Change password, then re-authenticate
-    try (final AutoUserContext ignore = new AutoUserContext(ADMIN_IDENTIFIER, adminAuthenticationToChangePassword.getAccessToken()))
-    {
-      getTestSubject().changeUserPassword(ADMIN_IDENTIFIER, new Password(Helpers.encodePassword(ADMIN_PASSWORD)));
-
-      {
-        final boolean found = eventRecorder
-                .wait(EventConstants.OPERATION_PUT_USER_PASSWORD, ADMIN_IDENTIFIER);
-        Assert.assertTrue(found);
-      }
-    }
-
     final Authentication adminAuthentication =
-            getTestSubject().login(ADMIN_IDENTIFIER, Helpers.encodePassword(ADMIN_PASSWORD));
+            getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
     Assert.assertNotNull(adminAuthentication);
 
     {
@@ -154,8 +133,6 @@ public class AbstractComponentTest {
               .wait(EventConstants.OPERATION_AUTHENTICATE, ADMIN_IDENTIFIER);
       Assert.assertTrue(found);
     }
-
-    eventRecorder.clear();
 
     return new AutoUserContext(ADMIN_IDENTIFIER, adminAuthentication.getAccessToken());
   }
@@ -165,20 +142,20 @@ public class AbstractComponentTest {
    * to access any other endpoint.
    */
   String createUserWithNonexpiredPassword(final String password, final String role) throws InterruptedException {
-    final String username = Helpers.generateRandomIdentifier("Ahmes");
+    final String username = testEnvironment.generateUniqueIdentifer("Ahmes");
     try (final AutoUserContext ignore = enableAndLoginAdmin()) {
-      getTestSubject().createUser(new UserWithPassword(username, role, Helpers.encodePassword(password)));
+      getTestSubject().createUser(new UserWithPassword(username, role, TestEnvironment.encodePassword(password)));
 
       {
         final boolean found = eventRecorder.wait(EventConstants.OPERATION_POST_USER, username);
         Assert.assertTrue(found);
       }
 
-      final Authentication passwordOnlyAuthentication = getTestSubject().login(username, Helpers.encodePassword(password));
+      final Authentication passwordOnlyAuthentication = getTestSubject().login(username, TestEnvironment.encodePassword(password));
 
       try (final AutoUserContext ignore2 = new AutoUserContext(username, passwordOnlyAuthentication.getAccessToken()))
       {
-        getTestSubject().changeUserPassword(username, new Password(Helpers.encodePassword(password)));
+        getTestSubject().changeUserPassword(username, new Password(TestEnvironment.encodePassword(password)));
         final boolean found = eventRecorder.wait(EventConstants.OPERATION_PUT_USER_PASSWORD, username);
         Assert.assertTrue(found);
       }
@@ -187,7 +164,7 @@ public class AbstractComponentTest {
   }
 
   String generateRoleIdentifier() {
-    return Helpers.generateRandomIdentifier("scribe");
+    return testEnvironment.generateUniqueIdentifer("scribe");
   }
 
   Role buildRole(final String identifier, final Permission... permission) {
@@ -211,7 +188,7 @@ public class AbstractComponentTest {
     return permission;
   }
 
-  private Permission buildSelfPermission() {
+  Permission buildSelfPermission() {
     final Permission permission = new Permission();
     permission.setAllowedOperations(AllowedOperation.ALL);
     permission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.SELF_MANAGEMENT);
@@ -238,7 +215,10 @@ public class AbstractComponentTest {
   }
 
   AutoUserContext loginUser(final String userId, final String password) {
-    final Authentication authentication = getTestSubject().login(userId, Helpers.encodePassword(password));
+    final Authentication authentication;
+    try (AutoUserContext ignored = new AutoGuest()) {
+      authentication = getTestSubject().login(userId, TestEnvironment.encodePassword(password));
+    }
     return new AutoUserContext(userId, authentication.getAccessToken());
   }
 }

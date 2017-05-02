@@ -18,11 +18,10 @@ package io.mifos.identity.internal.command.handler;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
 import io.mifos.core.command.annotation.EventEmitter;
-import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
-import io.mifos.identity.api.v1.events.ApplicationPermissionUserEvent;
-import io.mifos.identity.api.v1.events.ApplicationSignatureEvent;
-import io.mifos.identity.api.v1.events.EventConstants;
+import io.mifos.core.lang.ServiceException;
+import io.mifos.identity.api.v1.events.*;
 import io.mifos.identity.internal.command.*;
+import io.mifos.identity.internal.mapper.ApplicationCallEndpointSetMapper;
 import io.mifos.identity.internal.mapper.PermissionMapper;
 import io.mifos.identity.internal.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,20 +30,24 @@ import org.springframework.stereotype.Component;
 /**
  * @author Myrle Krantz
  */
+@SuppressWarnings("unused")
 @Aggregate
 @Component
 public class ApplicationCommandHandler {
   private final ApplicationSignatures applicationSignatures;
   private final ApplicationPermissions applicationPermissions;
   private final ApplicationPermissionUsers applicationPermissionUsers;
+  private final ApplicationCallEndpointSets applicationCallEndpointSets;
 
   @Autowired
   public ApplicationCommandHandler(final ApplicationSignatures applicationSignatures,
                                    final ApplicationPermissions applicationPermissions,
-                                   final ApplicationPermissionUsers applicationPermissionUsers) {
+                                   final ApplicationPermissionUsers applicationPermissionUsers,
+                                   final ApplicationCallEndpointSets applicationCallEndpointSets) {
     this.applicationSignatures = applicationSignatures;
     this.applicationPermissions = applicationPermissions;
     this.applicationPermissionUsers = applicationPermissionUsers;
+    this.applicationCallEndpointSets = applicationCallEndpointSets;
   }
 
   @CommandHandler
@@ -89,5 +92,43 @@ public class ApplicationCommandHandler {
   public ApplicationPermissionUserEvent process(final SetApplicationPermissionUserEnabledCommand command) {
     applicationPermissionUsers.setEnabled(command.getApplicationIdentifier(), command.getPermittableGroupIdentifier(), command.getUserIdentifier(), command.isEnabled());
     return new ApplicationPermissionUserEvent(command.getApplicationIdentifier(), command.getPermittableGroupIdentifier(), command.getUserIdentifier());
+  }
+
+  @CommandHandler
+  @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_PUT_APPLICATION_CALLENDPOINTSET)
+  public ApplicationCallEndpointSetEvent process(final ChangeApplicationCallEndpointSetCommand command) {
+    applicationCallEndpointSets.get(command.getApplicationIdentifier(), command.getCallEndpointSetIdentifier())
+            .orElseThrow(() -> ServiceException.notFound("No application call endpoint '"
+                    + command.getApplicationIdentifier() + "." + command.getCallEndpointSetIdentifier() + "'."));
+
+    final ApplicationCallEndpointSetEntity toSave  = ApplicationCallEndpointSetMapper.mapToEntity(
+            command.getApplicationIdentifier(),
+            command.getCallEndpointSet());
+    applicationCallEndpointSets.change(toSave);
+    return new ApplicationCallEndpointSetEvent(command.getApplicationIdentifier(), command.getCallEndpointSetIdentifier());
+  }
+
+  @CommandHandler
+  @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_POST_APPLICATION_CALLENDPOINTSET)
+  public ApplicationCallEndpointSetEvent process(final CreateApplicationCallEndpointSetCommand command) {
+    if (!applicationSignatures.signaturesExistForApplication(command.getApplicationIdentifier()))
+      throw ServiceException.notFound("No application '" + command.getApplicationIdentifier() + "'.");
+
+    final ApplicationCallEndpointSetEntity toSave  = ApplicationCallEndpointSetMapper.mapToEntity(
+            command.getApplicationIdentifier(),
+            command.getCallEndpointSet());
+    applicationCallEndpointSets.add(toSave);
+    return new ApplicationCallEndpointSetEvent(command.getApplicationIdentifier(), command.getCallEndpointSet().getIdentifier());
+  }
+
+  @CommandHandler
+  @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_DELETE_APPLICATION_CALLENDPOINTSET)
+  public ApplicationCallEndpointSetEvent process(final DeleteApplicationCallEndpointSetCommand command) {
+    applicationCallEndpointSets.get(command.getApplicationIdentifier(), command.getCallEndpointSetIdentifier())
+            .orElseThrow(() -> ServiceException.notFound("No application call endpoint '"
+                    + command.getApplicationIdentifier() + "." + command.getCallEndpointSetIdentifier() + "'."));
+
+    applicationCallEndpointSets.delete(command.getApplicationIdentifier(), command.getCallEndpointSetIdentifier());
+    return new ApplicationCallEndpointSetEvent(command.getApplicationIdentifier(), command.getCallEndpointSetIdentifier());
   }
 }

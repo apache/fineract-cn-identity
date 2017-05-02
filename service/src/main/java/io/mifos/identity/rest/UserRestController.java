@@ -17,6 +17,7 @@ package io.mifos.identity.rest;
 
 import io.mifos.anubis.annotation.AcceptedTokenType;
 import io.mifos.anubis.annotation.Permittable;
+import io.mifos.core.api.util.UserContextHolder;
 import io.mifos.core.command.gateway.CommandGateway;
 import io.mifos.core.lang.ServiceException;
 import io.mifos.identity.api.v1.PermittableGroupIds;
@@ -35,6 +36,7 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Set;
 
+import static io.mifos.identity.internal.util.IdentityConstants.SU_NAME;
 import static io.mifos.identity.rest.PathConstants.IDENTIFIER_PATH_VARIABLE;
 
 
@@ -98,6 +100,9 @@ public class UserRestController {
       @PathVariable(IDENTIFIER_PATH_VARIABLE) final String userIdentifier,
       @RequestBody @Valid final RoleIdentifier roleIdentifier)
   {
+    if (userIdentifier.equals(SU_NAME))
+      throw ServiceException.badRequest("Role of user with identifier: " + userIdentifier + " cannot be changed.");
+
     checkIdentifier(userIdentifier);
 
     final ChangeUserRoleCommand changeCommand = new ChangeUserRoleCommand(userIdentifier, roleIdentifier.getIdentifier());
@@ -127,6 +132,9 @@ public class UserRestController {
       @PathVariable(IDENTIFIER_PATH_VARIABLE) final String userIdentifier,
       @RequestBody @Valid final Password password)
   {
+    if (userIdentifier.equals(SU_NAME) && !UserContextHolder.checkedGetUser().equals(SU_NAME))
+      throw ServiceException.badRequest("Role of user with identifier: " + userIdentifier + " cannot be changed.");
+
     checkIdentifier(userIdentifier);
 
     checkPassword(password);

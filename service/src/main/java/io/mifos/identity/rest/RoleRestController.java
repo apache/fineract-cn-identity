@@ -21,10 +21,11 @@ import io.mifos.core.command.gateway.CommandGateway;
 import io.mifos.core.lang.ServiceException;
 import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.domain.Role;
+import io.mifos.identity.api.v1.validation.CheckRoleChangeable;
+import io.mifos.identity.internal.command.ChangeRoleCommand;
 import io.mifos.identity.internal.command.CreateRoleCommand;
 import io.mifos.identity.internal.command.DeleteRoleCommand;
 import io.mifos.identity.internal.service.RoleService;
-import io.mifos.identity.internal.command.ChangeRoleCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -94,6 +95,9 @@ public class RoleRestController
   @Permittable(value = AcceptedTokenType.TENANT, groupId = PermittableGroupIds.ROLE_MANAGEMENT)
   public @ResponseBody ResponseEntity<Void> delete(@PathVariable(PathConstants.IDENTIFIER_PATH_VARIABLE) final String identifier)
   {
+    if (!CheckRoleChangeable.isChangeableRoleIdentifier(identifier))
+      throw ServiceException.badRequest("Role with identifier: " + identifier + " cannot be deleted.");
+
     checkIdentifier(identifier);
 
     final DeleteRoleCommand deleteCommand = new DeleteRoleCommand(identifier);
@@ -108,6 +112,9 @@ public class RoleRestController
   public @ResponseBody ResponseEntity<Void> change(
           @PathVariable(PathConstants.IDENTIFIER_PATH_VARIABLE) final String identifier, @RequestBody @Valid final Role instance)
   {
+    if (!CheckRoleChangeable.isChangeableRoleIdentifier(identifier))
+      throw ServiceException.badRequest("Role with identifier: " + identifier + " cannot be changed.");
+
     checkIdentifier(identifier);
 
     if (!identifier.equals(instance.getIdentifier()))

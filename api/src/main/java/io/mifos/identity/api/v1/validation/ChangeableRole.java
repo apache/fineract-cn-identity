@@ -13,20 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.mifos.identity.api.v1.validation;
 
-import org.springframework.util.Base64Utils;
-
-import java.util.List;
-import java.util.Random;
-import java.util.function.Function;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.*;
 
 /**
  * @author Myrle Krantz
  */
-class Helpers {
+@SuppressWarnings({"unused", "WeakerAccess"})
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Constraint(
+        validatedBy = {CheckRoleChangeable.class}
+)
+public @interface ChangeableRole {
+  String message() default "The role 'pharaoh' cannot be changed or deleted.";
 
-  static <T> boolean instancePresent(final List<T> users, Function<T, String> getIdentifier,
-      final String identifier) {
-    return users.stream().map(getIdentifier).filter(i -> i.equals(identifier)).findAny().isPresent();
-  }
+  Class<?>[] groups() default {};
+
+  Class<? extends Payload>[] payload() default {};
 }

@@ -16,12 +16,7 @@
 package io.mifos.identity.api.v1.domain;
 
 import io.mifos.core.lang.validation.constraints.ValidIdentifier;
-import io.mifos.identity.api.v1.validation.ChangeableRole;
-import org.hibernate.validator.constraints.ScriptAssert;
-import org.springframework.util.Assert;
 
-import javax.annotation.Nonnull;
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
@@ -29,61 +24,52 @@ import java.util.Objects;
 /**
  * @author Myrle Krantz
  */
-@SuppressWarnings("unused")
-public class Role {
+@SuppressWarnings({"unused", "WeakerAccess"})
+public class CallEndpointSet {
   @ValidIdentifier
-  @ChangeableRole
   private String identifier;
 
   @NotNull
-  @Valid
-  private List<Permission> permissions;
+  private List<String> permittableEndpointGroupIdentifiers;
 
-
-
-  public Role() {}
-
-  public Role(
-      final @Nonnull String identifier,
-      final @Nonnull List<Permission> permissions) {
-    Assert.notNull(identifier);
-    Assert.notNull(permissions);
-
-    this.identifier = identifier;
-    this.permissions = permissions;
+  public CallEndpointSet() {
   }
-
-  public void setIdentifier(String identifier) { this.identifier = identifier;}
 
   public String getIdentifier() {
     return identifier;
   }
 
-  public void setPermissions(List<Permission> permissions) {this.permissions = permissions;}
+  public void setIdentifier(String identifier) {
+    this.identifier = identifier;
+  }
 
-  public List<Permission> getPermissions() {
-    return permissions;
+  public List<String> getPermittableEndpointGroupIdentifiers() {
+    return permittableEndpointGroupIdentifiers;
+  }
+
+  public void setPermittableEndpointGroupIdentifiers(List<String> permittableEndpointGroupIdentifiers) {
+    this.permittableEndpointGroupIdentifiers = permittableEndpointGroupIdentifiers;
   }
 
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    Role role = (Role) o;
-    return Objects.equals(identifier, role.identifier) &&
-            Objects.equals(permissions, role.permissions);
+    CallEndpointSet that = (CallEndpointSet) o;
+    return Objects.equals(identifier, that.identifier) &&
+            Objects.equals(permittableEndpointGroupIdentifiers, that.permittableEndpointGroupIdentifiers);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(identifier, permissions);
+    return Objects.hash(identifier, permittableEndpointGroupIdentifiers);
   }
 
   @Override
   public String toString() {
-    return "Role{" +
+    return "CallEndpointSet{" +
             "identifier='" + identifier + '\'' +
-            ", permissions=" + permissions +
+            ", permittableEndpointGroupIdentifiers=" + permittableEndpointGroupIdentifiers +
             '}';
   }
 }

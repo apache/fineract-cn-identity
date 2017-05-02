@@ -15,59 +15,48 @@
  */
 package io.mifos.identity.v1.domain;
 
+import io.mifos.core.test.domain.ValidationTest;
 import io.mifos.core.test.domain.ValidationTestCase;
-import io.mifos.identity.api.v1.domain.RoleIdentifier;
-import org.junit.Assert;
-import org.junit.Test;
+import io.mifos.identity.api.v1.domain.Role;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
+import java.util.Collections;
 
 /**
  * @author Myrle Krantz
  */
 @RunWith(Parameterized.class)
-public class RoleIdentifierTest {
+public class RoleTest extends ValidationTest<Role> {
+
+  public RoleTest(final ValidationTestCase<Role> testCase) {
+    super(testCase);
+  }
+
   @Parameterized.Parameters
   public static Collection testCases() {
     final Collection<ValidationTestCase> ret = new ArrayList<>();
 
-    ret.add(new ValidationTestCase<RoleIdentifier>("validCase")
+    ret.add(new ValidationTestCase<Role>("validCase")
             .adjustment(x -> {})
             .valid(true));
-    ret.add(new ValidationTestCase<RoleIdentifier>("spaceyIdentifier")
-            .adjustment(x -> x.setIdentifier("   "))
-            .valid(false));
-    ret.add(new ValidationTestCase<RoleIdentifier>("deactivated")
+    ret.add(new ValidationTestCase<Role>("deactivated")
             .adjustment(x -> x.setIdentifier("deactivated"))
-            .valid(true));
-    ret.add(new ValidationTestCase<RoleIdentifier>("pharaoh")
+            .valid(false));
+    ret.add(new ValidationTestCase<Role>("pharaoh")
             .adjustment(x -> x.setIdentifier("pharaoh"))
             .valid(false));
 
     return ret;
   }
 
-  private final ValidationTestCase<RoleIdentifier> testCase;
-
-  public RoleIdentifierTest(final ValidationTestCase<RoleIdentifier> testCase)
-  {
-    this.testCase = testCase;
+  @Override
+  protected Role createValidTestSubject() {
+    final Role ret = new Role();
+    ret.setIdentifier("blah");
+    ret.setPermissions(Collections.emptyList());
+    return ret;
   }
-
-  private RoleIdentifier createValidTestSubject()
-  {
-    return new RoleIdentifier("scribe");
-  }
-
-  @Test()
-  public void test(){
-    final RoleIdentifier testSubject = createValidTestSubject();
-    testCase.getAdjustment().accept(testSubject);
-    Assert.assertTrue(testCase.toString(), testCase.check(testSubject));
-  }
-
 }

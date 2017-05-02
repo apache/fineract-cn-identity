@@ -16,13 +16,12 @@
 package io.mifos.identity.internal.service;
 
 import io.mifos.anubis.api.v1.domain.Signature;
+import io.mifos.identity.api.v1.domain.CallEndpointSet;
 import io.mifos.identity.api.v1.domain.Permission;
+import io.mifos.identity.internal.mapper.ApplicationCallEndpointSetMapper;
 import io.mifos.identity.internal.mapper.PermissionMapper;
 import io.mifos.identity.internal.mapper.SignatureMapper;
-import io.mifos.identity.internal.repository.ApplicationPermissionUsers;
-import io.mifos.identity.internal.repository.ApplicationPermissions;
-import io.mifos.identity.internal.repository.ApplicationSignatureEntity;
-import io.mifos.identity.internal.repository.ApplicationSignatures;
+import io.mifos.identity.internal.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,14 +39,17 @@ public class ApplicationService {
   private final ApplicationSignatures applicationSignaturesRepository;
   private final ApplicationPermissions applicationPermissionsRepository;
   private final ApplicationPermissionUsers applicationPermissionsUserRepository;
+  private final ApplicationCallEndpointSets applicationCallEndpointSets;
 
   @Autowired
   public ApplicationService(final ApplicationSignatures applicationSignaturesRepository,
                             final ApplicationPermissions applicationPermissionsRepository,
-                            final ApplicationPermissionUsers applicationPermissionsUserRepository) {
+                            final ApplicationPermissionUsers applicationPermissionsUserRepository,
+                            final ApplicationCallEndpointSets applicationCallEndpointSets) {
     this.applicationSignaturesRepository = applicationSignaturesRepository;
     this.applicationPermissionsRepository = applicationPermissionsRepository;
     this.applicationPermissionsUserRepository = applicationPermissionsUserRepository;
+    this.applicationCallEndpointSets = applicationCallEndpointSets;
   }
 
   public List<String> getAllApplications() {
@@ -80,5 +82,22 @@ public class ApplicationService {
                                                      final String permittableEndpointGroupIdentifier,
                                                      final String userIdentifier) {
     return applicationPermissionsUserRepository.enabled(applicationIdentifier, permittableEndpointGroupIdentifier, userIdentifier);
+  }
+
+  public List<CallEndpointSet> getAllCallEndpointSetsForApplication(final String applicationIdentifier) {
+    return applicationCallEndpointSets.getAllForApplication(applicationIdentifier).stream()
+            .map(ApplicationCallEndpointSetMapper::map)
+            .collect(Collectors.toList());
+  }
+
+  public Optional<CallEndpointSet> getCallEndpointSetForApplication(
+          final String applicationIdentifier,
+          final String callEndpointSetIdentifier) {
+    return applicationCallEndpointSets.get(applicationIdentifier, callEndpointSetIdentifier)
+            .map(ApplicationCallEndpointSetMapper::map);
+  }
+
+  public boolean applicationCallEndpointSetExists(String applicationIdentifier, String callEndpointSetIdentifier) {
+    return applicationCallEndpointSets.get(applicationIdentifier, callEndpointSetIdentifier).isPresent();
   }
 }

@@ -17,6 +17,8 @@ package io.mifos.identity.api.v1.domain;
 
 import org.hibernate.validator.constraints.NotBlank;
 
+import javax.annotation.Nullable;
+import javax.validation.constraints.Null;
 import java.util.Objects;
 
 /**
@@ -38,8 +40,9 @@ public class Authentication {
 
   /**
    * If password expiration is in the past, then the tokens provided only allow the user to change his/her password.
+   * If password expiration is null then password will never expire.
    */
-  @NotBlank
+  @Nullable
   private String passwordExpiration;
 
   public Authentication()

@@ -13,17 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.identity.api.v1.events.EventConstants;
+import io.mifos.core.test.env.TestEnvironment;
 import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.domain.*;
+import io.mifos.identity.api.v1.events.EventConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static io.mifos.identity.internal.util.IdentityConstants.SU_NAME;
+import static io.mifos.identity.internal.util.IdentityConstants.SU_ROLE;
 
 /**
  * @author Myrle Krantz
@@ -44,13 +49,13 @@ public class TestUsers extends AbstractComponentTest {
     }
 
     final Authentication userAuthentication =
-            getTestSubject().login(username, Helpers.encodePassword(AHMES_PASSWORD));
+            getTestSubject().login(username, TestEnvironment.encodePassword(AHMES_PASSWORD));
 
     Assert.assertNotNull(userAuthentication);
 
     try (final AutoUserContext ignored = new AutoUserContext(username, userAuthentication.getAccessToken())) {
       getTestSubject().createUser(new UserWithPassword("Ahmes_friend", "scribe",
-              Helpers.encodePassword(AHMES_FRIENDS_PASSWORD)));
+              TestEnvironment.encodePassword(AHMES_FRIENDS_PASSWORD)));
 
       final boolean found = eventRecorder.wait(EventConstants.OPERATION_POST_USER, "Ahmes_friend");
       Assert.assertTrue(found);
@@ -68,7 +73,7 @@ public class TestUsers extends AbstractComponentTest {
     final String userIdentifier = createUserWithNonexpiredPassword(AHMES_PASSWORD, ADMIN_ROLE);
 
     final Authentication ahmesAuthentication =
-            getTestSubject().login(userIdentifier, Helpers.encodePassword(AHMES_PASSWORD));
+            getTestSubject().login(userIdentifier, TestEnvironment.encodePassword(AHMES_PASSWORD));
 
     try (final AutoUserContext ignored = new AutoUserContext(userIdentifier, ahmesAuthentication.getAccessToken())) {
       List<User> users = getTestSubject().getUsers();
@@ -87,6 +92,27 @@ public class TestUsers extends AbstractComponentTest {
 
       users = getTestSubject().getUsers();
       Assert.assertEquals(2, users.size());
+    }
+  }
+
+  @Test
+  public void testChangeAntonyRoleFails() throws InterruptedException {
+    final String userIdentifier = createUserWithNonexpiredPassword(AHMES_PASSWORD, ADMIN_ROLE);
+
+    final Authentication ahmesAuthentication =
+            getTestSubject().login(userIdentifier, TestEnvironment.encodePassword(AHMES_PASSWORD));
+
+    try (final AutoUserContext ignored = new AutoUserContext(userIdentifier, ahmesAuthentication.getAccessToken())) {
+      try {
+        getTestSubject().changeUserRole(SU_NAME, new RoleIdentifier("scribe"));
+        Assert.fail("Should not be able to change the role set for antony.");
+      }
+      catch (final IllegalArgumentException expected) {
+        //noinspection EmptyCatchBlock
+      }
+
+      final User antony = getTestSubject().getUser(SU_NAME);
+      Assert.assertEquals(SU_ROLE, antony.getRole());
     }
   }
 

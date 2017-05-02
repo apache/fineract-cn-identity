@@ -25,6 +25,8 @@ import org.junit.Test;
 import java.util.Collections;
 import java.util.List;
 
+import static io.mifos.identity.internal.util.IdentityConstants.SU_ROLE;
+
 /**
  * @author Myrle Krantz
  */
@@ -111,6 +113,43 @@ public class TestRoles extends AbstractComponentTest {
 
       final Role changedRole = getTestSubject().getRole(roleIdentifier);
       Assert.assertEquals(role, changedRole);
+    }
+  }
+
+  @Test
+  public void testChangePharaohRoleFails() throws InterruptedException {
+    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+      final Role referenceRole = getTestSubject().getRole(SU_ROLE);
+      final Role roleChangeRequest = buildRole(SU_ROLE, buildSelfPermission());
+
+      try {
+        getTestSubject().changeRole(SU_ROLE, roleChangeRequest);
+        Assert.fail("Should not be able to change the pharaoh role.");
+      }
+      catch (final IllegalArgumentException expected) {
+        //noinspection EmptyCatchBlock
+      }
+
+      final Role unChangedRole = getTestSubject().getRole(SU_ROLE);
+      Assert.assertEquals(referenceRole, unChangedRole);
+    }
+  }
+
+  @Test
+  public void testDeletePharaohRoleFails() throws InterruptedException {
+
+    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+      final Role adminRole = getTestSubject().getRole(ADMIN_ROLE);
+      try {
+        getTestSubject().deleteRole(ADMIN_ROLE);
+        Assert.fail("It should not be possible to delete the admin role.");
+      }
+      catch (final IllegalArgumentException expected) {
+        //noinspection EmptyCatchBlock
+      }
+
+      final Role adminRoleStillThere = getTestSubject().getRole(ADMIN_ROLE);
+      Assert.assertEquals(adminRole, adminRoleStillThere);
     }
   }
 }
