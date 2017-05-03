@@ -41,6 +41,7 @@ public class RoleService {
   public List<Role> findAll() {
     return repository.getAll().stream()
         .map(this::mapEntity)
+        .sorted((x, y) -> (x.getIdentifier().compareTo(y.getIdentifier())))
         .collect(Collectors.toList());
   }
 

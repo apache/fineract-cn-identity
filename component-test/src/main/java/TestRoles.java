@@ -22,8 +22,8 @@ import io.mifos.identity.api.v1.events.EventConstants;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static io.mifos.identity.internal.util.IdentityConstants.SU_ROLE;
 
@@ -31,6 +31,45 @@ import static io.mifos.identity.internal.util.IdentityConstants.SU_ROLE;
  * @author Myrle Krantz
  */
 public class TestRoles extends AbstractComponentTest {
+  @Test
+  public void testRolesSortedAlphabetically() throws InterruptedException {
+    try (final AutoUserContext ignore = loginAdmin()) {
+      final Permission rolePermission = buildRolePermission();
+
+      final Role role1 = buildRole(testEnvironment.generateUniqueIdentifer("abba"), rolePermission);
+      final Role role2 = buildRole(testEnvironment.generateUniqueIdentifer("bubba"), rolePermission);
+      final Role role3 = buildRole(testEnvironment.generateUniqueIdentifer("c1"), rolePermission);
+      final Role role4 = buildRole(testEnvironment.generateUniqueIdentifer("calla"), rolePermission);
+      final Role role5 = buildRole(testEnvironment.generateUniqueIdentifer("uelf"), rolePermission);
+      final Role role6 = buildRole(testEnvironment.generateUniqueIdentifer("ulf"), rolePermission);
+
+      getTestSubject().createRole(role2);
+      getTestSubject().createRole(role1);
+      getTestSubject().createRole(role6);
+      getTestSubject().createRole(role4);
+      getTestSubject().createRole(role3);
+      getTestSubject().createRole(role5);
+
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_ROLE, role1.getIdentifier()));
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_ROLE, role2.getIdentifier()));
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_ROLE, role3.getIdentifier()));
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_ROLE, role4.getIdentifier()));
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_ROLE, role5.getIdentifier()));
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_ROLE, role6.getIdentifier()));
+
+      final List<Role> roles = getTestSubject().getRoles();
+      final List<String> idList = roles.stream().map(Role::getIdentifier).collect(Collectors.toList());
+      final List<String> sortedList = Arrays.asList(
+              role1.getIdentifier(),
+              role2.getIdentifier(),
+              role3.getIdentifier(),
+              role4.getIdentifier(),
+              role5.getIdentifier(),
+              role6.getIdentifier());
+      final List<String> filterOutIdsFromOtherTests = idList.stream().filter(sortedList::contains).collect(Collectors.toList());
+      Assert.assertEquals(sortedList, filterOutIdsFromOtherTests);
+    }
+  }
 
   @Test
   public void testCreateRole() throws InterruptedException {
