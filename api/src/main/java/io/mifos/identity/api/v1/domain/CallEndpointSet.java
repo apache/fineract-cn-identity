@@ -35,6 +35,11 @@ public class CallEndpointSet {
   public CallEndpointSet() {
   }
 
+  public CallEndpointSet(String identifier, List<String> permittableEndpointGroupIdentifiers) {
+    this.identifier = identifier;
+    this.permittableEndpointGroupIdentifiers = permittableEndpointGroupIdentifiers;
+  }
+
   public String getIdentifier() {
     return identifier;
   }

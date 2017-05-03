@@ -67,6 +67,9 @@ public class TestApplications extends AbstractComponentTest {
       {
         final List<Permission> applicationPermissions = getTestSubject().getApplicationPermissions(appPlusSig.getApplicationIdentifier());
         Assert.assertTrue(applicationPermissions.contains(identityManagementPermission));
+
+        final Permission applicationPermission = getTestSubject().getApplicationPermission(appPlusSig.getApplicationIdentifier(), PermittableGroupIds.IDENTITY_MANAGEMENT);
+        Assert.assertEquals(identityManagementPermission, applicationPermission);
       }
 
       final Permission roleManagementPermission = new Permission();
