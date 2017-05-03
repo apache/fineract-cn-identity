@@ -41,7 +41,7 @@ public class TestUsers extends AbstractComponentTest {
 
     final String username = createUserWithNonexpiredPassword(AHMES_PASSWORD, ADMIN_ROLE);
 
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final User user = getTestSubject().getUser(username);
       Assert.assertNotNull(user);
       Assert.assertEquals("Correct user identifier?", username, user.getIdentifier());
@@ -61,7 +61,7 @@ public class TestUsers extends AbstractComponentTest {
       Assert.assertTrue(found);
     }
 
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final List<User> users = getTestSubject().getUsers();
       Assert.assertTrue(Helpers.instancePresent(users, User::getIdentifier, username));
       Assert.assertTrue(Helpers.instancePresent(users, User::getIdentifier, "Ahmes_friend"));
@@ -118,7 +118,7 @@ public class TestUsers extends AbstractComponentTest {
 
   @Test
   public void testAdminProvisioning() throws InterruptedException {
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final List<Role> roleIdentifiers = getTestSubject().getRoles();
       Assert.assertTrue(Helpers.instancePresent(roleIdentifiers, Role::getIdentifier, ADMIN_ROLE));
 

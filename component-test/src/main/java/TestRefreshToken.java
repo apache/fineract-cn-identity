@@ -44,7 +44,7 @@ public class TestRefreshToken extends AbstractComponentTest {
 
   @Test(expected = InvalidTokenException.class)
   public void adminLoginAccessTokenShouldTimeOut() throws InterruptedException {
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       Thread.sleep(TimeUnit.SECONDS.toMillis(ACCESS_TOKEN_TIME_TO_LIVE + 1));
       getTestSubject().getUser(ADMIN_IDENTIFIER);
     }

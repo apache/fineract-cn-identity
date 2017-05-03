@@ -37,7 +37,7 @@ public class TestPasswords extends AbstractComponentTest {
   public void testAdminChangeUserPassword() throws InterruptedException {
     final String username = createUserWithNonexpiredPassword(AHMES_PASSWORD, ADMIN_ROLE);
 
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final String newPassword = TestEnvironment.encodePassword(
               AHMES_PASSWORD + "make_it_a_little_longer");
 
@@ -79,7 +79,7 @@ public class TestPasswords extends AbstractComponentTest {
 
   @Test
   public void testAdminChangeAdminPassword() throws InterruptedException {
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final String newPassword = TestEnvironment.encodePassword(
               ADMIN_PASSWORD + "make_it_a_little_longer");
 
@@ -149,7 +149,7 @@ public class TestPasswords extends AbstractComponentTest {
       }
 
       //noinspection EmptyTryBlock
-      try (final AutoUserContext ignored2 = enableAndLoginAdmin()) { //logging into admin with the old password should *not* fail.
+      try (final AutoUserContext ignored2 = loginAdmin()) { //logging into admin with the old password should *not* fail.
       }
     }
   }
@@ -157,7 +157,7 @@ public class TestPasswords extends AbstractComponentTest {
   @Test(expected = IllegalArgumentException.class)
   public void loginWithUnencodedPasswordShouldThrowIllegalArgumentException() throws InterruptedException {
 
-    try (final AutoUserContext ignored = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignored = loginAdmin()) {
       final String selfManagementRoleId = createSelfManagementRole();
 
       final String userPassword = RandomStringUtils.randomAlphanumeric(5);
@@ -171,7 +171,7 @@ public class TestPasswords extends AbstractComponentTest {
   @Test
   public void activatedAntonyPasswordDoesntExpire() throws InterruptedException {
 
-    try (final AutoUserContext ignored = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignored = loginAdmin()) {
       final Authentication adminAuthentication =
               getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
       Assert.assertEquals(null, adminAuthentication.getPasswordExpiration());
@@ -180,7 +180,7 @@ public class TestPasswords extends AbstractComponentTest {
 
   @Test
   public void onlyAntonyCanSetAntonyPassword() throws InterruptedException {
-    try (final AutoUserContext ignored = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignored = loginAdmin()) {
 
       final String roleIdentifier = createRole(buildUserPermission(), buildSelfPermission(), buildRolePermission());
       final String username = createUserWithNonexpiredPassword(AHMES_PASSWORD, roleIdentifier);

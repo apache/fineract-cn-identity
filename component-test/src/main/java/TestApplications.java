@@ -141,7 +141,7 @@ public class TestApplications extends AbstractComponentTest {
     final String user1id;
     final String user2Password;
     final String user2id;
-    try (final AutoUserContext ignored = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignored = loginAdmin()) {
       final String selfManagementRoleId = createSelfManagementRole();
       final String roleManagementRoleId = createRoleManagementRole();
 
@@ -272,7 +272,7 @@ public class TestApplications extends AbstractComponentTest {
 
     final String userid;
     final String userPassword;
-    try (final AutoUserContext ignored = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignored = loginAdmin()) {
       final String selfManagementRoleId = createRole(rolePermission, userPermission);
 
       userPassword = RandomStringUtils.randomAlphanumeric(5);
