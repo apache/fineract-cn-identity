@@ -80,7 +80,7 @@ public class ApplicationPermissions {
     return result.stream().map(ApplicationPermissionEntity::getPermission).collect(Collectors.toList());
   }
 
-  private List<ApplicationPermissionEntity> getAllApplicationPermissionEntitiesForApplication(String applicationIdentifier) {
+  private List<ApplicationPermissionEntity> getAllApplicationPermissionEntitiesForApplication(final String applicationIdentifier) {
     final Mapper<ApplicationPermissionEntity> entityMapper = tenantAwareCassandraMapperProvider.getMapper(ApplicationPermissionEntity.class);
     final Session tenantSession = cassandraSessionProvider.getTenantSession();
 
@@ -92,5 +92,14 @@ public class ApplicationPermissions {
   public void delete(final String applicationIdentifier, final String permittableGroupIdentifier) {
     final Optional<ApplicationPermissionEntity> toDelete = tenantAwareEntityTemplate.findById(ApplicationPermissionEntity.class, applicationIdentifier, permittableGroupIdentifier);
     toDelete.ifPresent(tenantAwareEntityTemplate::delete);
+  }
+
+  public Optional<PermissionType> getPermissionForApplication(
+          final String applicationIdentifier,
+          final String permittableEndpointGroupIdentifier) {
+
+    return tenantAwareEntityTemplate
+            .findById(ApplicationPermissionEntity.class, applicationIdentifier, permittableEndpointGroupIdentifier)
+            .map(ApplicationPermissionEntity::getPermission);
   }
 }

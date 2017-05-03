@@ -128,6 +128,19 @@ public class ApplicationRestController {
     return ResponseEntity.ok(service.getAllPermissionsForApplication(applicationIdentifier));
   }
 
+  @RequestMapping(value = "/{applicationidentifier}/permissions/{permissionidentifier}", method = RequestMethod.GET,
+          consumes = {MediaType.ALL_VALUE},
+          produces = {MediaType.APPLICATION_JSON_VALUE})
+  @Permittable(value = AcceptedTokenType.SYSTEM)
+  public @ResponseBody
+  ResponseEntity<Permission>getApplicationPermission(@PathVariable("applicationidentifier") String applicationIdentifier,
+                                                     @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier) {
+    return service.getPermissionForApplication(applicationIdentifier, permittableEndpointGroupIdentifier)
+            .map(ResponseEntity::ok)
+            .orElseThrow(() -> ServiceException.notFound("Application permission '"
+                    + applicationIdentifier + "." + permittableEndpointGroupIdentifier + "' doesn't exist."));
+  }
+
   @RequestMapping(value = "/{applicationidentifier}/permissions/{permissionidentifier}", method = RequestMethod.DELETE,
           consumes = {MediaType.ALL_VALUE},
           produces = {MediaType.APPLICATION_JSON_VALUE})

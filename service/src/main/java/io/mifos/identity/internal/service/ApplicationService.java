@@ -64,6 +64,13 @@ public class ApplicationService {
             .collect(Collectors.toList());
   }
 
+  public Optional<Permission> getPermissionForApplication(
+          final String applicationIdentifier,
+          final String permittableEndpointGroupIdentifier) {
+    return applicationPermissionsRepository.getPermissionForApplication(applicationIdentifier, permittableEndpointGroupIdentifier)
+            .map(PermissionMapper::mapToPermission);
+  }
+
   public Optional<Signature> getSignatureForApplication(final String applicationIdentifier, final String timestamp) {
     return applicationSignaturesRepository.get(applicationIdentifier, timestamp)
             .map(SignatureMapper::mapToSignature);

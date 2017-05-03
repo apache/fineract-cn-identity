@@ -155,12 +155,19 @@ public interface IdentityManager extends Anubis {
   @RequestMapping(value = "/applications/{applicationidentifier}/permissions", method = RequestMethod.POST,
           consumes = {MediaType.APPLICATION_JSON_VALUE},
           produces = {MediaType.ALL_VALUE})
+  @ThrowsException(status = HttpStatus.CONFLICT, exception = ApplicationPermissionAlreadyExistsException.class)
   void createApplicationPermission(@PathVariable("applicationidentifier") String applicationIdentifier, Permission permission);
 
   @RequestMapping(value = "/applications/{applicationidentifier}/permissions", method = RequestMethod.GET,
           consumes = {MediaType.APPLICATION_JSON_VALUE},
           produces = {MediaType.ALL_VALUE})
   List<Permission> getApplicationPermissions(@PathVariable("applicationidentifier") String applicationIdentifier);
+
+  @RequestMapping(value = "/applications/{applicationidentifier}/permissions/{permissionidentifier}", method = RequestMethod.GET,
+          consumes = {MediaType.APPLICATION_JSON_VALUE},
+          produces = {MediaType.ALL_VALUE})
+  Permission getApplicationPermission(@PathVariable("applicationidentifier") String applicationIdentifier,
+                                      @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier);
 
   @RequestMapping(value = "/applications/{applicationidentifier}/permissions/{permissionidentifier}", method = RequestMethod.DELETE,
           consumes = {MediaType.APPLICATION_JSON_VALUE},
@@ -171,6 +178,7 @@ public interface IdentityManager extends Anubis {
   @RequestMapping(value = "/applications/{applicationidentifier}/callendpointset", method = RequestMethod.POST,
           consumes = {MediaType.APPLICATION_JSON_VALUE},
           produces = {MediaType.ALL_VALUE})
+  @ThrowsException(status = HttpStatus.CONFLICT, exception = CallEndpointSetAlreadyExistsException.class)
   void createApplicationCallEndpointSet(@PathVariable("applicationidentifier") String applicationIdentifier, CallEndpointSet callEndpointSet);
 
   @RequestMapping(value = "/applications/{applicationidentifier}/callendpointset/{callendpointsetidentifier}", method = RequestMethod.PUT,
