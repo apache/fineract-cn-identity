@@ -34,7 +34,7 @@ public class TestRoles extends AbstractComponentTest {
 
   @Test
   public void testCreateRole() throws InterruptedException {
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final String roleIdentifier = generateRoleIdentifier();
 
       final Permission rolePermission = buildRolePermission();
@@ -59,7 +59,7 @@ public class TestRoles extends AbstractComponentTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void shouldNotBeAbleToCreateRoleNamedDeactivated() throws InterruptedException {
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final Permission rolePermission = buildRolePermission();
       final Role deactivated = buildRole("deactivated", rolePermission);
 
@@ -69,7 +69,7 @@ public class TestRoles extends AbstractComponentTest {
 
   @Test
   public void deleteRole() throws InterruptedException {
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final String roleIdentifier = createRoleManagementRole();
 
       final Role role = getTestSubject().getRole(roleIdentifier);
@@ -89,7 +89,7 @@ public class TestRoles extends AbstractComponentTest {
 
   @Test(expected= NotFoundException.class)
   public void deleteRoleThatDoesntExist() throws InterruptedException {
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final String randomIdentifier = generateRoleIdentifier();
 
       getTestSubject().deleteRole(randomIdentifier);
@@ -98,7 +98,7 @@ public class TestRoles extends AbstractComponentTest {
 
   @Test()
   public void changeRole() throws InterruptedException {
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final String roleIdentifier = createRoleManagementRole();
 
       final Role role = getTestSubject().getRole(roleIdentifier);
@@ -118,7 +118,7 @@ public class TestRoles extends AbstractComponentTest {
 
   @Test
   public void testChangePharaohRoleFails() throws InterruptedException {
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final Role referenceRole = getTestSubject().getRole(SU_ROLE);
       final Role roleChangeRequest = buildRole(SU_ROLE, buildSelfPermission());
 
@@ -138,7 +138,7 @@ public class TestRoles extends AbstractComponentTest {
   @Test
   public void testDeletePharaohRoleFails() throws InterruptedException {
 
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final Role adminRole = getTestSubject().getRole(ADMIN_ROLE);
       try {
         getTestSubject().deleteRole(ADMIN_ROLE);

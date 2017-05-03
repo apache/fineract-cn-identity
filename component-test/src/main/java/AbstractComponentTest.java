@@ -123,7 +123,7 @@ public class AbstractComponentTest {
     return identityManager;
   }
 
-  AutoUserContext enableAndLoginAdmin() throws InterruptedException {
+  AutoUserContext loginAdmin() throws InterruptedException {
     final Authentication adminAuthentication =
             getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
     Assert.assertNotNull(adminAuthentication);
@@ -143,7 +143,7 @@ public class AbstractComponentTest {
    */
   String createUserWithNonexpiredPassword(final String password, final String role) throws InterruptedException {
     final String username = testEnvironment.generateUniqueIdentifer("Ahmes");
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       getTestSubject().createUser(new UserWithPassword(username, role, TestEnvironment.encodePassword(password)));
 
       {

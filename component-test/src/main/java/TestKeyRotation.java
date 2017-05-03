@@ -37,7 +37,7 @@ public class TestKeyRotation extends AbstractComponentTest {
     final Anubis anubis = tenantApplicationSecurityEnvironment.getAnubis();
 
     //noinspection EmptyTryBlock
-    try (final AutoUserContext ignored = enableAndLoginAdmin())
+    try (final AutoUserContext ignored = loginAdmin())
     {
       //Don't do anything yet.
     }

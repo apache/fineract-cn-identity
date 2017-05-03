@@ -40,13 +40,13 @@ public class TestAuthentication extends AbstractComponentTest {
   //@Repeat(25)
   public void testAdminLogin() throws InterruptedException {
     //noinspection EmptyTryBlock
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
     }
   }
 
   @Test
   public void testAdminLogout() throws InterruptedException {
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       getTestSubject().logout();
 
       try {
@@ -79,7 +79,7 @@ public class TestAuthentication extends AbstractComponentTest {
 
   @Test()
   public void testPermissionsCorrectInAdminToken() throws InterruptedException {
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final Authentication adminAuthentication =
               getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
       Assert.assertNotNull(adminAuthentication);
@@ -101,7 +101,7 @@ public class TestAuthentication extends AbstractComponentTest {
 
   @Test()
   public void testPermissionsCorrectInTokenWhenMultiplePermittableGroupsInRole() throws InterruptedException {
-    try (final AutoUserContext ignore = enableAndLoginAdmin()) {
+    try (final AutoUserContext ignore = loginAdmin()) {
       final PermittableEndpoint horusEndpoint = buildPermittableEndpoint("horus");
       final PermittableGroup horusGroup = buildPermittableGroup("horus_Group", horusEndpoint);
       getTestSubject().createPermittableGroup(horusGroup);
