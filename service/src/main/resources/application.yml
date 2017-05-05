@@ -29,7 +29,7 @@ eureka:
 
 server:
   port: 8081
-  contextPath: /identity/v1/*
+  contextPath: /identity/v1
 
 endpoints:
     shutdown:
