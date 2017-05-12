@@ -25,7 +25,10 @@ import io.mifos.identity.internal.command.ChangeUserRoleCommand;
 import io.mifos.identity.internal.command.CreateUserCommand;
 import io.mifos.identity.internal.repository.UserEntity;
 import io.mifos.identity.internal.repository.Users;
+import io.mifos.identity.internal.util.IdentityConstants;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -40,14 +43,17 @@ public class UserCommandHandler {
 
   private final Users usersRepository;
   private final UserEntityCreator userEntityCreator;
+  private final Logger logger;
 
   @Autowired
   UserCommandHandler(
-      final Users usersRepository,
-      final UserEntityCreator userEntityCreator)
+          final Users usersRepository,
+          final UserEntityCreator userEntityCreator,
+          @Qualifier(IdentityConstants.LOGGER_NAME) final Logger logger)
   {
     this.usersRepository = usersRepository;
     this.userEntityCreator = userEntityCreator;
+    this.logger = logger;
   }
 
   @CommandHandler
@@ -74,6 +80,7 @@ public class UserCommandHandler {
             user.getIdentifier(), user.getRole(), command.getPassword(),
             !SecurityContextHolder.getContext().getAuthentication().getPrincipal().equals(command.getIdentifier()));
     usersRepository.add(userWithNewPassword);
+    logger.info("Changed password for user {}, expiration date is now {}", user.getIdentifier(), userWithNewPassword.getPasswordExpiresOn());
 
     return user.getIdentifier();
   }
