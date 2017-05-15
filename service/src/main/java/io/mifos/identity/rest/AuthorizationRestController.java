@@ -39,6 +39,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.WebUtils;
 
+import javax.annotation.Nullable;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -82,10 +83,11 @@ public class AuthorizationRestController {
       final HttpServletRequest request,
       @RequestParam("grant_type") final String grantType,
       @RequestParam(value = "username", required = false) final String username,
-      @RequestParam(value = "password", required = false) final String password) throws InterruptedException {
+      @RequestParam(value = "password", required = false) final String password,
+      @RequestParam(value = "refresh_token", required = false) final String refreshTokenParam) throws InterruptedException {
     switch (grantType) {
       case "refresh_token": {
-        final String refreshToken = getRefreshToken(request);
+        final String refreshToken = getRefreshToken(refreshTokenParam, request);
 
         try {
           final AuthenticationCommandResponse authenticationCommandResponse
@@ -134,7 +136,10 @@ public class AuthorizationRestController {
     return ResponseEntity.ok().build();
   }
 
-  private String getRefreshToken(final HttpServletRequest request) {
+  private String getRefreshToken(final @Nullable String refreshTokenParam, final HttpServletRequest request) {
+    if (refreshTokenParam != null)
+      return refreshTokenParam;
+
     final Cookie refreshTokenCookie = WebUtils.getCookie(request, TokenConstants.REFRESH_TOKEN_COOKIE_NAME);
     if (refreshTokenCookie == null)
       throw ServiceException.badRequest("One (and only one) refresh token cookie must be included in the request if the grant_type is refresh_token");

@@ -14,18 +14,27 @@
  * limitations under the License.
  */
 
+import io.mifos.anubis.api.v1.TokenConstants;
+import io.mifos.anubis.token.TenantRefreshTokenSerializer;
+import io.mifos.anubis.token.TokenSerializationResult;
 import io.mifos.core.api.context.AutoUserContext;
+import io.mifos.core.api.util.FeignTargetWithCookieJar;
 import io.mifos.core.api.util.InvalidTokenException;
+import io.mifos.core.api.util.NotFoundException;
 import io.mifos.core.test.domain.TimeStampChecker;
 import io.mifos.core.test.env.TestEnvironment;
 import io.mifos.core.test.fixture.TenantDataStoreTestContext;
+import io.mifos.identity.api.v1.client.IdentityManager;
 import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.api.v1.domain.Password;
+import io.mifos.identity.api.v1.domain.Permission;
+import io.mifos.identity.api.v1.domain.User;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -109,4 +118,65 @@ public class TestRefreshToken extends AbstractComponentTest {
     postRefreshAccessTokenTimeStampChecker.assertCorrect(refreshedAuthentication.getAccessTokenExpiration());
     refreshTokenTimeStampChecker.assertCorrect(refreshedAuthentication.getRefreshTokenExpiration());
   }
+
+  @Test
+  public void bothRefreshMethodsShouldProduceSamePermissions() throws InterruptedException {
+    final Permission userPermission = buildUserPermission();
+    final ApplicationSignatureTestData appPlusSig;
+    try (final AutoUserContext ignored
+                 = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
+      appPlusSig = setApplicationSignature();
+      createApplicationPermission(appPlusSig.getApplicationIdentifier(), userPermission);
+    }
+
+    try (final AutoUserContext ignored = loginAdmin()) {
+      getTestSubject().setApplicationPermissionEnabledForUser(
+              appPlusSig.getApplicationIdentifier(),
+              userPermission.getPermittableEndpointGroupIdentifier(),
+              ADMIN_IDENTIFIER,
+              true);
+    }
+
+    final TenantRefreshTokenSerializer refreshTokenSerializer = new TenantRefreshTokenSerializer();
+
+    final TokenSerializationResult tokenSerializationResult =
+            refreshTokenSerializer.build(new TenantRefreshTokenSerializer.Specification()
+                    .setUser(ADMIN_IDENTIFIER)
+                    .setSecondsToLive(30)
+                    .setKeyTimestamp(appPlusSig.getKeyTimestamp())
+                    .setPrivateKey(appPlusSig.getKeyPair().privateKey())
+                    .setSourceApplication(appPlusSig.getApplicationIdentifier()));
+
+    final FeignTargetWithCookieJar<IdentityManager> identityManagerWithCookieJar
+            = apiFactory.createWithCookieJar(IdentityManager.class, testEnvironment.serverURI());
+
+    identityManagerWithCookieJar.putCookie("/token", TokenConstants.REFRESH_TOKEN_COOKIE_NAME, tokenSerializationResult.getToken());
+
+    final Authentication applicationAuthenticationViaCookie = identityManagerWithCookieJar.getFeignTarget().refresh();
+
+    final Authentication applicationAuthenticationViaParam = getTestSubject().refresh(tokenSerializationResult.getToken());
+
+    try (final AutoUserContext ignored = new AutoUserContext(ADMIN_IDENTIFIER, applicationAuthenticationViaCookie.getAccessToken()))
+    {
+      checkAccessToUsersAndOnlyUsers();
+    }
+
+    try (final AutoUserContext ignored = new AutoUserContext(ADMIN_IDENTIFIER, applicationAuthenticationViaParam.getAccessToken()))
+    {
+      checkAccessToUsersAndOnlyUsers();
+    }
+
+  }
+
+  private void checkAccessToUsersAndOnlyUsers() {
+    final List<User> users = getTestSubject().getUsers();
+    Assert.assertFalse(users.isEmpty());
+
+    try {
+      getTestSubject().getRoles();
+      Assert.fail("Shouldn't be able to get roles with token for application for which roles are not permitted.");
+    }
+    catch (final NotFoundException ignored2) { }
+  }
+
 }
