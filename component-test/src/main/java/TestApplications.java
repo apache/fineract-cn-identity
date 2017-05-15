@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-import io.mifos.anubis.api.v1.TokenConstants;
 import io.mifos.anubis.api.v1.domain.AllowedOperation;
-import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.anubis.token.TenantRefreshTokenSerializer;
 import io.mifos.anubis.token.TokenSerializationResult;
 import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.core.api.util.FeignTargetWithCookieJar;
 import io.mifos.core.api.util.NotFoundException;
-import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.identity.api.v1.PermittableGroupIds;
-import io.mifos.identity.api.v1.client.IdentityManager;
 import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.api.v1.domain.CallEndpointSet;
 import io.mifos.identity.api.v1.domain.Permission;
 import io.mifos.identity.api.v1.domain.User;
-import io.mifos.identity.api.v1.events.*;
+import io.mifos.identity.api.v1.events.ApplicationCallEndpointSetEvent;
+import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
+import io.mifos.identity.api.v1.events.ApplicationPermissionUserEvent;
+import io.mifos.identity.api.v1.events.EventConstants;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,7 +35,6 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Myrle Krantz
@@ -71,9 +68,7 @@ public class TestApplications extends AbstractComponentTest {
       identityManagementPermission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.IDENTITY_MANAGEMENT);
       identityManagementPermission.setAllowedOperations(Collections.singleton(AllowedOperation.READ));
 
-      getTestSubject().createApplicationPermission(appPlusSig.getApplicationIdentifier(), identityManagementPermission);
-      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
-              new ApplicationPermissionEvent(appPlusSig.getApplicationIdentifier(), PermittableGroupIds.IDENTITY_MANAGEMENT)));
+      createApplicationPermission(appPlusSig.getApplicationIdentifier(), identityManagementPermission);
 
       {
         final List<Permission> applicationPermissions = getTestSubject().getApplicationPermissions(appPlusSig.getApplicationIdentifier());
@@ -87,9 +82,8 @@ public class TestApplications extends AbstractComponentTest {
       roleManagementPermission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.ROLE_MANAGEMENT);
       roleManagementPermission.setAllowedOperations(Collections.singleton(AllowedOperation.READ));
 
-      getTestSubject().createApplicationPermission(appPlusSig.getApplicationIdentifier(), roleManagementPermission);
-      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
-              new ApplicationPermissionEvent(appPlusSig.getApplicationIdentifier(), PermittableGroupIds.ROLE_MANAGEMENT)));
+      createApplicationPermission(appPlusSig.getApplicationIdentifier(), roleManagementPermission);
+
       {
         final List<Permission> applicationPermissions = getTestSubject().getApplicationPermissions(appPlusSig.getApplicationIdentifier());
         Assert.assertTrue(applicationPermissions.contains(identityManagementPermission));
@@ -145,10 +139,7 @@ public class TestApplications extends AbstractComponentTest {
               PermittableGroupIds.ROLE_MANAGEMENT,
               Collections.singleton(AllowedOperation.READ));
 
-      getTestSubject().createApplicationPermission(appPlusSig.getApplicationIdentifier(), identityManagementPermission);
-      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
-              new ApplicationPermissionEvent(appPlusSig.getApplicationIdentifier(),
-                      identityManagementPermission.getPermittableEndpointGroupIdentifier())));
+      createApplicationPermission(appPlusSig.getApplicationIdentifier(), identityManagementPermission);
     }
 
     final String user1Password;
@@ -274,14 +265,9 @@ public class TestApplications extends AbstractComponentTest {
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
       appPlusSig = setApplicationSignature();
 
-      getTestSubject().createApplicationPermission(appPlusSig.getApplicationIdentifier(), rolePermission);
-      getTestSubject().createApplicationPermission(appPlusSig.getApplicationIdentifier(), userPermission);
-      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
-              new ApplicationPermissionEvent(appPlusSig.getApplicationIdentifier(),
-                      rolePermission.getPermittableEndpointGroupIdentifier())));
-      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
-              new ApplicationPermissionEvent(appPlusSig.getApplicationIdentifier(),
-                      userPermission.getPermittableEndpointGroupIdentifier())));
+      createApplicationPermission(appPlusSig.getApplicationIdentifier(), rolePermission);
+      createApplicationPermission(appPlusSig.getApplicationIdentifier(), userPermission);
+
       getTestSubject().createApplicationCallEndpointSet(
               appPlusSig.getApplicationIdentifier(),
               new CallEndpointSet(CALL_ENDPOINT_SET_IDENTIFIER,
@@ -325,53 +311,11 @@ public class TestApplications extends AbstractComponentTest {
                     .setSourceApplication(appPlusSig.getApplicationIdentifier()));
 
 
-    final FeignTargetWithCookieJar<IdentityManager> identityManagerWithCookieJar
-            = apiFactory.createWithCookieJar(IdentityManager.class, testEnvironment.serverURI());
-
-    identityManagerWithCookieJar.putCookie("/token", TokenConstants.REFRESH_TOKEN_COOKIE_NAME, tokenSerializationResult.getToken());
-    final Authentication applicationAuthentication = identityManagerWithCookieJar.getFeignTarget().refresh();
+    final Authentication applicationAuthentication = getTestSubject().refresh(tokenSerializationResult.getToken());
 
     try (final AutoUserContext ignored = new AutoUserContext(userid, applicationAuthentication.getAccessToken())) {
       final List<User> users = getTestSubject().getUsers();
       Assert.assertFalse(users.isEmpty());
     }
-  }
-
-  private String createTestApplicationName()
-  {
-    return "test" + RandomStringUtils.randomNumeric(3) + "-v1";
-  }
-
-  static class ApplicationSignatureTestData {
-    private final String applicationIdentifier;
-    private final RsaKeyPairFactory.KeyPairHolder keyPair;
-
-    ApplicationSignatureTestData(final String applicationIdentifier, final RsaKeyPairFactory.KeyPairHolder keyPair) {
-      this.applicationIdentifier = applicationIdentifier;
-      this.keyPair = keyPair;
-    }
-
-    String getApplicationIdentifier() {
-      return applicationIdentifier;
-    }
-
-    RsaKeyPairFactory.KeyPairHolder getKeyPair() {
-      return keyPair;
-    }
-
-    String getKeyTimestamp() {
-      return keyPair.getTimestamp();
-    }
-  }
-
-  private ApplicationSignatureTestData setApplicationSignature() throws InterruptedException {
-    final String testApplicationName = createTestApplicationName();
-    final RsaKeyPairFactory.KeyPairHolder keyPair = RsaKeyPairFactory.createKeyPair();
-    final Signature signature = new Signature(keyPair.getPublicKeyMod(), keyPair.getPublicKeyExp());
-
-    getTestSubject().setApplicationSignature(testApplicationName, keyPair.getTimestamp(), signature);
-
-    Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_PUT_APPLICATION_SIGNATURE, new ApplicationSignatureEvent(testApplicationName, keyPair.getTimestamp())));
-    return new ApplicationSignatureTestData(testApplicationName, keyPair);
   }
 }

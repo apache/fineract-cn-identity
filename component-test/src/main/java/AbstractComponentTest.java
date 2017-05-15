@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 import io.mifos.anubis.api.v1.domain.AllowedOperation;
+import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.anubis.test.v1.TenantApplicationSecurityEnvironmentTestRule;
 import io.mifos.core.api.config.EnableApiFactory;
 import io.mifos.core.api.context.AutoGuest;
 import io.mifos.core.api.context.AutoUserContext;
 import io.mifos.core.api.util.ApiFactory;
 import io.mifos.core.api.util.UserContextHolder;
+import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.core.test.env.TestEnvironment;
 import io.mifos.core.test.fixture.TenantDataStoreContextTestRule;
 import io.mifos.core.test.fixture.cassandra.CassandraInitializer;
@@ -28,8 +30,11 @@ import io.mifos.core.test.listener.EventRecorder;
 import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.client.IdentityManager;
 import io.mifos.identity.api.v1.domain.*;
+import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
+import io.mifos.identity.api.v1.events.ApplicationSignatureEvent;
 import io.mifos.identity.api.v1.events.EventConstants;
 import io.mifos.identity.config.IdentityServiceConfig;
+import org.apache.commons.lang.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -220,5 +225,50 @@ public class AbstractComponentTest {
       authentication = getTestSubject().login(userId, TestEnvironment.encodePassword(password));
     }
     return new AutoUserContext(userId, authentication.getAccessToken());
+  }
+
+  private String createTestApplicationName()
+  {
+    return "test" + RandomStringUtils.randomNumeric(3) + "-v1";
+  }
+
+  static class ApplicationSignatureTestData {
+    private final String applicationIdentifier;
+    private final RsaKeyPairFactory.KeyPairHolder keyPair;
+
+    ApplicationSignatureTestData(final String applicationIdentifier, final RsaKeyPairFactory.KeyPairHolder keyPair) {
+      this.applicationIdentifier = applicationIdentifier;
+      this.keyPair = keyPair;
+    }
+
+    String getApplicationIdentifier() {
+      return applicationIdentifier;
+    }
+
+    RsaKeyPairFactory.KeyPairHolder getKeyPair() {
+      return keyPair;
+    }
+
+    String getKeyTimestamp() {
+      return keyPair.getTimestamp();
+    }
+  }
+
+  ApplicationSignatureTestData setApplicationSignature() throws InterruptedException {
+    final String testApplicationName = createTestApplicationName();
+    final RsaKeyPairFactory.KeyPairHolder keyPair = RsaKeyPairFactory.createKeyPair();
+    final Signature signature = new Signature(keyPair.getPublicKeyMod(), keyPair.getPublicKeyExp());
+
+    getTestSubject().setApplicationSignature(testApplicationName, keyPair.getTimestamp(), signature);
+
+    Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_PUT_APPLICATION_SIGNATURE, new ApplicationSignatureEvent(testApplicationName, keyPair.getTimestamp())));
+    return new ApplicationSignatureTestData(testApplicationName, keyPair);
+  }
+
+  void createApplicationPermission(final String applicationIdentifier, final Permission permission) throws InterruptedException {
+    getTestSubject().createApplicationPermission(applicationIdentifier, permission);
+    Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
+            new ApplicationPermissionEvent(applicationIdentifier,
+                    permission.getPermittableEndpointGroupIdentifier())));
   }
 }
