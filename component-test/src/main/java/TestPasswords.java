@@ -26,7 +26,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Myrle Krantz
@@ -122,8 +121,6 @@ public class TestPasswords extends AbstractComponentTest {
         Assert.assertTrue(found);
       }
 
-      Thread.sleep(100);
-
       final TimeStampChecker passwordExpirationChecker = TimeStampChecker.inTheFutureWithWiggleRoom(Duration.ofDays(93), Duration.ofHours(24));
       final Authentication userAuthenticationAfterPasswordChange = getTestSubject().login(username, TestEnvironment.encodePassword(newPassword));
       final String passwordExpiration = userAuthenticationAfterPasswordChange.getPasswordExpiration();
@@ -185,7 +182,6 @@ public class TestPasswords extends AbstractComponentTest {
       final String roleIdentifier = createRole(buildUserPermission(), buildSelfPermission(), buildRolePermission());
       final String username = createUserWithNonexpiredPassword(AHMES_PASSWORD, roleIdentifier);
 
-      TimeUnit.SECONDS.sleep(1);
       try (final AutoUserContext ignored2 = loginUser(username, AHMES_PASSWORD)) {
         getTestSubject().changeUserPassword(ADMIN_IDENTIFIER, new Password(TestEnvironment.encodePassword(AHMES_FRIENDS_PASSWORD)));
         Assert.fail("Should not be able to change antony's password from any account other than antony's.");

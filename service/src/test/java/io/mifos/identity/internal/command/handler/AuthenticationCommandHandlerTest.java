@@ -16,7 +16,10 @@
 package io.mifos.identity.internal.command.handler;
 
 import com.google.gson.Gson;
+import io.mifos.anubis.provider.TenantRsaKeyProvider;
 import io.mifos.anubis.token.TenantAccessTokenSerializer;
+import io.mifos.anubis.token.TenantRefreshTokenSerializer;
+import io.mifos.anubis.token.TokenDeserializationResult;
 import io.mifos.anubis.token.TokenSerializationResult;
 import io.mifos.core.lang.ApplicationName;
 import io.mifos.core.lang.DateConverter;
@@ -41,10 +44,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.when;
@@ -82,11 +84,17 @@ public class AuthenticationCommandHandlerTest {
     final ApplicationName applicationName = Mockito.mock(ApplicationName.class);
     final Gson gson = new Gson();
     final Logger logger = Mockito.mock(Logger.class);
+    final TenantRsaKeyProvider tenantRsaKeyProvider = Mockito.mock(TenantRsaKeyProvider.class);
+    final ApplicationSignatures applicationSignatures = Mockito.mock(ApplicationSignatures.class);
+    final ApplicationPermissions applicationPermissions = Mockito.mock(ApplicationPermissions.class);
+    final ApplicationPermissionUsers applicationPermissionUsers = Mockito.mock(ApplicationPermissionUsers.class);
+    final ApplicationCallEndpointSets applicationCallEndpointSets = Mockito.mock(ApplicationCallEndpointSets.class);
 
     commandHandler = new AuthenticationCommandHandler(
         users, roles, permittableGroups, signatures, tenants,
         hashGenerator,
-        tenantAccessTokenSerializer, tenantRefreshTokenSerializer,
+        tenantAccessTokenSerializer, tenantRefreshTokenSerializer, tenantRsaKeyProvider,
+            applicationSignatures, applicationPermissions, applicationPermissionUsers, applicationCallEndpointSets,
         jmsTemplate, applicationName,
         gson, logger);
 
@@ -123,8 +131,8 @@ public class AuthenticationCommandHandlerTest {
     final TokenSerializationResult refreshTokenSerializationResult = new TokenSerializationResult("blah", LocalDateTime.now(ZoneId.of("UTC")).plusSeconds(REFRESH_TOKEN_TIME_TO_LIVE));
     when(tenantRefreshTokenSerializer.build(anyObject())).thenReturn(refreshTokenSerializationResult);
 
-    final TenantRefreshTokenSerializer.Deserialized deserialized = new TenantRefreshTokenSerializer.Deserialized(USER_NAME, Date.from(Instant.now().plusSeconds(REFRESH_TOKEN_TIME_TO_LIVE)), TEST_APPLICATION_NAME);
-    when(tenantRefreshTokenSerializer.deserialize(anyObject())).thenReturn(deserialized);
+    final TokenDeserializationResult deserialized = new TokenDeserializationResult(USER_NAME, Date.from(Instant.now().plusSeconds(REFRESH_TOKEN_TIME_TO_LIVE)), TEST_APPLICATION_NAME, null);
+    when(tenantRefreshTokenSerializer.deserialize(anyObject(), anyObject())).thenReturn(deserialized);
 
     when(hashGenerator.isEqual(any(), any(), any(), any(), anyInt(), anyInt())).thenReturn(true);
   }
@@ -174,28 +182,28 @@ public class AuthenticationCommandHandlerTest {
   @Test
   public void correctDeterminationOfPasswordExpiration()
   {
-    final LocalDate passwordExpirationFromToday = LocalDate.now(ZoneId.of("UTC"));
-    Assert.assertTrue(AuthenticationCommandHandler.pastExpiration(passwordExpirationFromToday));
+    final LocalDateTime passwordExpirationFromToday = LocalDateTime.now(ZoneId.of("UTC"));
+    Assert.assertTrue(AuthenticationCommandHandler.pastExpiration(Optional.of(passwordExpirationFromToday)));
 
-    final LocalDate passwordExpirationFromYesterday = passwordExpirationFromToday.minusDays(1);
-    Assert.assertTrue(AuthenticationCommandHandler.pastExpiration(passwordExpirationFromYesterday));
+    final LocalDateTime passwordExpirationFromYesterday = passwordExpirationFromToday.minusDays(1);
+    Assert.assertTrue(AuthenticationCommandHandler.pastExpiration(Optional.of(passwordExpirationFromYesterday)));
 
-    final LocalDate passwordExpirationFromTommorrow = passwordExpirationFromToday.plusDays(1);
-    Assert.assertFalse(AuthenticationCommandHandler.pastExpiration(passwordExpirationFromTommorrow));
+    final LocalDateTime passwordExpirationFromTommorrow = passwordExpirationFromToday.plusDays(1);
+    Assert.assertFalse(AuthenticationCommandHandler.pastExpiration(Optional.of(passwordExpirationFromTommorrow)));
 
   }
 
   @Test
   public void correctDeterminationOfPasswordGracePeriod()
   {
-    final LocalDate passwordExpirationFromToday = LocalDate.now(ZoneId.of("UTC"));
-    Assert.assertFalse(AuthenticationCommandHandler.pastGracePeriod(passwordExpirationFromToday, GRACE_PERIOD));
+    final LocalDateTime passwordExpirationFromToday = LocalDateTime.now(ZoneId.of("UTC"));
+    Assert.assertFalse(AuthenticationCommandHandler.pastGracePeriod(Optional.of(passwordExpirationFromToday), GRACE_PERIOD));
 
-    final LocalDate nowJustWithinPasswordExpirationAndGracePeriod = passwordExpirationFromToday.minusDays(GRACE_PERIOD - 1);
-    Assert.assertFalse(AuthenticationCommandHandler.pastGracePeriod(nowJustWithinPasswordExpirationAndGracePeriod, GRACE_PERIOD));
+    final LocalDateTime nowJustWithinPasswordExpirationAndGracePeriod = passwordExpirationFromToday.minusDays(GRACE_PERIOD - 1);
+    Assert.assertFalse(AuthenticationCommandHandler.pastGracePeriod(Optional.of(nowJustWithinPasswordExpirationAndGracePeriod), GRACE_PERIOD));
 
-    final LocalDate nowJustOutsideOfPasswordExpirationAndGracePeriod = passwordExpirationFromToday.minusDays(GRACE_PERIOD);
-    Assert.assertTrue(AuthenticationCommandHandler.pastGracePeriod(nowJustOutsideOfPasswordExpirationAndGracePeriod, GRACE_PERIOD));
+    final LocalDateTime nowJustOutsideOfPasswordExpirationAndGracePeriod = passwordExpirationFromToday.minusDays(GRACE_PERIOD);
+    Assert.assertTrue(AuthenticationCommandHandler.pastGracePeriod(Optional.of(nowJustOutsideOfPasswordExpirationAndGracePeriod), GRACE_PERIOD));
   }
 
   @Test
@@ -211,5 +219,47 @@ public class AuthenticationCommandHandlerTest {
 
     Assert.assertEquals(dateString, localDateTimeString);
     Assert.assertTrue(localDateTimeString.startsWith(localDateString.substring(0, localDateString.length()-1))); //(removing Z)
+  }
+
+  @Test
+  public void intersectSets() {
+    final Set<AllowedOperationType> intersectionWithNull
+            = AuthenticationCommandHandler.intersectSets(new HashSet<>(), null);
+    Assert.assertTrue(intersectionWithNull.isEmpty());
+
+    final Set<AllowedOperationType> intersectionWithEqualSet
+            = AuthenticationCommandHandler.intersectSets(Collections.singleton(AllowedOperationType.CHANGE),
+            Collections.singleton(AllowedOperationType.CHANGE));
+    Assert.assertEquals(Collections.singleton(AllowedOperationType.CHANGE), intersectionWithEqualSet);
+
+    final Set<AllowedOperationType> intersectionWithAll
+            = AuthenticationCommandHandler.intersectSets(AllowedOperationType.ALL,
+            AllowedOperationType.ALL);
+    Assert.assertEquals(AllowedOperationType.ALL, intersectionWithAll);
+
+    final Set<AllowedOperationType> intersectionWithNonOverlappingSet
+            = AuthenticationCommandHandler.intersectSets(Collections.singleton(AllowedOperationType.DELETE),
+            Collections.singleton(AllowedOperationType.CHANGE));
+    Assert.assertTrue(intersectionWithNonOverlappingSet.isEmpty());
+
+    final Set<AllowedOperationType> intersectionWithSubSet
+            = AuthenticationCommandHandler.intersectSets(AllowedOperationType.ALL,
+            Collections.singleton(AllowedOperationType.CHANGE));
+    Assert.assertEquals(Collections.singleton(AllowedOperationType.CHANGE), intersectionWithSubSet);
+
+    final Set<AllowedOperationType> intersectionWithPartiallyOverlapping = AuthenticationCommandHandler.intersectSets(
+            Stream.of(AllowedOperationType.CHANGE, AllowedOperationType.DELETE).collect(Collectors.toSet()),
+            Stream.of(AllowedOperationType.CHANGE, AllowedOperationType.READ).collect(Collectors.toSet()));
+    Assert.assertEquals(Collections.singleton(AllowedOperationType.CHANGE), intersectionWithPartiallyOverlapping);
+  }
+
+  @Test
+  public void transformToSearchablePermissions()
+  {
+    Map<String, Set<AllowedOperationType>> x = AuthenticationCommandHandler.transformToSearchablePermissions(Arrays.asList(
+            new PermissionType("x", new HashSet<>(AllowedOperationType.ALL)),
+            new PermissionType("y", new HashSet<>(Collections.singletonList(AllowedOperationType.CHANGE)))));
+
+    Assert.assertEquals(AllowedOperationType.ALL, x.get("x"));
   }
 }
