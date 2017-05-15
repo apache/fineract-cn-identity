@@ -14,32 +14,43 @@
  * limitations under the License.
  */
 
+import io.mifos.anubis.api.v1.TokenConstants;
 import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.anubis.api.v1.domain.Signature;
+import io.mifos.anubis.token.TenantRefreshTokenSerializer;
+import io.mifos.anubis.token.TokenSerializationResult;
 import io.mifos.core.api.context.AutoUserContext;
+import io.mifos.core.api.util.FeignTargetWithCookieJar;
 import io.mifos.core.api.util.NotFoundException;
 import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.identity.api.v1.PermittableGroupIds;
+import io.mifos.identity.api.v1.client.IdentityManager;
+import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.api.v1.domain.CallEndpointSet;
 import io.mifos.identity.api.v1.domain.Permission;
+import io.mifos.identity.api.v1.domain.User;
 import io.mifos.identity.api.v1.events.*;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Myrle Krantz
  */
 public class TestApplications extends AbstractComponentTest {
 
+  private static final String CALL_ENDPOINT_SET_IDENTIFIER = "doughboy";
+
   @Test
   public void testSetApplicationSignature() throws InterruptedException {
     try (final AutoUserContext ignored
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-      final ApplicationSignatureEvent appPlusSig = setApplicationSignature();
+      final ApplicationSignatureTestData appPlusSig = setApplicationSignature();
 
       final List<String> foundApplications = getTestSubject().getApplications();
       Assert.assertTrue(foundApplications.contains(appPlusSig.getApplicationIdentifier()));
@@ -54,7 +65,7 @@ public class TestApplications extends AbstractComponentTest {
   public void testCreateAndDeleteApplicationPermission() throws InterruptedException {
     try (final AutoUserContext ignored
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-      final ApplicationSignatureEvent appPlusSig = setApplicationSignature();
+      final ApplicationSignatureTestData appPlusSig = setApplicationSignature();
 
       final Permission identityManagementPermission = new Permission();
       identityManagementPermission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.IDENTITY_MANAGEMENT);
@@ -101,7 +112,7 @@ public class TestApplications extends AbstractComponentTest {
   public void testDeleteApplication() throws InterruptedException {
     try (final AutoUserContext ignored
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-      final ApplicationSignatureEvent appPlusSig = setApplicationSignature();
+      final ApplicationSignatureTestData appPlusSig = setApplicationSignature();
 
       getTestSubject().deleteApplication(appPlusSig.getApplicationIdentifier());
 
@@ -124,7 +135,7 @@ public class TestApplications extends AbstractComponentTest {
 
   @Test
   public void testApplicationPermissionUserApprovalProvisioning() throws InterruptedException {
-    final ApplicationSignatureEvent appPlusSig;
+    final ApplicationSignatureTestData appPlusSig;
     final Permission identityManagementPermission;
     try (final AutoUserContext ignored
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
@@ -208,7 +219,7 @@ public class TestApplications extends AbstractComponentTest {
   public void manageApplicationEndpointSet() throws InterruptedException {
     try (final AutoUserContext ignored
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-      final ApplicationSignatureEvent appPlusSig = setApplicationSignature();
+      final ApplicationSignatureTestData appPlusSig = setApplicationSignature();
 
       final String endpointSetIdentifier = testEnvironment.generateUniqueIdentifer("epset");
       final CallEndpointSet endpointSet = new CallEndpointSet();
@@ -256,7 +267,7 @@ public class TestApplications extends AbstractComponentTest {
 
   @Test
   public void applicationIssuedRefreshTokenHappyCase() throws InterruptedException {
-    final ApplicationSignatureEvent appPlusSig;
+    final ApplicationSignatureTestData appPlusSig;
     final Permission rolePermission = buildRolePermission();
     final Permission userPermission = buildUserPermission();
     try (final AutoUserContext ignored
@@ -271,6 +282,14 @@ public class TestApplications extends AbstractComponentTest {
       Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
               new ApplicationPermissionEvent(appPlusSig.getApplicationIdentifier(),
                       userPermission.getPermittableEndpointGroupIdentifier())));
+      getTestSubject().createApplicationCallEndpointSet(
+              appPlusSig.getApplicationIdentifier(),
+              new CallEndpointSet(CALL_ENDPOINT_SET_IDENTIFIER,
+                      Arrays.asList(rolePermission.getPermittableEndpointGroupIdentifier(),
+                              userPermission.getPermittableEndpointGroupIdentifier())));
+      Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_CALLENDPOINTSET,
+              new ApplicationCallEndpointSetEvent(appPlusSig.getApplicationIdentifier(),
+                      CALL_ENDPOINT_SET_IDENTIFIER)));
     }
 
     final String userid;
@@ -289,8 +308,33 @@ public class TestApplications extends AbstractComponentTest {
               userPermission.getPermittableEndpointGroupIdentifier(),
               userid,
               true);
+      getTestSubject().setApplicationPermissionEnabledForUser(
+              appPlusSig.getApplicationIdentifier(),
+              rolePermission.getPermittableEndpointGroupIdentifier(),
+              userid,
+              true);
     }
-    //TODO: get me a refresh token here. use it to get an access token.  Then access like mad.
+
+    final TokenSerializationResult tokenSerializationResult =
+            new TenantRefreshTokenSerializer().build(new TenantRefreshTokenSerializer.Specification()
+                    .setUser(userid)
+                    .setEndpointSet(CALL_ENDPOINT_SET_IDENTIFIER)
+                    .setSecondsToLive(30)
+                    .setKeyTimestamp(appPlusSig.getKeyTimestamp())
+                    .setPrivateKey(appPlusSig.getKeyPair().privateKey())
+                    .setSourceApplication(appPlusSig.getApplicationIdentifier()));
+
+
+    final FeignTargetWithCookieJar<IdentityManager> identityManagerWithCookieJar
+            = apiFactory.createWithCookieJar(IdentityManager.class, testEnvironment.serverURI());
+
+    identityManagerWithCookieJar.putCookie("/token", TokenConstants.REFRESH_TOKEN_COOKIE_NAME, tokenSerializationResult.getToken());
+    final Authentication applicationAuthentication = identityManagerWithCookieJar.getFeignTarget().refresh();
+
+    try (final AutoUserContext ignored = new AutoUserContext(userid, applicationAuthentication.getAccessToken())) {
+      final List<User> users = getTestSubject().getUsers();
+      Assert.assertFalse(users.isEmpty());
+    }
   }
 
   private String createTestApplicationName()
@@ -298,15 +342,36 @@ public class TestApplications extends AbstractComponentTest {
     return "test" + RandomStringUtils.randomNumeric(3) + "-v1";
   }
 
-  private ApplicationSignatureEvent setApplicationSignature() throws InterruptedException {
+  static class ApplicationSignatureTestData {
+    private final String applicationIdentifier;
+    private final RsaKeyPairFactory.KeyPairHolder keyPair;
+
+    ApplicationSignatureTestData(final String applicationIdentifier, final RsaKeyPairFactory.KeyPairHolder keyPair) {
+      this.applicationIdentifier = applicationIdentifier;
+      this.keyPair = keyPair;
+    }
+
+    String getApplicationIdentifier() {
+      return applicationIdentifier;
+    }
+
+    RsaKeyPairFactory.KeyPairHolder getKeyPair() {
+      return keyPair;
+    }
+
+    String getKeyTimestamp() {
+      return keyPair.getTimestamp();
+    }
+  }
+
+  private ApplicationSignatureTestData setApplicationSignature() throws InterruptedException {
     final String testApplicationName = createTestApplicationName();
     final RsaKeyPairFactory.KeyPairHolder keyPair = RsaKeyPairFactory.createKeyPair();
     final Signature signature = new Signature(keyPair.getPublicKeyMod(), keyPair.getPublicKeyExp());
 
     getTestSubject().setApplicationSignature(testApplicationName, keyPair.getTimestamp(), signature);
 
-    final ApplicationSignatureEvent event = new ApplicationSignatureEvent(testApplicationName, keyPair.getTimestamp());
-    Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_PUT_APPLICATION_SIGNATURE, event));
-    return event;
+    Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_PUT_APPLICATION_SIGNATURE, new ApplicationSignatureEvent(testApplicationName, keyPair.getTimestamp())));
+    return new ApplicationSignatureTestData(testApplicationName, keyPair);
   }
 }
