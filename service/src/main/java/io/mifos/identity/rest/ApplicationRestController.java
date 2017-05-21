@@ -108,6 +108,7 @@ public class ApplicationRestController {
           consumes = {MediaType.ALL_VALUE},
           produces = {MediaType.APPLICATION_JSON_VALUE})
   @Permittable(value = AcceptedTokenType.SYSTEM)
+  @Permittable(groupId = io.mifos.identity.api.v1.PermittableGroupIds.APPLICATION_SELF_MANAGEMENT)
   public @ResponseBody
   ResponseEntity<Void>
   createApplicationPermission(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier,
