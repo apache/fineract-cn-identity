@@ -15,8 +15,11 @@
  */
 package io.mifos.identity.rest;
 
+import io.mifos.anubis.annotation.AcceptedTokenType;
+import io.mifos.anubis.annotation.Permittable;
 import io.mifos.core.command.gateway.CommandGateway;
 import io.mifos.core.lang.ServiceException;
+import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.internal.command.SetApplicationPermissionUserEnabledCommand;
 import io.mifos.identity.internal.service.ApplicationService;
 import io.mifos.identity.internal.service.UserService;
@@ -48,6 +51,7 @@ public class ApplicationPermissionUserRestController {
     this.commandGateway = commandGateway;
   }
 
+  @Permittable(value = AcceptedTokenType.TENANT, groupId = PermittableGroupIds.SELF_MANAGEMENT)
   @RequestMapping(value = "/enabled", method = RequestMethod.PUT,
           consumes = {MediaType.ALL_VALUE},
           produces = {MediaType.APPLICATION_JSON_VALUE})
@@ -64,6 +68,7 @@ public class ApplicationPermissionUserRestController {
     return ResponseEntity.accepted().build();
   }
 
+  @Permittable(value = AcceptedTokenType.TENANT, groupId = PermittableGroupIds.SELF_MANAGEMENT)
   @RequestMapping(value = "/enabled", method = RequestMethod.GET,
           consumes = {MediaType.APPLICATION_JSON_VALUE},
           produces = {MediaType.APPLICATION_JSON_VALUE})

@@ -78,7 +78,7 @@ public class UserCommandHandler {
 
     final UserEntity userWithNewPassword = userEntityCreator.build(
             user.getIdentifier(), user.getRole(), command.getPassword(),
-            !SecurityContextHolder.getContext().getAuthentication().getPrincipal().equals(command.getIdentifier()));
+            !SecurityContextHolder.getContext().getAuthentication().getName().equals(command.getIdentifier()));
     usersRepository.add(userWithNewPassword);
     logger.info("Changed password for user {}, expiration date is now {}", user.getIdentifier(), userWithNewPassword.getPasswordExpiresOn());
 
