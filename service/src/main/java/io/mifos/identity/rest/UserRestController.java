@@ -61,7 +61,7 @@ public class UserRestController {
   @RequestMapping(method = RequestMethod.GET,
       consumes = {MediaType.ALL_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE})
-  @Permittable(AcceptedTokenType.TENANT)
+  @Permittable(value = AcceptedTokenType.TENANT, groupId = PermittableGroupIds.IDENTITY_MANAGEMENT)
   public @ResponseBody List<User> findAll() {
     return this.service.findAll();
   }
@@ -95,7 +95,7 @@ public class UserRestController {
   @RequestMapping(value = PathConstants.IDENTIFIER_RESOURCE_STRING + "/roleIdentifier", method = RequestMethod.PUT,
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE})
-  @Permittable(AcceptedTokenType.TENANT)
+  @Permittable(value = AcceptedTokenType.TENANT, groupId = PermittableGroupIds.IDENTITY_MANAGEMENT)
   public @ResponseBody ResponseEntity<Void> changeUserRole(
       @PathVariable(IDENTIFIER_PATH_VARIABLE) final String userIdentifier,
       @RequestBody @Valid final RoleIdentifier roleIdentifier)
