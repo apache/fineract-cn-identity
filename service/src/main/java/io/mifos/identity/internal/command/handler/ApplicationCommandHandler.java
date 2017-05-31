@@ -17,6 +17,7 @@ package io.mifos.identity.internal.command.handler;
 
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
+import io.mifos.core.command.annotation.CommandLogLevel;
 import io.mifos.core.command.annotation.EventEmitter;
 import io.mifos.core.lang.ServiceException;
 import io.mifos.identity.api.v1.events.*;
@@ -50,7 +51,7 @@ public class ApplicationCommandHandler {
     this.applicationCallEndpointSets = applicationCallEndpointSets;
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_PUT_APPLICATION_SIGNATURE)
   public ApplicationSignatureEvent process(final SetApplicationSignatureCommand command) {
     final ApplicationSignatureEntity applicationSignatureEntity = new ApplicationSignatureEntity();
@@ -63,14 +64,14 @@ public class ApplicationCommandHandler {
     return new ApplicationSignatureEvent(command.getApplicationIdentifier(), command.getKeyTimestamp());
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_DELETE_APPLICATION)
   public String process(final DeleteApplicationCommand command) {
     applicationSignatures.delete(command.getApplicationIdentifier());
     return command.getApplicationIdentifier();
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_POST_APPLICATION_PERMISSION)
   public ApplicationPermissionEvent process(final CreateApplicationPermissionCommand command) {
     final ApplicationPermissionEntity applicationPermissionEntity = new ApplicationPermissionEntity(
@@ -80,21 +81,21 @@ public class ApplicationCommandHandler {
     return new ApplicationPermissionEvent(command.getApplicationIdentifer(), command.getPermission().getPermittableEndpointGroupIdentifier());
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_DELETE_APPLICATION_PERMISSION)
   public ApplicationPermissionEvent process(final DeleteApplicationPermissionCommand command) {
     applicationPermissions.delete(command.getApplicationIdentifier(), command.getPermittableGroupIdentifier());
     return new ApplicationPermissionEvent(command.getApplicationIdentifier(), command.getPermittableGroupIdentifier());
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_PUT_APPLICATION_PERMISSION_USER_ENABLED)
   public ApplicationPermissionUserEvent process(final SetApplicationPermissionUserEnabledCommand command) {
     applicationPermissionUsers.setEnabled(command.getApplicationIdentifier(), command.getPermittableGroupIdentifier(), command.getUserIdentifier(), command.isEnabled());
     return new ApplicationPermissionUserEvent(command.getApplicationIdentifier(), command.getPermittableGroupIdentifier(), command.getUserIdentifier());
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_PUT_APPLICATION_CALLENDPOINTSET)
   public ApplicationCallEndpointSetEvent process(final ChangeApplicationCallEndpointSetCommand command) {
     applicationCallEndpointSets.get(command.getApplicationIdentifier(), command.getCallEndpointSetIdentifier())
@@ -108,7 +109,7 @@ public class ApplicationCommandHandler {
     return new ApplicationCallEndpointSetEvent(command.getApplicationIdentifier(), command.getCallEndpointSetIdentifier());
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_POST_APPLICATION_CALLENDPOINTSET)
   public ApplicationCallEndpointSetEvent process(final CreateApplicationCallEndpointSetCommand command) {
     if (!applicationSignatures.signaturesExistForApplication(command.getApplicationIdentifier()))
@@ -121,7 +122,7 @@ public class ApplicationCommandHandler {
     return new ApplicationCallEndpointSetEvent(command.getApplicationIdentifier(), command.getCallEndpointSet().getIdentifier());
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_DELETE_APPLICATION_CALLENDPOINTSET)
   public ApplicationCallEndpointSetEvent process(final DeleteApplicationCallEndpointSetCommand command) {
     applicationCallEndpointSets.get(command.getApplicationIdentifier(), command.getCallEndpointSetIdentifier())

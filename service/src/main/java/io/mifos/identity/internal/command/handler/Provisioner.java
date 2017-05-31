@@ -18,6 +18,7 @@ package io.mifos.identity.internal.command.handler;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.core.lang.ServiceException;
+import io.mifos.core.lang.TenantContextHolder;
 import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.internal.mapper.SignatureMapper;
@@ -96,6 +97,7 @@ public class Provisioner {
   }
 
   public ApplicationSignatureSet provisionTenant(final String initialPasswordHash) {
+    logger.info("Provisioning cassandra tables for tenant {}...", TenantContextHolder.checkedGetIdentifier());
     final RsaKeyPairFactory.KeyPairHolder keys = RsaKeyPairFactory.createKeyPair();
 
     byte[] fixedSalt = this.saltGenerator.createRandomSalt();
@@ -134,7 +136,11 @@ public class Provisioner {
                       fixedSalt, timeToChangePasswordAfterExpirationInDays);
       users.add(suUser);
 
-      return SignatureMapper.mapToApplicationSignatureSet(signatureEntity);
+      final ApplicationSignatureSet ret = SignatureMapper.mapToApplicationSignatureSet(signatureEntity);
+
+      logger.info("Successfully provisioned cassandra tables for tenant {}...", TenantContextHolder.checkedGetIdentifier());
+
+      return ret;
     }
     catch (final InvalidQueryException e)
     {

@@ -18,6 +18,7 @@ package io.mifos.identity.internal.command.handler;
 import io.mifos.anubis.api.v1.domain.PermittableEndpoint;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
+import io.mifos.core.command.annotation.CommandLogLevel;
 import io.mifos.core.command.annotation.EventEmitter;
 import io.mifos.identity.api.v1.domain.PermittableGroup;
 import io.mifos.identity.api.v1.events.EventConstants;
@@ -47,7 +48,7 @@ public class PermittableGroupCommandHandler {
     this.repository = repository;
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_POST_PERMITTABLE_GROUP)
   public String process(final CreatePermittableGroupCommand command) {
     Assert.isTrue(!repository.get(command.getInstance().getIdentifier()).isPresent());

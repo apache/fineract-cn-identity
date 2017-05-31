@@ -66,4 +66,14 @@ public class SetApplicationPermissionUserEnabledCommand {
   public void setEnabled(boolean enabled) {
     this.enabled = enabled;
   }
+
+  @Override
+  public String toString() {
+    return "SetApplicationPermissionUserEnabledCommand{" +
+            "applicationIdentifier='" + applicationIdentifier + '\'' +
+            ", permittableGroupIdentifier='" + permittableGroupIdentifier + '\'' +
+            ", userIdentifier='" + userIdentifier + '\'' +
+            ", enabled=" + enabled +
+            '}';
+  }
 }

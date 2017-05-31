@@ -36,4 +36,11 @@ public class DeleteRoleCommand {
   public void setIdentifier(String identifier) {
     this.identifier = identifier;
   }
+
+  @Override
+  public String toString() {
+    return "DeleteRoleCommand{" +
+            "identifier='" + identifier + '\'' +
+            '}';
+  }
 }

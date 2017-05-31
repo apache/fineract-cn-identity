@@ -48,4 +48,12 @@ public class CreateApplicationPermissionCommand {
   public void setPermission(Permission permission) {
     this.permission = permission;
   }
+
+  @Override
+  public String toString() {
+    return "CreateApplicationPermissionCommand{" +
+            "applicationIdentifer='" + applicationIdentifer + '\'' +
+            ", permission=" + permission.getPermittableEndpointGroupIdentifier() +
+            '}';
+  }
 }

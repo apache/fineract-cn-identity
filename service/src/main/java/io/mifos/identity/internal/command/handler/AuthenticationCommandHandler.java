@@ -25,6 +25,7 @@ import io.mifos.anubis.security.AmitAuthenticationException;
 import io.mifos.anubis.token.*;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
+import io.mifos.core.command.annotation.CommandLogLevel;
 import io.mifos.core.lang.ApplicationName;
 import io.mifos.core.lang.DateConverter;
 import io.mifos.core.lang.ServiceException;
@@ -133,7 +134,7 @@ public class AuthenticationCommandHandler {
     this.applicationName = applicationName;
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.NONE, logFinish = CommandLogLevel.NONE)
   public AuthenticationCommandResponse process(final PasswordAuthenticationCommand command)
       throws AmitAuthenticationException
   {
@@ -213,7 +214,7 @@ public class AuthenticationCommandHandler {
     }
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.NONE, logFinish = CommandLogLevel.NONE)
   public AuthenticationCommandResponse process(final RefreshTokenAuthenticationCommand command)
       throws AmitAuthenticationException
   {
