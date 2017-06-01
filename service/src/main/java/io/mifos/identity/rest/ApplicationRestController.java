@@ -28,6 +28,7 @@ import io.mifos.identity.internal.command.DeleteApplicationCommand;
 import io.mifos.identity.internal.command.DeleteApplicationPermissionCommand;
 import io.mifos.identity.internal.command.SetApplicationSignatureCommand;
 import io.mifos.identity.internal.service.ApplicationService;
+import io.mifos.identity.internal.service.PermittableGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -45,13 +46,16 @@ import java.util.List;
 @RequestMapping("/applications")
 public class ApplicationRestController {
   private final ApplicationService service;
+  private final PermittableGroupService permittableGroupService;
   private final CommandGateway commandGateway;
 
   @Autowired
   public ApplicationRestController(
           final ApplicationService service,
+          final PermittableGroupService permittableGroupService,
           final CommandGateway commandGateway) {
     this.service = service;
+    this.permittableGroupService = permittableGroupService;
     this.commandGateway = commandGateway;
   }
 
@@ -114,6 +118,7 @@ public class ApplicationRestController {
   createApplicationPermission(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier,
                               @RequestBody @Valid Permission permission) {
     checkApplicationIdentifier(applicationIdentifier);
+    checkPermittableGroupIdentifier(permission.getPermittableEndpointGroupIdentifier());
     commandGateway.process(new CreateApplicationPermissionCommand(applicationIdentifier, permission));
     return ResponseEntity.accepted().build();
   }
@@ -167,5 +172,10 @@ public class ApplicationRestController {
     if (!service.applicationPermissionExists(applicationIdentifier, permittableEndpointGroupIdentifier))
       throw ServiceException.notFound("Application permission '"
               + applicationIdentifier + "." + permittableEndpointGroupIdentifier + "' doesn't exist.");
+  }
+
+  private void checkPermittableGroupIdentifier(final String permittableEndpointGroupIdentifier) {
+    permittableGroupService.findByIdentifier(permittableEndpointGroupIdentifier)
+            .orElseThrow(() -> ServiceException.notFound("Permittable group {0} doesn't exist.", permittableEndpointGroupIdentifier));
   }
 }
