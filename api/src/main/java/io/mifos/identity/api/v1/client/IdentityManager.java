@@ -36,6 +36,7 @@ import java.util.Set;
 @SuppressWarnings("unused")
 @FeignClient(name="identity-v1", path="/identity/v1", configuration=CustomFeignClientsConfiguration.class)
 public interface IdentityManager extends Anubis {
+  String REFRESH_TOKEN = "Identity-RefreshToken";
   @RequestMapping(value = "/token?grant_type=password", method = RequestMethod.POST,
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       produces = {MediaType.ALL_VALUE})
@@ -49,7 +50,10 @@ public interface IdentityManager extends Anubis {
   @RequestMapping(value = "/token?grant_type=refresh_token", method = RequestMethod.POST,
           consumes = {MediaType.APPLICATION_JSON_VALUE},
           produces = {MediaType.ALL_VALUE})
-  Authentication refresh(@RequestParam("refresh_token") String refreshToken);
+
+  //Using a header different than the one used by anubis for authentication so that this function is called without
+  //access token-based authentication checking.  The refresh token checking result is what's important here.
+  Authentication refresh(@RequestHeader(REFRESH_TOKEN) String refreshToken);
 
   @RequestMapping(value = "/token/_current", method = RequestMethod.DELETE,
           consumes = {MediaType.APPLICATION_JSON_VALUE},
