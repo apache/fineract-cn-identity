@@ -277,7 +277,8 @@ public class AuthenticationCommandHandler {
     final TokenSerializationResult accessToken = getAuthenticationResponse(
             user.getIdentifier(),
             tokenPermissions,
-            privateSignature);
+            privateSignature,
+            sourceApplicationName);
 
     return new AuthenticationCommandResponse(
             accessToken.getToken(), DateConverter.toIsoString(accessToken.getExpiration()),
@@ -326,7 +327,8 @@ public class AuthenticationCommandHandler {
   private TokenSerializationResult getAuthenticationResponse(
           final String userIdentifier,
           final Set<TokenPermission> tokenPermissions,
-          final PrivateSignatureEntity privateSignatureEntity) {
+          final PrivateSignatureEntity privateSignatureEntity,
+          final String sourceApplication) {
 
     final PrivateKey privateKey = new RsaPrivateKeyBuilder()
           .setPrivateKeyExp(privateSignatureEntity.getPrivateKeyExp())
@@ -339,7 +341,8 @@ public class AuthenticationCommandHandler {
               .setPrivateKey(privateKey)
               .setTokenContent(new TokenContent(new ArrayList<>(tokenPermissions)))
               .setSecondsToLive(accessTtl)
-              .setUser(userIdentifier);
+              .setUser(userIdentifier)
+              .setSourceApplication(sourceApplication);
 
       return tenantAccessTokenSerializer.build(x);
   }

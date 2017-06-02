@@ -120,10 +120,13 @@ public class Provisioner {
       createPermittablesGroup(PermittableGroupIds.ROLE_MANAGEMENT, "/roles/*", "/permittablegroups/*");
       createPermittablesGroup(PermittableGroupIds.IDENTITY_MANAGEMENT, "/users/*");
       createPermittablesGroup(PermittableGroupIds.SELF_MANAGEMENT, "/users/{useridentifier}/password", "/applications/*/permissions/*/users/{useridentifier}/enabled");
+      createPermittablesGroup(PermittableGroupIds.APPLICATION_SELF_MANAGEMENT, "/applications/{applicationidentifier}/permissions");
 
       final List<PermissionType> permissions = new ArrayList<>();
       permissions.add(fullAccess(PermittableGroupIds.ROLE_MANAGEMENT));
       permissions.add(fullAccess(PermittableGroupIds.IDENTITY_MANAGEMENT));
+      permissions.add(fullAccess(PermittableGroupIds.SELF_MANAGEMENT));
+      permissions.add(fullAccess(PermittableGroupIds.APPLICATION_SELF_MANAGEMENT));
 
       final RoleEntity suRole = new RoleEntity();
       suRole.setIdentifier(IdentityConstants.SU_ROLE);

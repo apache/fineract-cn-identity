@@ -22,6 +22,7 @@ import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.anubis.api.v1.validation.ValidKeyTimestamp;
 import io.mifos.core.command.gateway.CommandGateway;
 import io.mifos.core.lang.ServiceException;
+import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.domain.Permission;
 import io.mifos.identity.internal.command.CreateApplicationPermissionCommand;
 import io.mifos.identity.internal.command.DeleteApplicationCommand;
@@ -112,7 +113,7 @@ public class ApplicationRestController {
           consumes = {MediaType.ALL_VALUE},
           produces = {MediaType.APPLICATION_JSON_VALUE})
   @Permittable(value = AcceptedTokenType.SYSTEM)
-  @Permittable(groupId = io.mifos.identity.api.v1.PermittableGroupIds.APPLICATION_SELF_MANAGEMENT)
+  @Permittable(value = AcceptedTokenType.TENANT, permittedEndpoint = "applications/{applicationidentifier}/permissions", groupId = PermittableGroupIds.APPLICATION_SELF_MANAGEMENT)
   public @ResponseBody
   ResponseEntity<Void>
   createApplicationPermission(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier,
@@ -127,6 +128,7 @@ public class ApplicationRestController {
           consumes = {MediaType.ALL_VALUE},
           produces = {MediaType.APPLICATION_JSON_VALUE})
   @Permittable(value = AcceptedTokenType.SYSTEM)
+  @Permittable(value = AcceptedTokenType.TENANT, permittedEndpoint = "applications/{applicationidentifier}/permissions", groupId = PermittableGroupIds.APPLICATION_SELF_MANAGEMENT)
   public @ResponseBody
   ResponseEntity<List<Permission>>
   getApplicationPermissions(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier) {
