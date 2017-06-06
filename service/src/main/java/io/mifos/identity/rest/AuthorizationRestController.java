@@ -162,6 +162,7 @@ public class AuthorizationRestController {
     {
       if (AmitAuthenticationException.class.isAssignableFrom(e.getCause().getClass()))
       {
+        logger.debug("Authentication failed.", e);
         throw AmitAuthenticationException.class.cast(e.getCause());
       }
       else if (CommandProcessingException.class.isAssignableFrom(e.getCause().getClass()))

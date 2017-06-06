@@ -94,7 +94,7 @@ public class ApplicationRestController {
                           @PathVariable("timestamp") @ValidKeyTimestamp String timestamp) {
     return service.getSignatureForApplication(applicationIdentifier, timestamp)
             .map(ResponseEntity::ok)
-            .orElseThrow(() -> ServiceException.notFound("Signature for application " + applicationIdentifier + " and key timestamp " + timestamp + "doesn't exist."));
+            .orElseThrow(() -> ServiceException.notFound("Signature for application ''" + applicationIdentifier + "'' and key timestamp ''" + timestamp + "'' doesn''t exist."));
   }
 
   @RequestMapping(value = "/{applicationidentifier}", method = RequestMethod.DELETE,
@@ -141,12 +141,12 @@ public class ApplicationRestController {
           produces = {MediaType.APPLICATION_JSON_VALUE})
   @Permittable(value = AcceptedTokenType.SYSTEM)
   public @ResponseBody
-  ResponseEntity<Permission>getApplicationPermission(@PathVariable("applicationidentifier") String applicationIdentifier,
+  ResponseEntity<Permission> getApplicationPermission(@PathVariable("applicationidentifier") String applicationIdentifier,
                                                      @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier) {
     return service.getPermissionForApplication(applicationIdentifier, permittableEndpointGroupIdentifier)
             .map(ResponseEntity::ok)
-            .orElseThrow(() -> ServiceException.notFound("Application permission '"
-                    + applicationIdentifier + "." + permittableEndpointGroupIdentifier + "' doesn't exist."));
+            .orElseThrow(() -> ServiceException.notFound("Application permission ''{0}.{1}'' doesn''t exist.",
+                    applicationIdentifier, permittableEndpointGroupIdentifier));
   }
 
   @RequestMapping(value = "/{applicationidentifier}/permissions/{permissionidentifier}", method = RequestMethod.DELETE,
@@ -165,19 +165,19 @@ public class ApplicationRestController {
 
   private void checkApplicationIdentifier(final @Nonnull String identifier) {
     if (!service.applicationExists(identifier))
-      throw ServiceException.notFound("Application with identifier " + identifier + " doesn't exist.");
+      throw ServiceException.notFound("Application with identifier ''" + identifier + "'' doesn''t exist.");
   }
 
   static void checkApplicationPermissionIdentifier(final @Nonnull ApplicationService service,
                                                    final @Nonnull String applicationIdentifier,
                                                    final @Nonnull String permittableEndpointGroupIdentifier) {
     if (!service.applicationPermissionExists(applicationIdentifier, permittableEndpointGroupIdentifier))
-      throw ServiceException.notFound("Application permission '"
-              + applicationIdentifier + "." + permittableEndpointGroupIdentifier + "' doesn't exist.");
+      throw ServiceException.notFound("Application permission ''{0}.{1}'' doesn''t exist.",
+              applicationIdentifier, permittableEndpointGroupIdentifier);
   }
 
   private void checkPermittableGroupIdentifier(final String permittableEndpointGroupIdentifier) {
     permittableGroupService.findByIdentifier(permittableEndpointGroupIdentifier)
-            .orElseThrow(() -> ServiceException.notFound("Permittable group {0} doesn't exist.", permittableEndpointGroupIdentifier));
+            .orElseThrow(() -> ServiceException.notFound("Permittable group ''{0}'' doesn''t exist.", permittableEndpointGroupIdentifier));
   }
 }

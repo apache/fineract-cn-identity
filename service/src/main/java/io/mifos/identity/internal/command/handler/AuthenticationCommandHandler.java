@@ -267,7 +267,7 @@ public class AuthenticationCommandHandler {
       tokenPermissions = getApplicationTokenPermissions(user, sourceApplicationName, callEndpointSet);
     }
 
-    logger.info("Access token for tenant{}, user {}, application {}, and callEndpointSet {} being returned containing the permissions '{}'.",
+    logger.info("Access token for tenant '{}', user '{}', application '{}', and callEndpointSet '{}' being returned containing the permissions '{}'.",
             TenantContextHolder.identifier().orElse("null"),
             user.getIdentifier(),
             sourceApplicationName,
