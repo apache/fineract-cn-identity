@@ -18,6 +18,7 @@ package io.mifos.identity.internal.command.handler;
 import com.datastax.driver.core.exceptions.InvalidQueryException;
 import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.core.lang.ServiceException;
+import io.mifos.core.lang.TenantContextHolder;
 import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.internal.mapper.SignatureMapper;
@@ -96,6 +97,7 @@ public class Provisioner {
   }
 
   public ApplicationSignatureSet provisionTenant(final String initialPasswordHash) {
+    logger.info("Provisioning cassandra tables for tenant {}...", TenantContextHolder.checkedGetIdentifier());
     final RsaKeyPairFactory.KeyPairHolder keys = RsaKeyPairFactory.createKeyPair();
 
     byte[] fixedSalt = this.saltGenerator.createRandomSalt();
@@ -118,10 +120,13 @@ public class Provisioner {
       createPermittablesGroup(PermittableGroupIds.ROLE_MANAGEMENT, "/roles/*", "/permittablegroups/*");
       createPermittablesGroup(PermittableGroupIds.IDENTITY_MANAGEMENT, "/users/*");
       createPermittablesGroup(PermittableGroupIds.SELF_MANAGEMENT, "/users/{useridentifier}/password", "/applications/*/permissions/*/users/{useridentifier}/enabled");
+      createPermittablesGroup(PermittableGroupIds.APPLICATION_SELF_MANAGEMENT, "/applications/{applicationidentifier}/permissions");
 
       final List<PermissionType> permissions = new ArrayList<>();
       permissions.add(fullAccess(PermittableGroupIds.ROLE_MANAGEMENT));
       permissions.add(fullAccess(PermittableGroupIds.IDENTITY_MANAGEMENT));
+      permissions.add(fullAccess(PermittableGroupIds.SELF_MANAGEMENT));
+      permissions.add(fullAccess(PermittableGroupIds.APPLICATION_SELF_MANAGEMENT));
 
       final RoleEntity suRole = new RoleEntity();
       suRole.setIdentifier(IdentityConstants.SU_ROLE);
@@ -134,7 +139,11 @@ public class Provisioner {
                       fixedSalt, timeToChangePasswordAfterExpirationInDays);
       users.add(suUser);
 
-      return SignatureMapper.mapToApplicationSignatureSet(signatureEntity);
+      final ApplicationSignatureSet ret = SignatureMapper.mapToApplicationSignatureSet(signatureEntity);
+
+      logger.info("Successfully provisioned cassandra tables for tenant {}...", TenantContextHolder.checkedGetIdentifier());
+
+      return ret;
     }
     catch (final InvalidQueryException e)
     {

@@ -59,8 +59,8 @@ public class ApplicationCallEndpointSetRestController {
           @RequestBody final CallEndpointSet instance)
   {
     if (!applicationService.applicationExists(applicationIdentifier))
-      throw ServiceException.notFound("Application '"
-              + applicationIdentifier + "' doesn't exist.");
+      throw ServiceException.notFound("Application ''"
+              + applicationIdentifier + "'' doesn''t exist.");
 
     commandGateway.process(new CreateApplicationCallEndpointSetCommand(applicationIdentifier, instance));
     return ResponseEntity.accepted().build();
@@ -77,8 +77,8 @@ public class ApplicationCallEndpointSetRestController {
           @RequestBody final CallEndpointSet instance)
   {
     if (!applicationService.applicationCallEndpointSetExists(applicationIdentifier, callEndpointSetIdentifier))
-      throw ServiceException.notFound("Application call endpointset '"
-              + applicationIdentifier + "." + callEndpointSetIdentifier + "' doesn't exist.");
+      throw ServiceException.notFound("Application call endpointset ''"
+              + applicationIdentifier + "." + callEndpointSetIdentifier + "'' doesn''t exist.");
 
     if (!callEndpointSetIdentifier.equals(instance.getIdentifier()))
       throw ServiceException.badRequest("Instance identifiers may not be changed.");
@@ -97,8 +97,8 @@ public class ApplicationCallEndpointSetRestController {
           @PathVariable("callendpointsetidentifier") String callEndpointSetIdentifier)
   {
     if (!applicationService.applicationCallEndpointSetExists(applicationIdentifier, callEndpointSetIdentifier))
-      throw ServiceException.notFound("Application call endpointset '"
-              + applicationIdentifier + "." + callEndpointSetIdentifier + "' doesn't exist.");
+      throw ServiceException.notFound("Application call endpointset ''"
+              + applicationIdentifier + "." + callEndpointSetIdentifier + "'' doesn''t exist.");
 
     return applicationService.getCallEndpointSetForApplication(applicationIdentifier, callEndpointSetIdentifier)
             .map(ResponseEntity::ok)
@@ -127,8 +127,8 @@ public class ApplicationCallEndpointSetRestController {
           @PathVariable("callendpointsetidentifier") final String callEndpointSetIdentifier)
   {
     if (!applicationService.applicationCallEndpointSetExists(applicationIdentifier, callEndpointSetIdentifier))
-      throw ServiceException.notFound("Application call endpointset '"
-              + applicationIdentifier + "." + callEndpointSetIdentifier + "' doesn't exist.");
+      throw ServiceException.notFound("Application call endpointset ''"
+              + applicationIdentifier + "." + callEndpointSetIdentifier + "'' doesn''t exist.");
     commandGateway.process(new DeleteApplicationCallEndpointSetCommand(applicationIdentifier, callEndpointSetIdentifier));
     return ResponseEntity.accepted().build();
   }

@@ -46,4 +46,12 @@ public class DeleteApplicationCallEndpointSetCommand {
   public void setCallEndpointSetIdentifier(String callEndpointSetIdentifier) {
     this.callEndpointSetIdentifier = callEndpointSetIdentifier;
   }
+
+  @Override
+  public String toString() {
+    return "DeleteApplicationCallEndpointSetCommand{" +
+            "applicationIdentifier='" + applicationIdentifier + '\'' +
+            ", callEndpointSetIdentifier='" + callEndpointSetIdentifier + '\'' +
+            '}';
+  }
 }

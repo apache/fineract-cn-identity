@@ -17,6 +17,7 @@ package io.mifos.identity.internal.command.handler;
 
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
+import io.mifos.core.command.annotation.CommandLogLevel;
 import io.mifos.core.command.annotation.EventEmitter;
 import io.mifos.identity.api.v1.domain.Role;
 import io.mifos.identity.api.v1.events.EventConstants;
@@ -50,7 +51,7 @@ public class RoleCommandHandler {
     this.roles = roles;
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_PUT_ROLE)
   public String process(final ChangeRoleCommand command) {
     final Optional<RoleEntity> instance = roles.get(command.getIdentifier());
@@ -61,7 +62,7 @@ public class RoleCommandHandler {
     return command.getInstance().getIdentifier();
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_POST_ROLE)
   public String process(final CreateRoleCommand command) {
     Assert.isTrue(!roles.get(command.getInstance().getIdentifier()).isPresent());
@@ -71,7 +72,7 @@ public class RoleCommandHandler {
     return command.getInstance().getIdentifier();
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_DELETE_ROLE)
   public String process(final DeleteRoleCommand command) {
     final Optional<RoleEntity> instance = roles.get(command.getIdentifier());

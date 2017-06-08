@@ -49,4 +49,11 @@ public class ChangeRoleCommand {
   public void setInstance(Role instance) {
     this.instance = instance;
   }
+
+  @Override
+  public String toString() {
+    return "ChangeRoleCommand{" +
+            "identifier='" + identifier + '\'' +
+            '}';
+  }
 }

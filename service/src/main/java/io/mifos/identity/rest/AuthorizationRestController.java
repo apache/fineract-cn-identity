@@ -24,10 +24,11 @@ import io.mifos.core.command.domain.CommandProcessingException;
 import io.mifos.core.command.gateway.CommandGateway;
 import io.mifos.core.lang.ServiceException;
 import io.mifos.identity.api.v1.PermittableGroupIds;
+import io.mifos.identity.api.v1.client.IdentityManager;
 import io.mifos.identity.api.v1.domain.Authentication;
 import io.mifos.identity.internal.command.AuthenticationCommandResponse;
-import io.mifos.identity.internal.command.RefreshTokenAuthenticationCommand;
 import io.mifos.identity.internal.command.PasswordAuthenticationCommand;
+import io.mifos.identity.internal.command.RefreshTokenAuthenticationCommand;
 import io.mifos.identity.internal.util.IdentityConstants;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,12 +80,12 @@ public class AuthorizationRestController {
   @Permittable(AcceptedTokenType.GUEST)
   public
   @ResponseBody ResponseEntity<Authentication> authenticate(
-      final HttpServletResponse response,
-      final HttpServletRequest request,
-      @RequestParam("grant_type") final String grantType,
-      @RequestParam(value = "username", required = false) final String username,
-      @RequestParam(value = "password", required = false) final String password,
-      @RequestParam(value = "refresh_token", required = false) final String refreshTokenParam) throws InterruptedException {
+          final HttpServletResponse response,
+          final HttpServletRequest request,
+          @RequestParam("grant_type") final String grantType,
+          @RequestParam(value = "username", required = false) final String username,
+          @RequestParam(value = "password", required = false) final String password,
+          @RequestHeader(value = IdentityManager.REFRESH_TOKEN, required = false) final String refreshTokenParam) throws InterruptedException {
     switch (grantType) {
       case "refresh_token": {
         final String refreshToken = getRefreshToken(refreshTokenParam, request);
@@ -161,6 +162,7 @@ public class AuthorizationRestController {
     {
       if (AmitAuthenticationException.class.isAssignableFrom(e.getCause().getClass()))
       {
+        logger.debug("Authentication failed.", e);
         throw AmitAuthenticationException.class.cast(e.getCause());
       }
       else if (CommandProcessingException.class.isAssignableFrom(e.getCause().getClass()))

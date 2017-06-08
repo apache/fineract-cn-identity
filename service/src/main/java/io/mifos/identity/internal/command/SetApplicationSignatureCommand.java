@@ -58,4 +58,12 @@ public class SetApplicationSignatureCommand {
   public void setSignature(Signature signature) {
     this.signature = signature;
   }
+
+  @Override
+  public String toString() {
+    return "SetApplicationSignatureCommand{" +
+            "applicationIdentifier='" + applicationIdentifier + '\'' +
+            ", keyTimestamp='" + keyTimestamp + '\'' +
+            '}';
+  }
 }

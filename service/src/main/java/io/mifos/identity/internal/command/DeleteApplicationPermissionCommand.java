@@ -46,4 +46,12 @@ public class DeleteApplicationPermissionCommand {
   public void setPermittableGroupIdentifier(String permittableGroupIdentifier) {
     this.permittableGroupIdentifier = permittableGroupIdentifier;
   }
+
+  @Override
+  public String toString() {
+    return "DeleteApplicationPermissionCommand{" +
+            "applicationIdentifier='" + applicationIdentifier + '\'' +
+            ", permittableGroupIdentifier='" + permittableGroupIdentifier + '\'' +
+            '}';
+  }
 }

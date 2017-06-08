@@ -38,4 +38,11 @@ public class CreateRoleCommand {
   public void setInstance(Role instance) {
     this.instance = instance;
   }
+
+  @Override
+  public String toString() {
+    return "CreateRoleCommand{" +
+            "instance=" + instance.getIdentifier() +
+            '}';
+  }
 }

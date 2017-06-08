@@ -38,4 +38,11 @@ public class CreatePermittableGroupCommand {
   public void setInstance(PermittableGroup instance) {
     this.instance = instance;
   }
+
+  @Override
+  public String toString() {
+    return "CreatePermittableGroupCommand{" +
+            "instance=" + instance.getIdentifier() +
+            '}';
+  }
 }

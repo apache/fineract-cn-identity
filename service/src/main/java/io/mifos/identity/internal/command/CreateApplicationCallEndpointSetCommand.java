@@ -48,4 +48,12 @@ public class CreateApplicationCallEndpointSetCommand {
   public void setEndpointSet(CallEndpointSet callEndpointSet) {
     this.callEndpointSet = callEndpointSet;
   }
+
+  @Override
+  public String toString() {
+    return "CreateApplicationCallEndpointSetCommand{" +
+            "applicationIdentifier='" + applicationIdentifier + '\'' +
+            ", callEndpointSet=" + callEndpointSet.getIdentifier() +
+            '}';
+  }
 }

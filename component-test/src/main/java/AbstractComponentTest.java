@@ -200,12 +200,23 @@ public class AbstractComponentTest {
     return permission;
   }
 
+  Permission buildApplicationSelfPermission() {
+    final Permission permission = new Permission();
+    permission.setAllowedOperations(AllowedOperation.ALL);
+    permission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.APPLICATION_SELF_MANAGEMENT);
+    return permission;
+  }
+
   String createRoleManagementRole() throws InterruptedException {
     return createRole(buildRolePermission());
   }
 
   String createSelfManagementRole() throws InterruptedException {
     return createRole(buildSelfPermission());
+  }
+
+  String createApplicationSelfManagementRole() throws InterruptedException {
+    return createRole(buildApplicationSelfPermission());
   }
 
   String createRole(final Permission... permission) throws InterruptedException {

@@ -61,4 +61,12 @@ public class ChangeApplicationCallEndpointSetCommand {
   public void setCallEndpointSet(CallEndpointSet callEndpointSet) {
     this.callEndpointSet = callEndpointSet;
   }
+
+  @Override
+  public String toString() {
+    return "ChangeApplicationCallEndpointSetCommand{" +
+            "applicationIdentifier='" + applicationIdentifier + '\'' +
+            ", callEndpointSetIdentifier='" + callEndpointSetIdentifier + '\'' +
+            '}';
+  }
 }

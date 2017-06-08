@@ -22,12 +22,14 @@ import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.anubis.api.v1.validation.ValidKeyTimestamp;
 import io.mifos.core.command.gateway.CommandGateway;
 import io.mifos.core.lang.ServiceException;
+import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.domain.Permission;
 import io.mifos.identity.internal.command.CreateApplicationPermissionCommand;
 import io.mifos.identity.internal.command.DeleteApplicationCommand;
 import io.mifos.identity.internal.command.DeleteApplicationPermissionCommand;
 import io.mifos.identity.internal.command.SetApplicationSignatureCommand;
 import io.mifos.identity.internal.service.ApplicationService;
+import io.mifos.identity.internal.service.PermittableGroupService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -45,13 +47,16 @@ import java.util.List;
 @RequestMapping("/applications")
 public class ApplicationRestController {
   private final ApplicationService service;
+  private final PermittableGroupService permittableGroupService;
   private final CommandGateway commandGateway;
 
   @Autowired
   public ApplicationRestController(
           final ApplicationService service,
+          final PermittableGroupService permittableGroupService,
           final CommandGateway commandGateway) {
     this.service = service;
+    this.permittableGroupService = permittableGroupService;
     this.commandGateway = commandGateway;
   }
 
@@ -89,7 +94,7 @@ public class ApplicationRestController {
                           @PathVariable("timestamp") @ValidKeyTimestamp String timestamp) {
     return service.getSignatureForApplication(applicationIdentifier, timestamp)
             .map(ResponseEntity::ok)
-            .orElseThrow(() -> ServiceException.notFound("Signature for application " + applicationIdentifier + " and key timestamp " + timestamp + "doesn't exist."));
+            .orElseThrow(() -> ServiceException.notFound("Signature for application ''" + applicationIdentifier + "'' and key timestamp ''" + timestamp + "'' doesn''t exist."));
   }
 
   @RequestMapping(value = "/{applicationidentifier}", method = RequestMethod.DELETE,
@@ -108,12 +113,13 @@ public class ApplicationRestController {
           consumes = {MediaType.ALL_VALUE},
           produces = {MediaType.APPLICATION_JSON_VALUE})
   @Permittable(value = AcceptedTokenType.SYSTEM)
-  @Permittable(groupId = io.mifos.identity.api.v1.PermittableGroupIds.APPLICATION_SELF_MANAGEMENT)
+  @Permittable(value = AcceptedTokenType.TENANT, permittedEndpoint = "applications/{applicationidentifier}/permissions", groupId = PermittableGroupIds.APPLICATION_SELF_MANAGEMENT)
   public @ResponseBody
   ResponseEntity<Void>
   createApplicationPermission(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier,
                               @RequestBody @Valid Permission permission) {
     checkApplicationIdentifier(applicationIdentifier);
+    checkPermittableGroupIdentifier(permission.getPermittableEndpointGroupIdentifier());
     commandGateway.process(new CreateApplicationPermissionCommand(applicationIdentifier, permission));
     return ResponseEntity.accepted().build();
   }
@@ -122,6 +128,7 @@ public class ApplicationRestController {
           consumes = {MediaType.ALL_VALUE},
           produces = {MediaType.APPLICATION_JSON_VALUE})
   @Permittable(value = AcceptedTokenType.SYSTEM)
+  @Permittable(value = AcceptedTokenType.TENANT, permittedEndpoint = "applications/{applicationidentifier}/permissions", groupId = PermittableGroupIds.APPLICATION_SELF_MANAGEMENT)
   public @ResponseBody
   ResponseEntity<List<Permission>>
   getApplicationPermissions(@PathVariable("applicationidentifier") @Nonnull String applicationIdentifier) {
@@ -134,12 +141,12 @@ public class ApplicationRestController {
           produces = {MediaType.APPLICATION_JSON_VALUE})
   @Permittable(value = AcceptedTokenType.SYSTEM)
   public @ResponseBody
-  ResponseEntity<Permission>getApplicationPermission(@PathVariable("applicationidentifier") String applicationIdentifier,
+  ResponseEntity<Permission> getApplicationPermission(@PathVariable("applicationidentifier") String applicationIdentifier,
                                                      @PathVariable("permissionidentifier") String permittableEndpointGroupIdentifier) {
     return service.getPermissionForApplication(applicationIdentifier, permittableEndpointGroupIdentifier)
             .map(ResponseEntity::ok)
-            .orElseThrow(() -> ServiceException.notFound("Application permission '"
-                    + applicationIdentifier + "." + permittableEndpointGroupIdentifier + "' doesn't exist."));
+            .orElseThrow(() -> ServiceException.notFound("Application permission ''{0}.{1}'' doesn''t exist.",
+                    applicationIdentifier, permittableEndpointGroupIdentifier));
   }
 
   @RequestMapping(value = "/{applicationidentifier}/permissions/{permissionidentifier}", method = RequestMethod.DELETE,
@@ -158,14 +165,19 @@ public class ApplicationRestController {
 
   private void checkApplicationIdentifier(final @Nonnull String identifier) {
     if (!service.applicationExists(identifier))
-      throw ServiceException.notFound("Application with identifier " + identifier + " doesn't exist.");
+      throw ServiceException.notFound("Application with identifier ''" + identifier + "'' doesn''t exist.");
   }
 
   static void checkApplicationPermissionIdentifier(final @Nonnull ApplicationService service,
                                                    final @Nonnull String applicationIdentifier,
                                                    final @Nonnull String permittableEndpointGroupIdentifier) {
     if (!service.applicationPermissionExists(applicationIdentifier, permittableEndpointGroupIdentifier))
-      throw ServiceException.notFound("Application permission '"
-              + applicationIdentifier + "." + permittableEndpointGroupIdentifier + "' doesn't exist.");
+      throw ServiceException.notFound("Application permission ''{0}.{1}'' doesn''t exist.",
+              applicationIdentifier, permittableEndpointGroupIdentifier);
+  }
+
+  private void checkPermittableGroupIdentifier(final String permittableEndpointGroupIdentifier) {
+    permittableGroupService.findByIdentifier(permittableEndpointGroupIdentifier)
+            .orElseThrow(() -> ServiceException.notFound("Permittable group ''{0}'' doesn''t exist.", permittableEndpointGroupIdentifier));
   }
 }

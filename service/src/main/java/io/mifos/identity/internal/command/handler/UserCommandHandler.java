@@ -17,6 +17,7 @@ package io.mifos.identity.internal.command.handler;
 
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
+import io.mifos.core.command.annotation.CommandLogLevel;
 import io.mifos.core.command.annotation.EventEmitter;
 import io.mifos.core.lang.ServiceException;
 import io.mifos.identity.api.v1.events.EventConstants;
@@ -25,10 +26,7 @@ import io.mifos.identity.internal.command.ChangeUserRoleCommand;
 import io.mifos.identity.internal.command.CreateUserCommand;
 import io.mifos.identity.internal.repository.UserEntity;
 import io.mifos.identity.internal.repository.Users;
-import io.mifos.identity.internal.util.IdentityConstants;
-import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -43,20 +41,17 @@ public class UserCommandHandler {
 
   private final Users usersRepository;
   private final UserEntityCreator userEntityCreator;
-  private final Logger logger;
 
   @Autowired
   UserCommandHandler(
           final Users usersRepository,
-          final UserEntityCreator userEntityCreator,
-          @Qualifier(IdentityConstants.LOGGER_NAME) final Logger logger)
+          final UserEntityCreator userEntityCreator)
   {
     this.usersRepository = usersRepository;
     this.userEntityCreator = userEntityCreator;
-    this.logger = logger;
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_PUT_USER_ROLEIDENTIFIER)
   public String process(final ChangeUserRoleCommand command) {
     final UserEntity user = usersRepository.get(command.getIdentifier())
@@ -69,7 +64,7 @@ public class UserCommandHandler {
     return user.getIdentifier();
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_PUT_USER_PASSWORD)
   public String process(final ChangeUserPasswordCommand command) {
     final UserEntity user = usersRepository.get(command.getIdentifier())
@@ -80,12 +75,11 @@ public class UserCommandHandler {
             user.getIdentifier(), user.getRole(), command.getPassword(),
             !SecurityContextHolder.getContext().getAuthentication().getName().equals(command.getIdentifier()));
     usersRepository.add(userWithNewPassword);
-    logger.info("Changed password for user {}, expiration date is now {}", user.getIdentifier(), userWithNewPassword.getPasswordExpiresOn());
 
     return user.getIdentifier();
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.INFO, logFinish = CommandLogLevel.INFO)
   @EventEmitter(selectorName = EventConstants.OPERATION_HEADER, selectorValue = EventConstants.OPERATION_POST_USER)
   public String process(final CreateUserCommand command) {
     Assert.hasText(command.getPassword());

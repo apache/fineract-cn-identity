@@ -318,4 +318,69 @@ public class TestApplications extends AbstractComponentTest {
       Assert.assertFalse(users.isEmpty());
     }
   }
+
+  @Test
+  public void applicationIssuedRefreshTokenToCreatePermissionRequest() throws InterruptedException {
+    final ApplicationSignatureTestData appPlusSig;
+    try (final AutoUserContext ignored
+                 = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
+      appPlusSig = setApplicationSignature();
+      createApplicationPermission(appPlusSig.getApplicationIdentifier(), buildApplicationSelfPermission());
+    }
+
+    final String userid;
+    final String userid2;
+    final String userPassword;
+    try (final AutoUserContext ignored = loginAdmin()) {
+
+      final String roleId = createApplicationSelfManagementRole();
+
+      userPassword = RandomStringUtils.randomAlphanumeric(5);
+      userid = createUserWithNonexpiredPassword(userPassword, roleId);
+      userid2 = createUserWithNonexpiredPassword(userPassword, roleId);
+
+    }
+
+    try (final AutoUserContext ignored = loginUser(userid, userPassword)) {
+      getTestSubject().setApplicationPermissionEnabledForUser(appPlusSig.getApplicationIdentifier(), PermittableGroupIds.APPLICATION_SELF_MANAGEMENT, userid, true);
+    }
+
+
+    final TokenSerializationResult tokenSerializationResult =
+            new TenantRefreshTokenSerializer().build(new TenantRefreshTokenSerializer.Specification()
+                    .setUser(userid)
+                    .setSecondsToLive(30)
+                    .setKeyTimestamp(appPlusSig.getKeyTimestamp())
+                    .setPrivateKey(appPlusSig.getKeyPair().privateKey())
+                    .setSourceApplication(appPlusSig.getApplicationIdentifier()));
+
+
+    final Authentication applicationAuthentication = getTestSubject().refresh(tokenSerializationResult.getToken());
+
+    try (final AutoUserContext ignored = new AutoUserContext(userid, applicationAuthentication.getAccessToken())) {
+      final Permission rolePermission = buildRolePermission();
+      createApplicationPermission(appPlusSig.getApplicationIdentifier(), rolePermission);
+
+      final List<Permission> appPermissions = getTestSubject().getApplicationPermissions(
+              appPlusSig.getApplicationIdentifier());
+
+      Assert.assertTrue(appPermissions.contains(rolePermission));
+
+      try {
+        getTestSubject().setApplicationPermissionEnabledForUser(appPlusSig.getApplicationIdentifier(), rolePermission.getPermittableEndpointGroupIdentifier(), userid2, true);
+        Assert.fail("This call to create enable permission for another user should've failed.");
+      }
+      catch (final NotFoundException ignored2) {
+
+      }
+
+      try {
+        createApplicationPermission("madeupname-v1", rolePermission);
+        Assert.fail("This call to create application permission should've failed.");
+      }
+      catch (final NotFoundException ignored2) {
+
+      }
+    }
+  }
 }

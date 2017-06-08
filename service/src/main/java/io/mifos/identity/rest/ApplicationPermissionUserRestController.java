@@ -84,6 +84,6 @@ public class ApplicationPermissionUserRestController {
 
   private void checkUserIdentifier(final @Nonnull String identifier) {
     userService.findByIdentifier(identifier).orElseThrow(
-            () -> ServiceException.notFound("User '" + identifier + "' doesn't exist."));
+            () -> ServiceException.notFound("User ''" + identifier + "'' doesn''t exist."));
   }
 }

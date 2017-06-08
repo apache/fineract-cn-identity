@@ -25,6 +25,7 @@ import io.mifos.anubis.security.AmitAuthenticationException;
 import io.mifos.anubis.token.*;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
+import io.mifos.core.command.annotation.CommandLogLevel;
 import io.mifos.core.lang.ApplicationName;
 import io.mifos.core.lang.DateConverter;
 import io.mifos.core.lang.ServiceException;
@@ -133,7 +134,7 @@ public class AuthenticationCommandHandler {
     this.applicationName = applicationName;
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.DEBUG, logFinish = CommandLogLevel.DEBUG)
   public AuthenticationCommandResponse process(final PasswordAuthenticationCommand command)
       throws AmitAuthenticationException
   {
@@ -213,7 +214,7 @@ public class AuthenticationCommandHandler {
     }
   }
 
-  @CommandHandler
+  @CommandHandler(logStart = CommandLogLevel.DEBUG, logFinish = CommandLogLevel.DEBUG)
   public AuthenticationCommandResponse process(final RefreshTokenAuthenticationCommand command)
       throws AmitAuthenticationException
   {
@@ -266,7 +267,7 @@ public class AuthenticationCommandHandler {
       tokenPermissions = getApplicationTokenPermissions(user, sourceApplicationName, callEndpointSet);
     }
 
-    logger.info("Access token for tenant{}, user {}, application {}, and callEndpointSet {} being returned containing the permissions '{}'.",
+    logger.info("Access token for tenant '{}', user '{}', application '{}', and callEndpointSet '{}' being returned containing the permissions '{}'.",
             TenantContextHolder.identifier().orElse("null"),
             user.getIdentifier(),
             sourceApplicationName,
@@ -276,7 +277,8 @@ public class AuthenticationCommandHandler {
     final TokenSerializationResult accessToken = getAuthenticationResponse(
             user.getIdentifier(),
             tokenPermissions,
-            privateSignature);
+            privateSignature,
+            sourceApplicationName);
 
     return new AuthenticationCommandResponse(
             accessToken.getToken(), DateConverter.toIsoString(accessToken.getExpiration()),
@@ -325,7 +327,8 @@ public class AuthenticationCommandHandler {
   private TokenSerializationResult getAuthenticationResponse(
           final String userIdentifier,
           final Set<TokenPermission> tokenPermissions,
-          final PrivateSignatureEntity privateSignatureEntity) {
+          final PrivateSignatureEntity privateSignatureEntity,
+          final String sourceApplication) {
 
     final PrivateKey privateKey = new RsaPrivateKeyBuilder()
           .setPrivateKeyExp(privateSignatureEntity.getPrivateKeyExp())
@@ -338,7 +341,8 @@ public class AuthenticationCommandHandler {
               .setPrivateKey(privateKey)
               .setTokenContent(new TokenContent(new ArrayList<>(tokenPermissions)))
               .setSecondsToLive(accessTtl)
-              .setUser(userIdentifier);
+              .setUser(userIdentifier)
+              .setSourceApplication(sourceApplication);
 
       return tenantAccessTokenSerializer.build(x);
   }

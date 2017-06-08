@@ -46,4 +46,12 @@ public class ChangeUserRoleCommand {
   public void setRole(String role) {
     this.role = role;
   }
+
+  @Override
+  public String toString() {
+    return "ChangeUserRoleCommand{" +
+            "identifier='" + identifier + '\'' +
+            ", role='" + role + '\'' +
+            '}';
+  }
 }
