@@ -364,11 +364,18 @@ public class AuthenticationCommandHandler {
           final UserEntity user,
           final String sourceApplicationName,
           @SuppressWarnings("OptionalUsedAsFieldOrParameterType") final Optional<String> callEndpointSet) {
+
     //If the call endpoint set was given, but does not correspond to a stored call endpoint set, throw an exception.
     //If it wasn't given then return all of the permissions for the application.
-    final Optional<ApplicationCallEndpointSetEntity> applicationCallEndpointSet
-            = callEndpointSet.map(x -> applicationCallEndpointSets.get(sourceApplicationName, x)
-            .orElseThrow(AmitAuthenticationException::invalidToken));
+    final Optional<ApplicationCallEndpointSetEntity> applicationCallEndpointSet = callEndpointSet.map(x -> {
+      final Optional<ApplicationCallEndpointSetEntity> optionalEndpointSetEntity =
+          applicationCallEndpointSets.get(sourceApplicationName, x);
+      if (optionalEndpointSetEntity.isPresent()) {
+        return optionalEndpointSetEntity.get();
+      } else {
+        throw AmitAuthenticationException.invalidToken();
+      }
+    });
 
     final RoleEntity userRole = roles.get(user.getRole())
             .orElseThrow(AmitAuthenticationException::userPasswordCombinationNotFound);
