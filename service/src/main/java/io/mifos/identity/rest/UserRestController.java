@@ -133,7 +133,7 @@ public class UserRestController {
       @RequestBody @Valid final Password password)
   {
     if (userIdentifier.equals(SU_NAME) && !UserContextHolder.checkedGetUser().equals(SU_NAME))
-      throw ServiceException.badRequest("Role of user with identifier: " + userIdentifier + " cannot be changed.");
+      throw ServiceException.badRequest("Password of ''{0}'' can only be changed by themselves.", SU_NAME);
 
     checkIdentifier(userIdentifier);
 

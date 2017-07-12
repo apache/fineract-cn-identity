@@ -13,11 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.mifos.identity.api.v1.client;
+
+
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
 /**
  * @author Myrle Krantz
  */
-@SuppressWarnings("WeakerAccess")
-public class TenantAlreadyInitializedException extends RuntimeException{
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+    TestApplications.class,
+    TestAuthentication.class,
+    TestKeyRotation.class,
+    //TestPasswords.class,
+    TestPermittableGroups.class,
+    TestProvisioning.class,
+    //TestRefreshToken.class,
+    TestRoles.class,
+    TestUsers.class,
+})
+public class TestSuite extends SuiteTestEnvironment {
+  //TODO: Add TestPasswords and TestRefreshToken back in.
+  // For some reason, they fail in the test suite even though
+  // they succeed when run individually.
 }

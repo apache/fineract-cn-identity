@@ -24,7 +24,6 @@ import io.mifos.core.api.util.UserContextHolder;
 import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.core.test.env.TestEnvironment;
 import io.mifos.core.test.fixture.TenantDataStoreContextTestRule;
-import io.mifos.core.test.fixture.cassandra.CassandraInitializer;
 import io.mifos.core.test.listener.EnableEventRecording;
 import io.mifos.core.test.listener.EventRecorder;
 import io.mifos.identity.api.v1.PermittableGroupIds;
@@ -38,8 +37,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.ClassRule;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TestRule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -60,8 +57,7 @@ import java.util.Arrays;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
         classes = {AbstractComponentTest.TestConfiguration.class})
 @TestPropertySource(properties = {"cassandra.cl.read = LOCAL_QUORUM", "cassandra.cl.write = LOCAL_QUORUM", "cassandra.cl.delete = LOCAL_QUORUM", "identity.token.refresh.secureCookie = false", "identity.passwordExpiresInDays = 93"})
-public class AbstractComponentTest {
-  static final String APP_NAME = "identity-v1";
+public class AbstractComponentTest extends SuiteTestEnvironment {
   @Configuration
   @EnableApiFactory
   @EnableEventRecording
@@ -80,16 +76,8 @@ public class AbstractComponentTest {
   static final String AHMES_PASSWORD = "fractions";
   static final String AHMES_FRIENDS_PASSWORD = "sekhem";
 
-  final static TestEnvironment testEnvironment = new TestEnvironment(APP_NAME);
-  final static CassandraInitializer cassandraInitializer = new CassandraInitializer();
-  private final static TenantDataStoreContextTestRule tenantDataStoreContext = TenantDataStoreContextTestRule.forRandomTenantName(cassandraInitializer);
-  private static boolean alreadyInitialized = false;
-
   @ClassRule
-  public static TestRule orderClassRules = RuleChain
-          .outerRule(testEnvironment)
-          .around(cassandraInitializer)
-          .around(tenantDataStoreContext);
+  public final static TenantDataStoreContextTestRule tenantDataStoreContext = TenantDataStoreContextTestRule.forRandomTenantName(cassandraInitializer);
 
   //Not using this as a rule because initialize in identityManager is different.
   static final TenantApplicationSecurityEnvironmentTestRule tenantApplicationSecurityEnvironment = new TenantApplicationSecurityEnvironmentTestRule(testEnvironment);
@@ -108,12 +96,9 @@ public class AbstractComponentTest {
   public void provision() throws Exception {
     identityManager =  apiFactory.create(IdentityManager.class, testEnvironment.serverURI());
 
-    if (!alreadyInitialized) {
-      try (final AutoUserContext ignored
-                   = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-        identityManager.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
-      }
-      alreadyInitialized = true;
+    try (final AutoUserContext ignored
+             = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
+      identityManager.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
     }
   }
 

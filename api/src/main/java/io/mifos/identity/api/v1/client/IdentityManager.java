@@ -226,7 +226,6 @@ public interface IdentityManager extends Anubis {
   @RequestMapping(value = "/initialize", method = RequestMethod.POST,
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE})
-  @ThrowsException(status = HttpStatus.CONFLICT, exception = TenantAlreadyInitializedException.class)
   ApplicationSignatureSet initialize(@RequestParam("password") String password);
 
   @RequestMapping(value = "/signatures", method = RequestMethod.POST,
