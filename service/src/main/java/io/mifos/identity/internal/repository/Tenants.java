@@ -94,9 +94,10 @@ public class Tenants {
 
   public boolean currentTenantAlreadyProvisioned() {
     final String keyspace = cassandraSessionProvider.getTenantSession().getLoggedKeyspace();
-    final KeyspaceMetadata keyspaceMetadata = cassandraSessionProvider.getTenantSession()
-            .getCluster().getMetadata().getKeyspace(keyspace);
 
-    return keyspaceMetadata.getTable(TABLE_NAME) != null;
+    final KeyspaceMetadata keyspaceMetadata = cassandraSessionProvider.getTenantSession()
+        .getCluster().getMetadata().getKeyspace(keyspace);
+
+    return keyspaceMetadata != null && keyspaceMetadata.getTable(TABLE_NAME) != null;
   }
 }

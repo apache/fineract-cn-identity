@@ -17,34 +17,17 @@
 import io.mifos.anubis.api.v1.RoleConstants;
 import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.anubis.api.v1.domain.Signature;
-import io.mifos.anubis.test.v1.TenantApplicationSecurityEnvironmentTestRule;
 import io.mifos.anubis.token.SystemAccessTokenSerializer;
-import io.mifos.core.api.config.EnableApiFactory;
 import io.mifos.core.api.context.AutoSeshat;
 import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.core.api.util.ApiFactory;
 import io.mifos.core.api.util.InvalidTokenException;
+import io.mifos.core.lang.AutoTenantContext;
 import io.mifos.core.lang.TenantContextHolder;
 import io.mifos.core.test.env.TestEnvironment;
-import io.mifos.core.test.fixture.TenantDataStoreTestContext;
-import io.mifos.core.test.fixture.cassandra.CassandraInitializer;
 import io.mifos.identity.api.v1.client.IdentityManager;
 import io.mifos.identity.api.v1.client.TenantAlreadyInitializedException;
-import io.mifos.identity.config.IdentityServiceConfig;
 import org.junit.Assert;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.RuleChain;
-import org.junit.rules.TestRule;
-import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigInteger;
 import java.security.KeyFactory;
@@ -57,39 +40,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Myrle Krantz
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-public class TestProvisioning {
-  private static final String APP_NAME = "identity-v1";
-  @Configuration
-  @EnableApiFactory
-  @Import({IdentityServiceConfig.class})
-  public static class TestConfiguration {
-    public TestConfiguration() {
-      super();
-    }
-
-    @Bean()
-    public Logger logger() {
-      return LoggerFactory.getLogger("login-test-logger");
-    }
-  }
-
-  private static final String ADMIN_PASSWORD = "golden_osiris";
-  private final static TestEnvironment testEnvironment = new TestEnvironment(APP_NAME);
-  private final static CassandraInitializer cassandraInitializer = new CassandraInitializer();
-
-  //Not using this as a rule because initialize in idnetity manager is different.
-  private static final TenantApplicationSecurityEnvironmentTestRule tenantApplicationSecurityEnvironment = new TenantApplicationSecurityEnvironmentTestRule(testEnvironment);
-
-  @ClassRule
-  public static TestRule orderClassRules = RuleChain
-          .outerRule(testEnvironment)
-          .around(cassandraInitializer);
-
-  @SuppressWarnings("SpringAutowiredFieldsWarningInspection")
-  @Autowired ApiFactory apiFactory;
-
+public class TestProvisioning extends AbstractComponentTest {
 
   @Test
   public void testBoundaryInitializeCases() throws InterruptedException {
@@ -97,8 +48,21 @@ public class TestProvisioning {
 
 
     final ApplicationSignatureSet firstTenantSignatureSet;
-    Signature firstTenantIdentityManagerSignature = null;
-    try (final TenantDataStoreTestContext ignored = TenantDataStoreTestContext.forRandomTenantName(cassandraInitializer)) {
+    final Signature firstTenantIdentityManagerSignature;
+
+    //Create tenant keyspaces.
+    final String tenant1 = TestEnvironment.getRandomTenantName();
+    final String tenant2 = TestEnvironment.getRandomTenantName();
+    cassandraInitializer.initializeTenant(tenant1);
+    cassandraInitializer.initializeTenant(tenant2);
+    TimeUnit.SECONDS.sleep(1);
+    // This gives cassandra a chance to complete saving the new keyspaces.
+    // Theoretically, the creation of keyspaces is synchronous, but I've
+    // found that the cassandra driver needs just a little bit longer
+    // To show up in the request for metadata for that keyspace.
+
+
+    try (final AutoTenantContext ignored = new AutoTenantContext(tenant1)) {
 
       final String invalidSeshatToken = "notBearer";
       try (final AutoSeshat ignored2 = new AutoSeshat(invalidSeshatToken)){
@@ -136,8 +100,10 @@ public class TestProvisioning {
         final Signature applicationSignature = tenantApplicationSecurityEnvironment.getAnubis().getApplicationSignature(firstTenantSignatureSet.getTimestamp());
         firstTenantIdentityManagerSignature = tenantApplicationSecurityEnvironment.getAnubis().getSignatureSet(firstTenantSignatureSet.getTimestamp()).getIdentityManagerSignature();
         Assert.assertEquals(applicationSignature, firstTenantIdentityManagerSignature);
+      }
 
 
+      try (final AutoUserContext ignored2 = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
         testSubject.initialize("golden_osiris");
         Assert.fail("The second otherwise valid call to initialize for the same tenant should "
                 + "fail because the tenant is now already initialized.");
@@ -150,7 +116,7 @@ public class TestProvisioning {
 
 
     final ApplicationSignatureSet secondTenantSignatureSet;
-    try (final TenantDataStoreTestContext ignored = TenantDataStoreTestContext.forRandomTenantName(cassandraInitializer)) {
+    try (final AutoTenantContext ignored = new AutoTenantContext(tenant2)) {
       try (final AutoUserContext ignored2
                    = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
         secondTenantSignatureSet = testSubject.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
@@ -169,11 +135,6 @@ public class TestProvisioning {
 
 
     TenantContextHolder.clear();
-  }
-
-
-  private IdentityManager getTestSubject() {
-    return apiFactory.create(IdentityManager.class, testEnvironment.serverURI());
   }
 
   private String systemTokenFromWrongKey()
