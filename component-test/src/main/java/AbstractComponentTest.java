@@ -83,7 +83,6 @@ public class AbstractComponentTest {
   final static TestEnvironment testEnvironment = new TestEnvironment(APP_NAME);
   final static CassandraInitializer cassandraInitializer = new CassandraInitializer();
   private final static TenantDataStoreContextTestRule tenantDataStoreContext = TenantDataStoreContextTestRule.forRandomTenantName(cassandraInitializer);
-  private static boolean alreadyInitialized = false;
 
   @ClassRule
   public static TestRule orderClassRules = RuleChain
@@ -108,12 +107,9 @@ public class AbstractComponentTest {
   public void provision() throws Exception {
     identityManager =  apiFactory.create(IdentityManager.class, testEnvironment.serverURI());
 
-    if (!alreadyInitialized) {
-      try (final AutoUserContext ignored
-                   = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
-        identityManager.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
-      }
-      alreadyInitialized = true;
+    try (final AutoUserContext ignored
+             = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
+      identityManager.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
     }
   }
 

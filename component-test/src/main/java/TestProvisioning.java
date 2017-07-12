@@ -25,7 +25,6 @@ import io.mifos.core.lang.AutoTenantContext;
 import io.mifos.core.lang.TenantContextHolder;
 import io.mifos.core.test.env.TestEnvironment;
 import io.mifos.identity.api.v1.client.IdentityManager;
-import io.mifos.identity.api.v1.client.TenantAlreadyInitializedException;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -94,23 +93,16 @@ public class TestProvisioning extends AbstractComponentTest {
         Assert.assertTrue("The exception should be 'not found'", (e instanceof InvalidTokenException));
       }
 
+      // The second otherwise valid call to initialize for the same tenant should
+      // not fail even though the tenant is now already initialized.
       try (final AutoUserContext ignored2 = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
         firstTenantSignatureSet = testSubject.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
 
         final Signature applicationSignature = tenantApplicationSecurityEnvironment.getAnubis().getApplicationSignature(firstTenantSignatureSet.getTimestamp());
         firstTenantIdentityManagerSignature = tenantApplicationSecurityEnvironment.getAnubis().getSignatureSet(firstTenantSignatureSet.getTimestamp()).getIdentityManagerSignature();
         Assert.assertEquals(applicationSignature, firstTenantIdentityManagerSignature);
-      }
 
-
-      try (final AutoUserContext ignored2 = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
         testSubject.initialize("golden_osiris");
-        Assert.fail("The second otherwise valid call to initialize for the same tenant should "
-                + "fail because the tenant is now already initialized.");
-      }
-      catch (final TenantAlreadyInitializedException e)
-      {
-        //All is well.
       }
     }
 

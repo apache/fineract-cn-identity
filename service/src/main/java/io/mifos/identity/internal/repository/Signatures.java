@@ -18,6 +18,7 @@ package io.mifos.identity.internal.repository;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -126,14 +128,14 @@ public class Signatures {
    */
   public Optional<PrivateSignatureEntity> getPrivateSignature()
   {
-    final Select.Where query = QueryBuilder.select(KEY_TIMESTAMP_COLUMN).from(TABLE_NAME).where(QueryBuilder.eq(VALID_COLUMN, Boolean.TRUE));
-    final ResultSet result = cassandraSessionProvider.getTenantSession().execute(query);
-    final Optional<String> maximumKeyTimestamp =
-            StreamSupport.stream(result.spliterator(), false)
-            .map(x -> x.get(KEY_TIMESTAMP_COLUMN, String.class))
-            .max(String::compareTo);
+    try {
+      final Optional<String> maximumKeyTimestamp = streamValidKeyTimestamps().max(String::compareTo);
 
-    return maximumKeyTimestamp.flatMap(this::getPrivateSignatureEntity);
+      return maximumKeyTimestamp.flatMap(this::getPrivateSignatureEntity);
+    }
+    catch (final InvalidQueryException e) {
+      return Optional.empty();
+    }
   }
 
   private Optional<PrivateSignatureEntity> getPrivateSignatureEntity(final String keyTimestamp) {
@@ -146,11 +148,21 @@ public class Signatures {
   }
 
   public List<String> getAllKeyTimestamps() {
-    final Select.Where selectValid = QueryBuilder.select(KEY_TIMESTAMP_COLUMN).from(TABLE_NAME).where(QueryBuilder.eq(VALID_COLUMN, true));
-    final ResultSet result = cassandraSessionProvider.getTenantSession().execute(selectValid);
-    return StreamSupport.stream(result.spliterator(), false)
-            .map(x -> x.get(KEY_TIMESTAMP_COLUMN, String.class))
-            .collect(Collectors.toList());
+      return streamValidKeyTimestamps().collect(Collectors.toList());
+  }
+
+  private Stream<String> streamValidKeyTimestamps() {
+    try {
+      final Select.Where selectValid = QueryBuilder.select(KEY_TIMESTAMP_COLUMN)
+          .from(TABLE_NAME)
+          .where(QueryBuilder.eq(VALID_COLUMN, true));
+      final ResultSet result = cassandraSessionProvider.getTenantSession().execute(selectValid);
+      return StreamSupport.stream(result.spliterator(), false)
+          .map(x -> x.get(KEY_TIMESTAMP_COLUMN, String.class));
+    }
+    catch (final InvalidQueryException e) {
+      return Stream.empty();
+    }
   }
 
   public void invalidateEntry(final String keyTimestamp) {

@@ -15,7 +15,6 @@
  */
 package io.mifos.identity.internal.service;
 
-import com.datastax.driver.core.exceptions.InvalidQueryException;
 import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.anubis.config.TenantSignatureRepository;
@@ -25,7 +24,6 @@ import io.mifos.identity.internal.mapper.SignatureMapper;
 import io.mifos.identity.internal.repository.PrivateSignatureEntity;
 import io.mifos.identity.internal.repository.SignatureEntity;
 import io.mifos.identity.internal.repository.Signatures;
-import io.mifos.identity.internal.repository.Tenants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,13 +37,11 @@ import java.util.Optional;
  */
 @Service
 public class TenantService implements TenantSignatureRepository {
-  private final Tenants tenants;
   private final Signatures signatures;
 
   @Autowired
-  TenantService(final Tenants tenants, final Signatures signatures)
+  TenantService(final Signatures signatures)
   {
-    this.tenants = tenants;
     this.signatures = signatures;
   }
 
@@ -74,16 +70,6 @@ public class TenantService implements TenantSignatureRepository {
   public Optional<Signature> getApplicationSignature(final String keyTimestamp) {
     final Optional<SignatureEntity> signatureEntity = signatures.getSignature(keyTimestamp);
     return signatureEntity.map(x -> new Signature(x.getPublicKeyMod(), x.getPublicKeyExp()));
-  }
-
-  public boolean tenantAlreadyProvisioned() {
-    try {
-      return tenants.currentTenantAlreadyProvisioned();
-    }
-    catch (final InvalidQueryException e)
-    {
-      return false;
-    }
   }
 
   public ApplicationSignatureSet createSignatureSet() {
