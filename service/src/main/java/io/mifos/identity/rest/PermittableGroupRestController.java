@@ -58,7 +58,7 @@ public class PermittableGroupRestController {
       throw ServiceException.badRequest("Instance may not be null.");
 
     if (service.findByIdentifier(instance.getIdentifier()).isPresent())
-      throw ServiceException.conflict("Instance already applicationExists with identifier:" + instance.getIdentifier());
+      throw ServiceException.conflict("Instance already exists with identifier:" + instance.getIdentifier());
 
     final CreatePermittableGroupCommand createCommand = new CreatePermittableGroupCommand(instance);
     this.commandGateway.process(createCommand);
