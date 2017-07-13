@@ -77,6 +77,7 @@ public class PermittableGroupRestController {
   @RequestMapping(value= PathConstants.IDENTIFIER_RESOURCE_STRING, method = RequestMethod.GET,
           consumes = {MediaType.ALL_VALUE},
           produces = {MediaType.APPLICATION_JSON_VALUE})
+  @Permittable(value = AcceptedTokenType.SYSTEM)
   @Permittable(value = AcceptedTokenType.TENANT, groupId = PermittableGroupIds.ROLE_MANAGEMENT)
   public @ResponseBody ResponseEntity<PermittableGroup> get(@PathVariable(PathConstants.IDENTIFIER_PATH_VARIABLE) final String identifier)
   {
