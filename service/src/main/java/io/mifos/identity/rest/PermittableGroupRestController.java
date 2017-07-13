@@ -58,7 +58,7 @@ public class PermittableGroupRestController {
       throw ServiceException.badRequest("Instance may not be null.");
 
     if (service.findByIdentifier(instance.getIdentifier()).isPresent())
-      throw ServiceException.conflict("Instance already applicationExists with identifier:" + instance.getIdentifier());
+      throw ServiceException.conflict("Instance already exists with identifier:" + instance.getIdentifier());
 
     final CreatePermittableGroupCommand createCommand = new CreatePermittableGroupCommand(instance);
     this.commandGateway.process(createCommand);
@@ -77,6 +77,7 @@ public class PermittableGroupRestController {
   @RequestMapping(value= PathConstants.IDENTIFIER_RESOURCE_STRING, method = RequestMethod.GET,
           consumes = {MediaType.ALL_VALUE},
           produces = {MediaType.APPLICATION_JSON_VALUE})
+  @Permittable(value = AcceptedTokenType.SYSTEM)
   @Permittable(value = AcceptedTokenType.TENANT, groupId = PermittableGroupIds.ROLE_MANAGEMENT)
   public @ResponseBody ResponseEntity<PermittableGroup> get(@PathVariable(PathConstants.IDENTIFIER_PATH_VARIABLE) final String identifier)
   {
