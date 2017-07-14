@@ -56,14 +56,13 @@ public class ApplicationPermissions {
   }
 
   public void buildTable() {
+    final Create create = SchemaBuilder.createTable(TABLE_NAME)
+        .ifNotExists()
+        .addPartitionKey(APPLICATION_IDENTIFIER_COLUMN, DataType.text())
+        .addClusteringColumn(PERMITTABLE_GROUP_IDENTIFIER_COLUMN, DataType.text())
+        .addUDTColumn(PERMISSION_COLUMN, SchemaBuilder.frozen(Permissions.TYPE_NAME));
 
-    final Create createTableStatement =
-            SchemaBuilder.createTable(TABLE_NAME)
-                    .addPartitionKey(APPLICATION_IDENTIFIER_COLUMN, DataType.text())
-                    .addClusteringColumn(PERMITTABLE_GROUP_IDENTIFIER_COLUMN, DataType.text())
-                    .addUDTColumn(PERMISSION_COLUMN, SchemaBuilder.frozen(Permissions.TYPE_NAME));
-
-    cassandraSessionProvider.getTenantSession().execute(createTableStatement);
+    cassandraSessionProvider.getTenantSession().execute(create);
 
   }
 

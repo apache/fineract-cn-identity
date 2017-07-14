@@ -19,6 +19,8 @@ import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.datastax.driver.core.schemabuilder.Create;
+import com.datastax.driver.core.schemabuilder.CreateType;
 import com.datastax.driver.core.schemabuilder.SchemaBuilder;
 import com.datastax.driver.mapping.Mapper;
 import io.mifos.core.cassandra.core.CassandraSessionProvider;
@@ -28,9 +30,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Myrle Krantz
@@ -61,21 +63,20 @@ public class PermittableGroups {
   }
 
   public void buildTable() {
-    final String type_statement =
-            SchemaBuilder.createType(TYPE_NAME)
-                    .addColumn(PATH_FIELD, DataType.text())
-                    .addColumn(METHOD_FIELD, DataType.text())
-                    .addColumn(SOURCE_GROUP_ID_FIELD, DataType.text())
-                    .buildInternal();
-    cassandraSessionProvider.getTenantSession().execute(type_statement);
+    final CreateType createType = SchemaBuilder.createType(TYPE_NAME)
+        .ifNotExists()
+        .addColumn(PATH_FIELD, DataType.text())
+        .addColumn(METHOD_FIELD, DataType.text())
+        .addColumn(SOURCE_GROUP_ID_FIELD, DataType.text());
 
-    final String table_statement =
-            SchemaBuilder.createTable(TABLE_NAME)
-                    .addPartitionKey(IDENTIFIER_COLUMN, DataType.text())
-                    .addUDTListColumn(PERMITTABLES_COLUMN, SchemaBuilder.frozen(TYPE_NAME))
-                    .buildInternal();
+    cassandraSessionProvider.getTenantSession().execute(createType);
 
-    cassandraSessionProvider.getTenantSession().execute(table_statement);
+    final Create create = SchemaBuilder.createTable(TABLE_NAME)
+        .ifNotExists()
+        .addPartitionKey(IDENTIFIER_COLUMN, DataType.text())
+        .addUDTListColumn(PERMITTABLES_COLUMN, SchemaBuilder.frozen(TYPE_NAME));
+
+    cassandraSessionProvider.getTenantSession().execute(create);
 
   }
 
@@ -101,7 +102,6 @@ public class PermittableGroups {
 
     final Statement statement = QueryBuilder.select().all().from(TABLE_NAME);
 
-    return entityMapper.map(tenantSession.execute(statement)).all()
-            .stream().collect(Collectors.toList());
+    return new ArrayList<>(entityMapper.map(tenantSession.execute(statement)).all());
   }
 }

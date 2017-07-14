@@ -22,7 +22,9 @@ import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
+import com.datastax.driver.core.schemabuilder.Create;
 import com.datastax.driver.core.schemabuilder.SchemaBuilder;
+import com.datastax.driver.core.schemabuilder.SchemaStatement;
 import com.datastax.driver.mapping.Mapper;
 import io.mifos.core.cassandra.core.CassandraSessionProvider;
 import io.mifos.core.cassandra.core.TenantAwareCassandraMapperProvider;
@@ -62,23 +64,21 @@ public class Signatures {
   }
 
   public void buildTable() {
-    final String statement =
-            SchemaBuilder.createTable(TABLE_NAME)
-                    .addPartitionKey(KEY_TIMESTAMP_COLUMN, DataType.text())
-                    .addColumn(VALID_COLUMN, DataType.cboolean())
-                    .addColumn(PRIVATE_KEY_MOD_COLUMN, DataType.varint())
-                    .addColumn(PRIVATE_KEY_EXP_COLUMN, DataType.varint())
-                    .addColumn(PUBLIC_KEY_MOD_COLUMN, DataType.varint())
-                    .addColumn(PUBLIC_KEY_EXP_COLUMN, DataType.varint())
-                    .buildInternal();
+    final Create create = SchemaBuilder.createTable(TABLE_NAME)
+        .ifNotExists()
+        .addPartitionKey(KEY_TIMESTAMP_COLUMN, DataType.text())
+        .addColumn(VALID_COLUMN, DataType.cboolean())
+        .addColumn(PRIVATE_KEY_MOD_COLUMN, DataType.varint())
+        .addColumn(PRIVATE_KEY_EXP_COLUMN, DataType.varint())
+        .addColumn(PUBLIC_KEY_MOD_COLUMN, DataType.varint())
+        .addColumn(PUBLIC_KEY_EXP_COLUMN, DataType.varint());
 
-    cassandraSessionProvider.getTenantSession().execute(statement);
+    cassandraSessionProvider.getTenantSession().execute(create);
 
-    final String createValidIndex = SchemaBuilder.createIndex(INDEX_NAME)
-            .ifNotExists()
-            .onTable(TABLE_NAME)
-            .andColumn(VALID_COLUMN)
-            .toString();
+    final SchemaStatement createValidIndex = SchemaBuilder.createIndex(INDEX_NAME)
+        .ifNotExists()
+        .onTable(TABLE_NAME)
+        .andColumn(VALID_COLUMN);
 
     cassandraSessionProvider.getTenantSession().execute(createValidIndex);
   }

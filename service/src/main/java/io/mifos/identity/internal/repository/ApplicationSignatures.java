@@ -59,15 +59,15 @@ public class ApplicationSignatures {
     this.tenantAwareCassandraMapperProvider = tenantAwareCassandraMapperProvider;
   }
 
-  public void buildTable()
-  {
-    final Create createTable = SchemaBuilder.createTable(TABLE_NAME)
-            .addPartitionKey(APPLICATION_IDENTIFIER_COLUMN, DataType.text())
-            .addClusteringColumn(KEY_TIMESTAMP_COLUMN, DataType.text())
-            .addColumn(PUBLIC_KEY_MOD_COLUMN, DataType.varint())
-            .addColumn(PUBLIC_KEY_EXP_COLUMN, DataType.varint());
+  public void buildTable() {
+    final Create create = SchemaBuilder.createTable(TABLE_NAME)
+        .ifNotExists()
+        .addPartitionKey(APPLICATION_IDENTIFIER_COLUMN, DataType.text())
+        .addClusteringColumn(KEY_TIMESTAMP_COLUMN, DataType.text())
+        .addColumn(PUBLIC_KEY_MOD_COLUMN, DataType.varint())
+        .addColumn(PUBLIC_KEY_EXP_COLUMN, DataType.varint());
 
-    cassandraSessionProvider.getTenantSession().execute(createTable);
+    cassandraSessionProvider.getTenantSession().execute(create);
   }
 
   public void add(final ApplicationSignatureEntity entity) {

@@ -57,14 +57,13 @@ public class ApplicationCallEndpointSets {
   }
 
   public void buildTable() {
+    final Create create = SchemaBuilder.createTable(TABLE_NAME)
+        .ifNotExists()
+        .addPartitionKey(APPLICATION_IDENTIFIER_COLUMN, DataType.text())
+        .addClusteringColumn(CALLENDPOINTSET_IDENTIFIER_COLUMN, DataType.text())
+        .addColumn(CALLENDPOINT_GROUP_IDENTIFIERS_COLUMN, DataType.list(DataType.text()));
 
-    final Create createTableStatement =
-            SchemaBuilder.createTable(TABLE_NAME)
-                    .addPartitionKey(APPLICATION_IDENTIFIER_COLUMN, DataType.text())
-                    .addClusteringColumn(CALLENDPOINTSET_IDENTIFIER_COLUMN, DataType.text())
-                    .addColumn(CALLENDPOINT_GROUP_IDENTIFIERS_COLUMN, DataType.list(DataType.text()));
-
-    cassandraSessionProvider.getTenantSession().execute(createTableStatement);
+    cassandraSessionProvider.getTenantSession().execute(create);
   }
 
   public void add(final ApplicationCallEndpointSetEntity entity) {

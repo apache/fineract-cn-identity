@@ -18,6 +18,7 @@ package io.mifos.identity.internal.repository;
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.KeyspaceMetadata;
+import com.datastax.driver.core.schemabuilder.Create;
 import com.datastax.driver.core.schemabuilder.SchemaBuilder;
 import io.mifos.core.cassandra.core.CassandraSessionProvider;
 import io.mifos.core.cassandra.core.TenantAwareEntityTemplate;
@@ -51,15 +52,14 @@ public class Tenants {
   }
 
   public void buildTable() {
-    final String statement =
-        SchemaBuilder.createTable(TABLE_NAME)
-            .addPartitionKey(VERSION_COLUMN, DataType.cint())
-            .addColumn(FIXED_SALT_COLUMN, DataType.blob())
-            .addColumn(PASSWORD_EXPIRES_IN_DAYS_COLUMN, DataType.cint())
-            .addColumn(TIME_TO_CHANGE_PASSWORD_AFTER_EXPIRATION_IN_DAYS, DataType.cint())
-            .buildInternal();
+    final Create create = SchemaBuilder.createTable(TABLE_NAME)
+        .ifNotExists()
+        .addPartitionKey(VERSION_COLUMN, DataType.cint())
+        .addColumn(FIXED_SALT_COLUMN, DataType.blob())
+        .addColumn(PASSWORD_EXPIRES_IN_DAYS_COLUMN, DataType.cint())
+        .addColumn(TIME_TO_CHANGE_PASSWORD_AFTER_EXPIRATION_IN_DAYS, DataType.cint());
 
-    cassandraSessionProvider.getTenantSession().execute(statement);
+    cassandraSessionProvider.getTenantSession().execute(create);
   }
 
   public void add(

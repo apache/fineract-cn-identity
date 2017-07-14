@@ -44,15 +44,14 @@ public class ApplicationPermissionUsers {
   }
 
   public void buildTable() {
+    final Create create = SchemaBuilder.createTable(TABLE_NAME)
+        .ifNotExists()
+        .addPartitionKey(APPLICATION_IDENTIFIER_COLUMN, DataType.text())
+        .addClusteringColumn(PERMITTABLE_GROUP_IDENTIFIER_COLUMN, DataType.text())
+        .addClusteringColumn(USER_IDENTIFIER_COLUMN, DataType.text())
+        .addColumn(ENABLED_COLUMN, DataType.cboolean());
 
-    final Create createTableStatement =
-            SchemaBuilder.createTable(TABLE_NAME)
-                    .addPartitionKey(APPLICATION_IDENTIFIER_COLUMN, DataType.text())
-                    .addClusteringColumn(PERMITTABLE_GROUP_IDENTIFIER_COLUMN, DataType.text())
-                    .addClusteringColumn(USER_IDENTIFIER_COLUMN, DataType.text())
-                    .addColumn(ENABLED_COLUMN, DataType.cboolean());
-
-    cassandraSessionProvider.getTenantSession().execute(createTableStatement);
+    cassandraSessionProvider.getTenantSession().execute(create);
   }
 
   public boolean enabled(final String applicationIdentifier,
