@@ -19,6 +19,7 @@ import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
+import com.datastax.driver.core.schemabuilder.Create;
 import com.datastax.driver.core.schemabuilder.SchemaBuilder;
 import com.datastax.driver.mapping.Mapper;
 import io.mifos.core.cassandra.core.CassandraSessionProvider;
@@ -59,18 +60,17 @@ public class Users {
     this.tenantAwareCassandraMapperProvider = tenantAwareCassandraMapperProvider;
   }
 
-  public void buildTable()
-  {
-    final String createTable = SchemaBuilder.createTable(TABLE_NAME)
+  public void buildTable() {
+    final Create create = SchemaBuilder.createTable(TABLE_NAME)
+        .ifNotExists()
         .addPartitionKey(IDENTIFIER_COLUMN, DataType.text())
         .addColumn(ROLE_COLUMN, DataType.text())
         .addColumn(PASSWORD_COLUMN, DataType.blob())
         .addColumn(SALT_COLUMN, DataType.blob())
         .addColumn(ITERATION_COUNT_COLUMN, DataType.cint())
-        .addColumn(PASSWORD_EXPIRES_ON_COLUMN, DataType.date())
-        .buildInternal();
+        .addColumn(PASSWORD_EXPIRES_ON_COLUMN, DataType.date());
 
-    cassandraSessionProvider.getTenantSession().execute(createTable);
+    cassandraSessionProvider.getTenantSession().execute(create);
   }
 
   public void add(final UserEntity instance) {

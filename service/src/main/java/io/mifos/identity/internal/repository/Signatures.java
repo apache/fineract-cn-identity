@@ -22,7 +22,9 @@ import com.datastax.driver.core.exceptions.InvalidQueryException;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 import com.datastax.driver.core.querybuilder.Select;
 import com.datastax.driver.core.querybuilder.Update;
+import com.datastax.driver.core.schemabuilder.Create;
 import com.datastax.driver.core.schemabuilder.SchemaBuilder;
+import com.datastax.driver.core.schemabuilder.SchemaStatement;
 import com.datastax.driver.mapping.Mapper;
 import io.mifos.core.cassandra.core.CassandraSessionProvider;
 import io.mifos.core.cassandra.core.TenantAwareCassandraMapperProvider;
@@ -37,6 +39,13 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
+ * All write accesses are synchronized.  These occur only during provisioning or key rotation, so they are not
+ * performance critical.  These are only necessary because for some reason (that I have not yet been able to track
+ * down), provisioning is being called multiple times in rapid succession for a tenant.
+ *
+ * All calls to cassandra which could conceivably be performed before provisioning is complete are surrounded by
+ * a try-catch block for an InvalidQueryException.  If provisioning is not completed, the table is treated as empty.
+ *
  * @author Myrle Krantz
  */
 @Component
@@ -61,29 +70,27 @@ public class Signatures {
     this.tenantAwareCassandraMapperProvider = tenantAwareCassandraMapperProvider;
   }
 
-  public void buildTable() {
-    final String statement =
-            SchemaBuilder.createTable(TABLE_NAME)
-                    .addPartitionKey(KEY_TIMESTAMP_COLUMN, DataType.text())
-                    .addColumn(VALID_COLUMN, DataType.cboolean())
-                    .addColumn(PRIVATE_KEY_MOD_COLUMN, DataType.varint())
-                    .addColumn(PRIVATE_KEY_EXP_COLUMN, DataType.varint())
-                    .addColumn(PUBLIC_KEY_MOD_COLUMN, DataType.varint())
-                    .addColumn(PUBLIC_KEY_EXP_COLUMN, DataType.varint())
-                    .buildInternal();
+  public synchronized void buildTable() {
+    final Create create = SchemaBuilder.createTable(TABLE_NAME)
+        .ifNotExists()
+        .addPartitionKey(KEY_TIMESTAMP_COLUMN, DataType.text())
+        .addColumn(VALID_COLUMN, DataType.cboolean())
+        .addColumn(PRIVATE_KEY_MOD_COLUMN, DataType.varint())
+        .addColumn(PRIVATE_KEY_EXP_COLUMN, DataType.varint())
+        .addColumn(PUBLIC_KEY_MOD_COLUMN, DataType.varint())
+        .addColumn(PUBLIC_KEY_EXP_COLUMN, DataType.varint());
 
-    cassandraSessionProvider.getTenantSession().execute(statement);
+    cassandraSessionProvider.getTenantSession().execute(create);
 
-    final String createValidIndex = SchemaBuilder.createIndex(INDEX_NAME)
-            .ifNotExists()
-            .onTable(TABLE_NAME)
-            .andColumn(VALID_COLUMN)
-            .toString();
+    final SchemaStatement createValidIndex = SchemaBuilder.createIndex(INDEX_NAME)
+        .ifNotExists()
+        .onTable(TABLE_NAME)
+        .andColumn(VALID_COLUMN);
 
     cassandraSessionProvider.getTenantSession().execute(createValidIndex);
   }
 
-  public SignatureEntity add(final RsaKeyPairFactory.KeyPairHolder keys)
+  public synchronized SignatureEntity add(final RsaKeyPairFactory.KeyPairHolder keys)
   {
     //There will only be one entry in this table.
     final BoundStatement tenantCreationStatement =
@@ -116,11 +123,16 @@ public class Signatures {
   }
 
   public Optional<SignatureEntity> getSignature(final String keyTimestamp) {
-    final Mapper<SignatureEntity> signatureEntityMapper
-            = tenantAwareCassandraMapperProvider.getMapper(SignatureEntity.class);
+    try {
+      final Mapper<SignatureEntity> signatureEntityMapper
+          = tenantAwareCassandraMapperProvider.getMapper(SignatureEntity.class);
 
-    final Optional<SignatureEntity> ret = Optional.ofNullable(signatureEntityMapper.get(keyTimestamp));
-    return ret.filter(SignatureEntity::getValid);
+      final Optional<SignatureEntity> ret = Optional.ofNullable(signatureEntityMapper.get(keyTimestamp));
+      return ret.filter(SignatureEntity::getValid);
+    }
+    catch (final InvalidQueryException e) {
+      return Optional.empty();
+    }
   }
 
   /**
@@ -128,23 +140,22 @@ public class Signatures {
    */
   public Optional<PrivateSignatureEntity> getPrivateSignature()
   {
-    try {
-      final Optional<String> maximumKeyTimestamp = streamValidKeyTimestamps().max(String::compareTo);
+    final Optional<String> maximumKeyTimestamp = streamValidKeyTimestamps().max(String::compareTo);
 
-      return maximumKeyTimestamp.flatMap(this::getPrivateSignatureEntity);
+    return maximumKeyTimestamp.flatMap(this::getPrivateSignatureEntity);
+  }
+
+  private Optional<PrivateSignatureEntity> getPrivateSignatureEntity(final String keyTimestamp) {
+    try {
+      final Mapper<PrivateSignatureEntity> privateSignatureEntityMapper
+          = tenantAwareCassandraMapperProvider.getMapper(PrivateSignatureEntity.class);
+
+      final Optional<PrivateSignatureEntity> ret = Optional.ofNullable(privateSignatureEntityMapper.get(keyTimestamp));
+      return ret.filter(PrivateSignatureEntity::getValid);
     }
     catch (final InvalidQueryException e) {
       return Optional.empty();
     }
-  }
-
-  private Optional<PrivateSignatureEntity> getPrivateSignatureEntity(final String keyTimestamp) {
-
-    final Mapper<PrivateSignatureEntity> privateSignatureEntityMapper
-            = tenantAwareCassandraMapperProvider.getMapper(PrivateSignatureEntity.class);
-
-    final Optional<PrivateSignatureEntity> ret = Optional.ofNullable(privateSignatureEntityMapper.get(keyTimestamp));
-    return ret.filter(PrivateSignatureEntity::getValid);
   }
 
   public List<String> getAllKeyTimestamps() {
@@ -165,9 +176,8 @@ public class Signatures {
     }
   }
 
-  public void invalidateEntry(final String keyTimestamp) {
+  public synchronized void invalidateEntry(final String keyTimestamp) {
     final Update.Assignments updateQuery = QueryBuilder.update(TABLE_NAME).where(QueryBuilder.eq(KEY_TIMESTAMP_COLUMN, keyTimestamp)).with(QueryBuilder.set(VALID_COLUMN, false));
     cassandraSessionProvider.getTenantSession().execute(updateQuery);
-
   }
 }
