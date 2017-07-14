@@ -96,7 +96,7 @@ public class Provisioner {
     this.saltGenerator = saltGenerator;
   }
 
-  public ApplicationSignatureSet provisionTenant(final String initialPasswordHash) {
+  public synchronized ApplicationSignatureSet provisionTenant(final String initialPasswordHash) {
     logger.info("Provisioning cassandra tables for tenant {}...", TenantContextHolder.checkedGetIdentifier());
     final RsaKeyPairFactory.KeyPairHolder keys = RsaKeyPairFactory.createKeyPair();
 
