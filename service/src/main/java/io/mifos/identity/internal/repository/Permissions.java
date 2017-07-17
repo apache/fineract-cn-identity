@@ -50,10 +50,11 @@ public class Permissions {
 
   public void buildType() {
     final String type_statement =
-            SchemaBuilder.createType(TYPE_NAME)
-                    .addColumn(PERMITTABLE_GROUP_IDENTIFIER_FIELD, DataType.text())
-                    .addColumn(ALLOWED_OPERATIONS_FIELD, DataType.set(DataType.text()))
-                    .buildInternal();
+        SchemaBuilder.createType(TYPE_NAME)
+            .ifNotExists()
+            .addColumn(PERMITTABLE_GROUP_IDENTIFIER_FIELD, DataType.text())
+            .addColumn(ALLOWED_OPERATIONS_FIELD, DataType.set(DataType.text()))
+            .buildInternal();
     cassandraSessionProvider.getTenantSession().execute(type_statement);
   }
 }
