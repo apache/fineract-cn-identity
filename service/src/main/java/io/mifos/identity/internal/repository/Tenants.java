@@ -17,7 +17,6 @@ package io.mifos.identity.internal.repository;
 
 import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.DataType;
-import com.datastax.driver.core.KeyspaceMetadata;
 import com.datastax.driver.core.schemabuilder.Create;
 import com.datastax.driver.core.schemabuilder.SchemaBuilder;
 import io.mifos.core.cassandra.core.CassandraSessionProvider;
@@ -90,14 +89,5 @@ public class Tenants {
   {
     return tenantAwareEntityTemplate
         .findById(PrivateTenantInfoEntity.class, IdentityConstants.CURRENT_VERSION);
-  }
-
-  public boolean currentTenantAlreadyProvisioned() {
-    final String keyspace = cassandraSessionProvider.getTenantSession().getLoggedKeyspace();
-
-    final KeyspaceMetadata keyspaceMetadata = cassandraSessionProvider.getTenantSession()
-        .getCluster().getMetadata().getKeyspace(keyspace);
-
-    return keyspaceMetadata != null && keyspaceMetadata.getTable(TABLE_NAME) != null;
   }
 }

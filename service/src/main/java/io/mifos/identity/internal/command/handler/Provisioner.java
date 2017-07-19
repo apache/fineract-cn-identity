@@ -31,9 +31,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -97,14 +99,39 @@ public class Provisioner {
   }
 
   public synchronized ApplicationSignatureSet provisionTenant(final String initialPasswordHash) {
-    logger.info("Provisioning cassandra tables for tenant {}...", TenantContextHolder.checkedGetIdentifier());
+    {
+      final Optional<ApplicationSignatureSet> latestSignature = signature.getAllKeyTimestamps().stream()
+          .max(String::compareTo)
+          .flatMap(signature::getSignature)
+          .map(SignatureMapper::mapToApplicationSignatureSet);
+
+      if (latestSignature.isPresent()) {
+        final Optional<ByteBuffer> fixedSalt = tenant.getPrivateTenantInfo().map(PrivateTenantInfoEntity::getFixedSalt);
+        if (fixedSalt.isPresent()) {
+          logger.info("Changing password for tenant '{}' instead of provisioning...", TenantContextHolder.checkedGetIdentifier());
+          final UserEntity suUser = userEntityCreator
+              .build(IdentityConstants.SU_NAME, IdentityConstants.SU_ROLE, initialPasswordHash, true,
+                  fixedSalt.get().array(), timeToChangePasswordAfterExpirationInDays);
+          users.add(suUser);
+          logger.info("Successfully changed admin password '{}'...", TenantContextHolder.checkedGetIdentifier());
+
+          return latestSignature.get();
+        }
+      }
+    }
+
+    logger.info("Provisioning cassandra tables for tenant '{}'...", TenantContextHolder.checkedGetIdentifier());
     final RsaKeyPairFactory.KeyPairHolder keys = RsaKeyPairFactory.createKeyPair();
 
     byte[] fixedSalt = this.saltGenerator.createRandomSalt();
 
     try {
       signature.buildTable();
+      final SignatureEntity signatureEntity = signature.add(keys);
+
       tenant.buildTable();
+      tenant.add(fixedSalt, passwordExpiresInDays, timeToChangePasswordAfterExpirationInDays);
+
       users.buildTable();
       permittableGroups.buildTable();
       permissions.buildType();
@@ -114,8 +141,6 @@ public class Provisioner {
       applicationPermissionUsers.buildTable();
       applicationCallEndpointSets.buildTable();
 
-      final SignatureEntity signatureEntity = signature.add(keys);
-      tenant.add(fixedSalt, passwordExpiresInDays, timeToChangePasswordAfterExpirationInDays);
 
       createPermittablesGroup(PermittableGroupIds.ROLE_MANAGEMENT, "/roles/*", "/permittablegroups/*");
       createPermittablesGroup(PermittableGroupIds.IDENTITY_MANAGEMENT, "/users/*");
@@ -141,7 +166,7 @@ public class Provisioner {
 
       final ApplicationSignatureSet ret = SignatureMapper.mapToApplicationSignatureSet(signatureEntity);
 
-      logger.info("Successfully provisioned cassandra tables for tenant {}...", TenantContextHolder.checkedGetIdentifier());
+      logger.info("Successfully provisioned cassandra tables for tenant '{}'...", TenantContextHolder.checkedGetIdentifier());
 
       return ret;
     }
