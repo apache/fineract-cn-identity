@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import com.google.common.collect.Sets;
 import io.mifos.anubis.api.v1.client.Anubis;
 import io.mifos.anubis.api.v1.domain.*;
 import io.mifos.anubis.test.v1.SystemSecurityEnvironment;
@@ -89,9 +90,9 @@ public class TestAuthentication extends AbstractComponentTest {
 
       final Set<TokenPermission> expectedTokenPermissions = new HashSet<>();
       Collections.addAll(expectedTokenPermissions,
-              new TokenPermission("identity-v1/permittablegroups/*", Collections.singleton(AllowedOperation.CHANGE)),
-              new TokenPermission("identity-v1/roles/*", Collections.singleton(AllowedOperation.DELETE)),
-              new TokenPermission("identity-v1/users/*", Collections.singleton(AllowedOperation.READ)));
+          new TokenPermission("identity-v1/permittablegroups/*", Sets.newHashSet(AllowedOperation.CHANGE, AllowedOperation.DELETE, AllowedOperation.READ)),
+          new TokenPermission("identity-v1/roles/*", Sets.newHashSet(AllowedOperation.CHANGE, AllowedOperation.DELETE, AllowedOperation.READ)),
+          new TokenPermission("identity-v1/users/*", Sets.newHashSet(AllowedOperation.CHANGE, AllowedOperation.DELETE, AllowedOperation.READ)));
       //This is not a complete list.  This is a spot check.
 
       Assert.assertTrue("Expected: " + expectedTokenPermissions + "\nActual: " + tokenPermissions,

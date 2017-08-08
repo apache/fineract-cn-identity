@@ -267,16 +267,31 @@ public class AuthenticationCommandHandler {
       tokenPermissions = getApplicationTokenPermissions(user, sourceApplicationName, callEndpointSet);
     }
 
+    final HashSet<TokenPermission> minifiedTokenPermissions = new HashSet<>(
+        tokenPermissions
+            .stream()
+            .collect(Collectors.toMap(TokenPermission::getPath,
+                tokenPermission -> tokenPermission,
+                (currentTokenPermission, newTokenPermission) -> {
+                  newTokenPermission.getAllowedOperations()
+                      .forEach(allowedOperation -> currentTokenPermission.getAllowedOperations().add(allowedOperation));
+                  return currentTokenPermission;
+                })
+            )
+            .values()
+    );
+
+
     logger.info("Access token for tenant '{}', user '{}', application '{}', and callEndpointSet '{}' being returned containing the permissions '{}'.",
             TenantContextHolder.identifier().orElse("null"),
             user.getIdentifier(),
             sourceApplicationName,
             callEndpointSet.orElse("null"),
-            tokenPermissions.toString());
+            minifiedTokenPermissions.toString());
 
     final TokenSerializationResult accessToken = getAuthenticationResponse(
             user.getIdentifier(),
-            tokenPermissions,
+            minifiedTokenPermissions,
             privateSignature,
             sourceApplicationName);
 
@@ -520,9 +535,9 @@ public class AuthenticationCommandHandler {
   }
 
   private TokenPermission getTokenPermission(final PermittableType permittable) {
-    return new TokenPermission(
-            permittable.getPath(),
-            Collections.singleton(RoleMapper.mapAllowedOperation(AllowedOperationType.fromHttpMethod(permittable.getMethod()))));
+    final HashSet<AllowedOperation> allowedOperations = new HashSet<>();
+    allowedOperations.add(RoleMapper.mapAllowedOperation(AllowedOperationType.fromHttpMethod(permittable.getMethod())));
+    return new TokenPermission(permittable.getPath(), allowedOperations);
   }
 
   private TokenSerializationResult getRefreshToken(final UserEntity user,

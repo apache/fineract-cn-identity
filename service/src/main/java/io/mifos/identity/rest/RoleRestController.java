@@ -83,7 +83,7 @@ public class RoleRestController
   @RequestMapping(value= PathConstants.IDENTIFIER_RESOURCE_STRING, method = RequestMethod.GET,
       consumes = {MediaType.ALL_VALUE},
       produces = {MediaType.APPLICATION_JSON_VALUE})
-  @Permittable(AcceptedTokenType.TENANT)
+  @Permittable(value = AcceptedTokenType.TENANT, groupId = PermittableGroupIds.ROLE_MANAGEMENT)
   public @ResponseBody ResponseEntity<Role> get(@PathVariable(PathConstants.IDENTIFIER_PATH_VARIABLE) final String identifier)
   {
     return new ResponseEntity<>(checkIdentifier(identifier), HttpStatus.OK);
