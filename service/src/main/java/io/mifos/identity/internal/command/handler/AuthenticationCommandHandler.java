@@ -15,6 +15,7 @@
  */
 package io.mifos.identity.internal.command.handler;
 
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.anubis.api.v1.domain.TokenContent;
@@ -267,16 +268,31 @@ public class AuthenticationCommandHandler {
       tokenPermissions = getApplicationTokenPermissions(user, sourceApplicationName, callEndpointSet);
     }
 
+    final HashSet<TokenPermission> minifiedTokenPermissions = new HashSet<>(
+        tokenPermissions
+            .stream()
+            .collect(Collectors.toMap(TokenPermission::getPath,
+                tokenPermission -> tokenPermission,
+                (currentTokenPermission, newTokenPermission) -> {
+                  newTokenPermission.getAllowedOperations()
+                      .forEach(allowedOperation -> currentTokenPermission.getAllowedOperations().add(allowedOperation));
+                  return currentTokenPermission;
+                })
+            )
+            .values()
+    );
+
+
     logger.info("Access token for tenant '{}', user '{}', application '{}', and callEndpointSet '{}' being returned containing the permissions '{}'.",
             TenantContextHolder.identifier().orElse("null"),
             user.getIdentifier(),
             sourceApplicationName,
             callEndpointSet.orElse("null"),
-            tokenPermissions.toString());
+            minifiedTokenPermissions.toString());
 
     final TokenSerializationResult accessToken = getAuthenticationResponse(
             user.getIdentifier(),
-            tokenPermissions,
+            minifiedTokenPermissions,
             privateSignature,
             sourceApplicationName);
 
@@ -474,10 +490,10 @@ public class AuthenticationCommandHandler {
 
     ret.add(new TokenPermission(
             applicationName + "/applications/*/permissions/*/users/{useridentifier}/enabled",
-            AllowedOperation.ALL));
+            Sets.newHashSet(AllowedOperation.READ, AllowedOperation.CHANGE, AllowedOperation.DELETE)));
     ret.add(new TokenPermission(
             applicationName + "/users/{useridentifier}/permissions",
-            Collections.singleton(AllowedOperation.READ)));
+            Sets.newHashSet(AllowedOperation.READ)));
 
     return ret;
   }
@@ -487,10 +503,10 @@ public class AuthenticationCommandHandler {
 
     ret.add(new TokenPermission(
             applicationName + "/users/{useridentifier}/password",
-            Collections.singleton(AllowedOperation.CHANGE)));
+            Sets.newHashSet(AllowedOperation.READ, AllowedOperation.CHANGE, AllowedOperation.DELETE)));
     ret.add(new TokenPermission(
             applicationName + "/token/_current",
-            Collections.singleton(AllowedOperation.DELETE)));
+            Sets.newHashSet(AllowedOperation.DELETE)));
 
     return ret;
   }
@@ -520,9 +536,9 @@ public class AuthenticationCommandHandler {
   }
 
   private TokenPermission getTokenPermission(final PermittableType permittable) {
-    return new TokenPermission(
-            permittable.getPath(),
-            Collections.singleton(RoleMapper.mapAllowedOperation(AllowedOperationType.fromHttpMethod(permittable.getMethod()))));
+    final HashSet<AllowedOperation> allowedOperations = new HashSet<>();
+    allowedOperations.add(RoleMapper.mapAllowedOperation(AllowedOperationType.fromHttpMethod(permittable.getMethod())));
+    return new TokenPermission(permittable.getPath(), allowedOperations);
   }
 
   private TokenSerializationResult getRefreshToken(final UserEntity user,
