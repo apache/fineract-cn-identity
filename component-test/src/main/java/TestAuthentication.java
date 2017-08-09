@@ -142,8 +142,9 @@ public class TestAuthentication extends AbstractComponentTest {
       Collections.addAll(expectedTokenPermissions,
               new TokenPermission(horusEndpoint.getPath(), Collections.singleton(AllowedOperation.READ)),
               new TokenPermission(maatEndpoint.getPath(), Collections.singleton(AllowedOperation.READ)),
-              new TokenPermission("identity-v1/users/{useridentifier}/password", Collections.singleton(AllowedOperation.CHANGE)),
-              new TokenPermission("identity-v1/users/{useridentifier}/permissions", Collections.singleton(AllowedOperation.READ)),
+              new TokenPermission("identity-v1/users/{useridentifier}/password",
+                  Sets.newHashSet(AllowedOperation.READ, AllowedOperation.CHANGE, AllowedOperation.DELETE)),
+              new TokenPermission("identity-v1/users/{useridentifier}/permissions", Sets.newHashSet(AllowedOperation.READ)),
               new TokenPermission("identity-v1/token/_current", Collections.singleton(AllowedOperation.DELETE)));
 
       Assert.assertTrue("Expected: " + expectedTokenPermissions + "\nActual: " + tokenPermissions,
