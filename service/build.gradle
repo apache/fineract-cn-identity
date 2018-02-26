@@ -31,15 +31,15 @@ dependencies {
             [group: 'org.springframework.cloud', name: 'spring-cloud-starter-eureka'],
             [group: 'org.springframework.boot', name: 'spring-boot-starter-jetty'],
             [group: 'org.hibernate', name: 'hibernate-validator', version: versions.hibernatevalidator],
-            [group: 'io.mifos.core', name: 'lang', version: versions.frameworklang],
-            [group: 'io.mifos.core', name: 'async', version: versions.frameworkasync],
-            [group: 'io.mifos.core', name: 'cassandra', version: versions.frameworkcassandra],
-            [group: 'io.mifos.core', name: 'command', version: versions.frameworkcommand],
+            [group: 'org.apache.fineract.cn', name: 'lang', version: versions.frameworklang],
+            [group: 'org.apache.fineract.cn', name: 'async', version: versions.frameworkasync],
+            [group: 'org.apache.fineract.cn', name: 'cassandra', version: versions.frameworkcassandra],
+            [group: 'org.apache.fineract.cn', name: 'command', version: versions.frameworkcommand],
             [group: 'io.jsonwebtoken', name: 'jjwt', version: versions.jjwt],
-            [group: 'io.mifos.tools', name: 'crypto', version: versions.frameworkcrypto],
-            [group: 'io.mifos.identity', name: 'api', version: rootProject.version],
-            [group: 'io.mifos.anubis', name: 'api', version: versions.frameworkanubis],
-            [group: 'io.mifos.anubis', name: 'library', version: versions.frameworkanubis],
+            [group: 'org.apache.fineract.cn', name: 'crypto', version: versions.frameworkcrypto],
+            [group: 'org.apache.fineract.cn.identity', name: 'api', version: rootProject.version],
+            [group: 'org.apache.fineract.cn.anubis', name: 'api', version: versions.frameworkanubis],
+            [group: 'org.apache.fineract.cn.anubis', name: 'library', version: versions.frameworkanubis],
     )
 }
 
