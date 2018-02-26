@@ -19,8 +19,8 @@ dependencies {
     compile(
             [group: 'org.springframework.cloud', name: 'spring-cloud-starter-feign'],
             [group: 'org.hibernate', name: 'hibernate-validator', version: versions.hibernatevalidator],
-            [group: 'io.mifos.core', name: 'api', version: versions.frameworkapi],
-            [group: 'io.mifos.anubis', name: 'api', version: versions.frameworkanubis]
+            [group: 'org.apache.fineract.cn', name: 'api', version: versions.frameworkapi],
+            [group: 'org.apache.fineract.cn.anubis', name: 'api', version: versions.frameworkanubis]
     )
 }
 
