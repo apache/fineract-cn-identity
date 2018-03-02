@@ -18,9 +18,9 @@
  */
 package io.mifos.identity.internal.service;
 
-import org.apache.fineract.cn.anubis.api.v1.domain.ApplicationSignatureSet;
-import org.apache.fineract.cn.anubis.api.v1.domain.Signature;
-import org.apache.fineract.cn.anubis.config.TenantSignatureRepository;
+import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
+import io.mifos.anubis.api.v1.domain.Signature;
+import io.mifos.anubis.config.TenantSignatureRepository;
 import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.core.lang.security.RsaPrivateKeyBuilder;
 import io.mifos.identity.internal.mapper.SignatureMapper;

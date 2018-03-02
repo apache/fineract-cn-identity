@@ -18,9 +18,8 @@
  */
 package io.mifos.identity.api.v1.domain;
 
-import org.apache.fineract.cn.anubis.api.v1.domain.PermittableEndpoint;
+import io.mifos.anubis.api.v1.domain.PermittableEndpoint;
 import io.mifos.core.lang.validation.constraints.ValidIdentifier;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;

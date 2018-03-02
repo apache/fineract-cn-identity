@@ -18,7 +18,7 @@
  */
 package io.mifos.identity.internal.command;
 
-import org.apache.fineract.cn.anubis.api.v1.domain.Signature;
+import io.mifos.anubis.api.v1.domain.Signature;
 
 /**
  * @author Myrle Krantz

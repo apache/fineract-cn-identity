@@ -18,7 +18,7 @@
  */
 package io.mifos.identity.internal.command.handler;
 
-import org.apache.fineract.cn.anubis.api.v1.domain.PermittableEndpoint;
+import io.mifos.anubis.api.v1.domain.PermittableEndpoint;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
 import io.mifos.core.command.annotation.CommandLogLevel;

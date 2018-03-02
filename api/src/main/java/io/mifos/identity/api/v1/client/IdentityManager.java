@@ -18,10 +18,10 @@
  */
 package io.mifos.identity.api.v1.client;
 
-import org.apache.fineract.cn.anubis.api.v1.client.Anubis;
-import org.apache.fineract.cn.anubis.api.v1.domain.ApplicationSignatureSet;
-import org.apache.fineract.cn.anubis.api.v1.domain.Signature;
-import org.apache.fineract.cn.anubis.api.v1.validation.ValidKeyTimestamp;
+import io.mifos.anubis.api.v1.client.Anubis;
+import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
+import io.mifos.anubis.api.v1.domain.Signature;
+import io.mifos.anubis.api.v1.validation.ValidKeyTimestamp;
 import io.mifos.core.api.annotation.ThrowsException;
 import io.mifos.core.api.util.CustomFeignClientsConfiguration;
 import io.mifos.identity.api.v1.domain.*;

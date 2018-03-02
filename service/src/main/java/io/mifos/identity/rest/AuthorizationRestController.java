@@ -18,10 +18,10 @@
  */
 package io.mifos.identity.rest;
 
-import org.apache.fineract.cn.anubis.annotation.AcceptedTokenType;
-import org.apache.fineract.cn.anubis.annotation.Permittable;
-import org.apache.fineract.cn.anubis.api.v1.TokenConstants;
-import org.apache.fineract.cn.anubis.security.AmitAuthenticationException;
+import io.mifos.anubis.annotation.AcceptedTokenType;
+import io.mifos.anubis.annotation.Permittable;
+import io.mifos.anubis.api.v1.TokenConstants;
+import io.mifos.anubis.security.AmitAuthenticationException;
 import io.mifos.core.command.domain.CommandCallback;
 import io.mifos.core.command.domain.CommandProcessingException;
 import io.mifos.core.command.gateway.CommandGateway;

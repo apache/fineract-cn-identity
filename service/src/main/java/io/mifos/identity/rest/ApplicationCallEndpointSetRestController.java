@@ -18,8 +18,8 @@
  */
 package io.mifos.identity.rest;
 
-import org.apache.fineract.cn.anubis.annotation.AcceptedTokenType;
-import org.apache.fineract.cn.anubis.annotation.Permittable;
+import io.mifos.anubis.annotation.AcceptedTokenType;
+import io.mifos.anubis.annotation.Permittable;
 import io.mifos.core.command.gateway.CommandGateway;
 import io.mifos.core.lang.ServiceException;
 import io.mifos.identity.api.v1.domain.CallEndpointSet;

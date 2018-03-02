@@ -20,7 +20,7 @@ package io.mifos.identity.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.fineract.cn.anubis.config.EnableAnubis;
+import io.mifos.anubis.config.EnableAnubis;
 import io.mifos.core.async.config.EnableAsync;
 import io.mifos.core.cassandra.config.EnableCassandra;
 import io.mifos.core.command.config.EnableCommandProcessing;

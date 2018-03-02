@@ -19,7 +19,7 @@
 package io.mifos.identity.internal.command.handler;
 
 import com.datastax.driver.core.exceptions.InvalidQueryException;
-import org.apache.fineract.cn.anubis.api.v1.domain.ApplicationSignatureSet;
+import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.core.lang.ServiceException;
 import io.mifos.core.lang.TenantContextHolder;
 import io.mifos.core.lang.security.RsaKeyPairFactory;

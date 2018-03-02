@@ -18,7 +18,7 @@
  */
 package io.mifos.identity.internal.service;
 
-import org.apache.fineract.cn.anubis.api.v1.domain.PermittableEndpoint;
+import io.mifos.anubis.api.v1.domain.PermittableEndpoint;
 import io.mifos.identity.api.v1.domain.PermittableGroup;
 import io.mifos.identity.internal.repository.PermittableType;
 import io.mifos.identity.internal.repository.PermittableGroupEntity;

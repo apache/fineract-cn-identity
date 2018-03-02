@@ -18,9 +18,9 @@
  */
 package io.mifos.identity.rest;
 
-import org.apache.fineract.cn.anubis.annotation.AcceptedTokenType;
-import org.apache.fineract.cn.anubis.annotation.Permittable;
-import org.apache.fineract.cn.anubis.api.v1.domain.ApplicationSignatureSet;
+import io.mifos.anubis.annotation.AcceptedTokenType;
+import io.mifos.anubis.annotation.Permittable;
+import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
 import io.mifos.identity.internal.command.handler.Provisioner;
 import io.mifos.identity.internal.service.TenantService;
 import org.springframework.beans.factory.annotation.Autowired;
