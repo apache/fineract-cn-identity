@@ -1,29 +1,32 @@
 /*
- * Copyright 2017 The Mifos Initiative.
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
  */
 package io.mifos.identity.internal.command.handler;
 
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
-import io.mifos.anubis.api.v1.domain.AllowedOperation;
-import io.mifos.anubis.api.v1.domain.TokenContent;
-import io.mifos.anubis.api.v1.domain.TokenPermission;
-import io.mifos.anubis.provider.InvalidKeyTimestampException;
-import io.mifos.anubis.provider.TenantRsaKeyProvider;
-import io.mifos.anubis.security.AmitAuthenticationException;
-import io.mifos.anubis.token.*;
+import org.apache.fineract.cn.anubis.api.v1.domain.AllowedOperation;
+import org.apache.fineract.cn.anubis.api.v1.domain.TokenContent;
+import org.apache.fineract.cn.anubis.api.v1.domain.TokenPermission;
+import org.apache.fineract.cn.anubis.provider.InvalidKeyTimestampException;
+import org.apache.fineract.cn.anubis.provider.TenantRsaKeyProvider;
+import org.apache.fineract.cn.anubis.security.AmitAuthenticationException;
+import org.apache.fineract.cn.anubis.token.*;
 import io.mifos.core.command.annotation.Aggregate;
 import io.mifos.core.command.annotation.CommandHandler;
 import io.mifos.core.command.annotation.CommandLogLevel;

@@ -1,11 +1,11 @@
-# Mifos I/O Identity Manager
+# Apache Fineract CN Identity Manager
 
 [![Join the chat at https://gitter.im/mifos-initiative/mifos.io](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mifos-initiative/mifos.io?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This project provides identity management for mifos I/O microservices.
 
 ## Abstract
-Mifos I/O is an application framework for digital financial services, a system to support nationwide and cross-national financial transactions and help to level and speed the creation of an inclusive, interconnected digital economy for every nation in the world.
+Apache Fineract CN is an application framework for digital financial services, a system to support nationwide and cross-national financial transactions and help to level and speed the creation of an inclusive, interconnected digital economy for every nation in the world.
 
 ## Versioning
 The version numbers follow the [Semantic Versioning](http://semver.org/) scheme.
