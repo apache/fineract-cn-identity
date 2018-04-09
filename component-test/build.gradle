@@ -20,8 +20,8 @@ apply from: '../shared.gradle'
 
 dependencies {
     compile(
-            [group: 'io.mifos.identity', name: 'api', version: rootProject.version],
-            [group: 'io.mifos.identity', name: 'service', version: rootProject.version],
+            [group: 'org.apache.fineract.cn.identity', name: 'api', version: rootProject.version],
+            [group: 'org.apache.fineract.cn.identity', name: 'service', version: rootProject.version],
             [group: 'org.springframework.boot', name: 'spring-boot-starter-test'],
             [group: 'org.apache.fineract.cn', name: 'lang', version: versions.frameworklang],
             [group: 'org.apache.fineract.cn', name: 'api', version: versions.frameworkapi],
