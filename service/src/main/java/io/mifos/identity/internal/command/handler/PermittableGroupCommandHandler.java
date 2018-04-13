@@ -18,22 +18,21 @@
  */
 package io.mifos.identity.internal.command.handler;
 
-import io.mifos.anubis.api.v1.domain.PermittableEndpoint;
-import io.mifos.core.command.annotation.Aggregate;
-import io.mifos.core.command.annotation.CommandHandler;
-import io.mifos.core.command.annotation.CommandLogLevel;
-import io.mifos.core.command.annotation.EventEmitter;
 import io.mifos.identity.api.v1.domain.PermittableGroup;
 import io.mifos.identity.api.v1.events.EventConstants;
 import io.mifos.identity.internal.command.CreatePermittableGroupCommand;
 import io.mifos.identity.internal.repository.PermittableGroupEntity;
 import io.mifos.identity.internal.repository.PermittableGroups;
 import io.mifos.identity.internal.repository.PermittableType;
+import java.util.stream.Collectors;
+import org.apache.fineract.cn.anubis.api.v1.domain.PermittableEndpoint;
+import org.apache.fineract.cn.command.annotation.Aggregate;
+import org.apache.fineract.cn.command.annotation.CommandHandler;
+import org.apache.fineract.cn.command.annotation.CommandLogLevel;
+import org.apache.fineract.cn.command.annotation.EventEmitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
-import java.util.stream.Collectors;
 
 /**
  * @author Myrle Krantz

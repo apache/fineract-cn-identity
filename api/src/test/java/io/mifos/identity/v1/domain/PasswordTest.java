@@ -18,8 +18,8 @@
  */
 package io.mifos.identity.v1.domain;
 
-import io.mifos.core.test.domain.ValidationTestCase;
 import io.mifos.identity.api.v1.domain.Password;
+import org.apache.fineract.cn.test.domain.ValidationTestCase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;

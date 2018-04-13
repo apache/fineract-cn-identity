@@ -18,16 +18,33 @@
  */
 package io.mifos.identity.internal.command.handler;
 
-import io.mifos.core.command.annotation.Aggregate;
-import io.mifos.core.command.annotation.CommandHandler;
-import io.mifos.core.command.annotation.CommandLogLevel;
-import io.mifos.core.command.annotation.EventEmitter;
-import io.mifos.core.lang.ServiceException;
-import io.mifos.identity.api.v1.events.*;
-import io.mifos.identity.internal.command.*;
+import io.mifos.identity.api.v1.events.ApplicationCallEndpointSetEvent;
+import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
+import io.mifos.identity.api.v1.events.ApplicationPermissionUserEvent;
+import io.mifos.identity.api.v1.events.ApplicationSignatureEvent;
+import io.mifos.identity.api.v1.events.EventConstants;
+import io.mifos.identity.internal.command.ChangeApplicationCallEndpointSetCommand;
+import io.mifos.identity.internal.command.CreateApplicationCallEndpointSetCommand;
+import io.mifos.identity.internal.command.CreateApplicationPermissionCommand;
+import io.mifos.identity.internal.command.DeleteApplicationCallEndpointSetCommand;
+import io.mifos.identity.internal.command.DeleteApplicationCommand;
+import io.mifos.identity.internal.command.DeleteApplicationPermissionCommand;
+import io.mifos.identity.internal.command.SetApplicationPermissionUserEnabledCommand;
+import io.mifos.identity.internal.command.SetApplicationSignatureCommand;
 import io.mifos.identity.internal.mapper.ApplicationCallEndpointSetMapper;
 import io.mifos.identity.internal.mapper.PermissionMapper;
-import io.mifos.identity.internal.repository.*;
+import io.mifos.identity.internal.repository.ApplicationCallEndpointSetEntity;
+import io.mifos.identity.internal.repository.ApplicationCallEndpointSets;
+import io.mifos.identity.internal.repository.ApplicationPermissionEntity;
+import io.mifos.identity.internal.repository.ApplicationPermissionUsers;
+import io.mifos.identity.internal.repository.ApplicationPermissions;
+import io.mifos.identity.internal.repository.ApplicationSignatureEntity;
+import io.mifos.identity.internal.repository.ApplicationSignatures;
+import org.apache.fineract.cn.command.annotation.Aggregate;
+import org.apache.fineract.cn.command.annotation.CommandHandler;
+import org.apache.fineract.cn.command.annotation.CommandLogLevel;
+import org.apache.fineract.cn.command.annotation.EventEmitter;
+import org.apache.fineract.cn.lang.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

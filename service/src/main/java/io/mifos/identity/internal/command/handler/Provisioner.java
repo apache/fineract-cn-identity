@@ -19,21 +19,27 @@
 package io.mifos.identity.internal.command.handler;
 
 import com.datastax.driver.core.exceptions.InvalidQueryException;
-import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
-import io.mifos.core.lang.ServiceException;
-import io.mifos.core.lang.TenantContextHolder;
-import io.mifos.core.lang.security.RsaKeyPairFactory;
 import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.internal.mapper.SignatureMapper;
-import io.mifos.identity.internal.repository.*;
+import io.mifos.identity.internal.repository.AllowedOperationType;
+import io.mifos.identity.internal.repository.ApplicationCallEndpointSets;
+import io.mifos.identity.internal.repository.ApplicationPermissionUsers;
+import io.mifos.identity.internal.repository.ApplicationPermissions;
+import io.mifos.identity.internal.repository.ApplicationSignatures;
+import io.mifos.identity.internal.repository.PermissionType;
+import io.mifos.identity.internal.repository.Permissions;
+import io.mifos.identity.internal.repository.PermittableGroupEntity;
+import io.mifos.identity.internal.repository.PermittableGroups;
+import io.mifos.identity.internal.repository.PermittableType;
+import io.mifos.identity.internal.repository.PrivateTenantInfoEntity;
+import io.mifos.identity.internal.repository.RoleEntity;
+import io.mifos.identity.internal.repository.Roles;
+import io.mifos.identity.internal.repository.SignatureEntity;
+import io.mifos.identity.internal.repository.Signatures;
+import io.mifos.identity.internal.repository.Tenants;
+import io.mifos.identity.internal.repository.UserEntity;
+import io.mifos.identity.internal.repository.Users;
 import io.mifos.identity.internal.util.IdentityConstants;
-import io.mifos.tool.crypto.SaltGenerator;
-import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +47,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.fineract.cn.anubis.api.v1.domain.ApplicationSignatureSet;
+import org.apache.fineract.cn.crypto.SaltGenerator;
+import org.apache.fineract.cn.lang.ServiceException;
+import org.apache.fineract.cn.lang.TenantContextHolder;
+import org.apache.fineract.cn.lang.security.RsaKeyPairFactory;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Myrle Krantz
@@ -111,7 +127,8 @@ public class Provisioner {
       if (latestSignature.isPresent()) {
         final Optional<ByteBuffer> fixedSalt = tenant.getPrivateTenantInfo().map(PrivateTenantInfoEntity::getFixedSalt);
         if (fixedSalt.isPresent()) {
-          logger.info("Changing password for tenant '{}' instead of provisioning...", TenantContextHolder.checkedGetIdentifier());
+          logger.info("Changing password for tenant '{}' instead of provisioning...", TenantContextHolder
+              .checkedGetIdentifier());
           final UserEntity suUser = userEntityCreator
               .build(IdentityConstants.SU_NAME, IdentityConstants.SU_ROLE, initialPasswordHash, true,
                   fixedSalt.get().array(), timeToChangePasswordAfterExpirationInDays);

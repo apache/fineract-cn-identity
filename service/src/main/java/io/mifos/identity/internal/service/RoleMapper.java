@@ -18,14 +18,13 @@
  */
 package io.mifos.identity.internal.service;
 
-import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.identity.api.v1.domain.Permission;
-import io.mifos.identity.internal.repository.PermissionType;
 import io.mifos.identity.internal.repository.AllowedOperationType;
-
+import io.mifos.identity.internal.repository.PermissionType;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.fineract.cn.anubis.api.v1.domain.AllowedOperation;
 
 /**
  * @author Myrle Krantz

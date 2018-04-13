@@ -18,10 +18,10 @@
  */
 package io.mifos.identity.internal.mapper;
 
-import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
-import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.identity.internal.repository.ApplicationSignatureEntity;
 import io.mifos.identity.internal.repository.SignatureEntity;
+import org.apache.fineract.cn.anubis.api.v1.domain.ApplicationSignatureSet;
+import org.apache.fineract.cn.anubis.api.v1.domain.Signature;
 
 /**
  * @author Myrle Krantz

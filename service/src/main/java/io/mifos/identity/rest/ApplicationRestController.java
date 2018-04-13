@@ -19,12 +19,6 @@
 package io.mifos.identity.rest;
 
 
-import io.mifos.anubis.annotation.AcceptedTokenType;
-import io.mifos.anubis.annotation.Permittable;
-import io.mifos.anubis.api.v1.domain.Signature;
-import io.mifos.anubis.api.v1.validation.ValidKeyTimestamp;
-import io.mifos.core.command.gateway.CommandGateway;
-import io.mifos.core.lang.ServiceException;
 import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.domain.Permission;
 import io.mifos.identity.internal.command.CreateApplicationPermissionCommand;
@@ -33,6 +27,12 @@ import io.mifos.identity.internal.command.DeleteApplicationPermissionCommand;
 import io.mifos.identity.internal.command.SetApplicationSignatureCommand;
 import io.mifos.identity.internal.service.ApplicationService;
 import io.mifos.identity.internal.service.PermittableGroupService;
+import org.apache.fineract.cn.anubis.annotation.AcceptedTokenType;
+import org.apache.fineract.cn.anubis.annotation.Permittable;
+import org.apache.fineract.cn.anubis.api.v1.domain.Signature;
+import org.apache.fineract.cn.anubis.api.v1.validation.ValidKeyTimestamp;
+import org.apache.fineract.cn.command.gateway.CommandGateway;
+import org.apache.fineract.cn.lang.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -97,7 +97,8 @@ public class ApplicationRestController {
                           @PathVariable("timestamp") @ValidKeyTimestamp String timestamp) {
     return service.getSignatureForApplication(applicationIdentifier, timestamp)
             .map(ResponseEntity::ok)
-            .orElseThrow(() -> ServiceException.notFound("Signature for application ''" + applicationIdentifier + "'' and key timestamp ''" + timestamp + "'' doesn''t exist."));
+            .orElseThrow(() -> ServiceException
+                .notFound("Signature for application ''" + applicationIdentifier + "'' and key timestamp ''" + timestamp + "'' doesn''t exist."));
   }
 
   @RequestMapping(value = "/{applicationidentifier}", method = RequestMethod.DELETE,

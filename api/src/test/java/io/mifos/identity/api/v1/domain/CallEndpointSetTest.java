@@ -18,14 +18,13 @@
  */
 package io.mifos.identity.api.v1.domain;
 
-import io.mifos.core.test.domain.ValidationTest;
-import io.mifos.core.test.domain.ValidationTestCase;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import org.apache.fineract.cn.test.domain.ValidationTest;
+import org.apache.fineract.cn.test.domain.ValidationTestCase;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 /**
  * @author Myrle Krantz

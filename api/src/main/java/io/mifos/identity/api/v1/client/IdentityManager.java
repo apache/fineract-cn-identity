@@ -18,20 +18,32 @@
  */
 package io.mifos.identity.api.v1.client;
 
-import io.mifos.anubis.api.v1.client.Anubis;
-import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
-import io.mifos.anubis.api.v1.domain.Signature;
-import io.mifos.anubis.api.v1.validation.ValidKeyTimestamp;
-import io.mifos.core.api.annotation.ThrowsException;
-import io.mifos.core.api.util.CustomFeignClientsConfiguration;
-import io.mifos.identity.api.v1.domain.*;
+import io.mifos.identity.api.v1.domain.Authentication;
+import io.mifos.identity.api.v1.domain.CallEndpointSet;
+import io.mifos.identity.api.v1.domain.Password;
+import io.mifos.identity.api.v1.domain.Permission;
+import io.mifos.identity.api.v1.domain.PermittableGroup;
+import io.mifos.identity.api.v1.domain.Role;
+import io.mifos.identity.api.v1.domain.RoleIdentifier;
+import io.mifos.identity.api.v1.domain.User;
+import io.mifos.identity.api.v1.domain.UserWithPassword;
+import java.util.List;
+import java.util.Set;
+import org.apache.fineract.cn.anubis.api.v1.client.Anubis;
+import org.apache.fineract.cn.anubis.api.v1.domain.ApplicationSignatureSet;
+import org.apache.fineract.cn.anubis.api.v1.domain.Signature;
+import org.apache.fineract.cn.anubis.api.v1.validation.ValidKeyTimestamp;
+import org.apache.fineract.cn.api.annotation.ThrowsException;
+import org.apache.fineract.cn.api.util.CustomFeignClientsConfiguration;
 import org.springframework.cloud.netflix.feign.FeignClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Set;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * @author Myrle Krantz

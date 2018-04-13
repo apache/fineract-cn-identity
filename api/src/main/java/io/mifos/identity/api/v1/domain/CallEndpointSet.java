@@ -18,11 +18,11 @@
  */
 package io.mifos.identity.api.v1.domain;
 
-import io.mifos.core.lang.validation.constraints.ValidIdentifier;
 
 import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
+import org.apache.fineract.cn.lang.validation.constraints.ValidIdentifier;
 
 /**
  * @author Myrle Krantz

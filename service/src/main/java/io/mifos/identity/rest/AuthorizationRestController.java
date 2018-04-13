@@ -18,14 +18,6 @@
  */
 package io.mifos.identity.rest;
 
-import io.mifos.anubis.annotation.AcceptedTokenType;
-import io.mifos.anubis.annotation.Permittable;
-import io.mifos.anubis.api.v1.TokenConstants;
-import io.mifos.anubis.security.AmitAuthenticationException;
-import io.mifos.core.command.domain.CommandCallback;
-import io.mifos.core.command.domain.CommandProcessingException;
-import io.mifos.core.command.gateway.CommandGateway;
-import io.mifos.core.lang.ServiceException;
 import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.client.IdentityManager;
 import io.mifos.identity.api.v1.domain.Authentication;
@@ -33,6 +25,14 @@ import io.mifos.identity.internal.command.AuthenticationCommandResponse;
 import io.mifos.identity.internal.command.PasswordAuthenticationCommand;
 import io.mifos.identity.internal.command.RefreshTokenAuthenticationCommand;
 import io.mifos.identity.internal.util.IdentityConstants;
+import org.apache.fineract.cn.anubis.annotation.AcceptedTokenType;
+import org.apache.fineract.cn.anubis.annotation.Permittable;
+import org.apache.fineract.cn.anubis.api.v1.TokenConstants;
+import org.apache.fineract.cn.anubis.security.AmitAuthenticationException;
+import org.apache.fineract.cn.command.domain.CommandCallback;
+import org.apache.fineract.cn.command.domain.CommandProcessingException;
+import org.apache.fineract.cn.command.gateway.CommandGateway;
+import org.apache.fineract.cn.lang.ServiceException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;

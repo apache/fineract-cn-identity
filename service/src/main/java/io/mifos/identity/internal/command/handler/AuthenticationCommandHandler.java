@@ -20,23 +20,6 @@ package io.mifos.identity.internal.command.handler;
 
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
-import io.mifos.anubis.api.v1.domain.AllowedOperation;
-import io.mifos.anubis.api.v1.domain.TokenContent;
-import io.mifos.anubis.api.v1.domain.TokenPermission;
-import io.mifos.anubis.provider.InvalidKeyTimestampException;
-import io.mifos.anubis.provider.TenantRsaKeyProvider;
-import io.mifos.anubis.security.AmitAuthenticationException;
-import io.mifos.anubis.token.*;
-import io.mifos.core.command.annotation.Aggregate;
-import io.mifos.core.command.annotation.CommandHandler;
-import io.mifos.core.command.annotation.CommandLogLevel;
-import io.mifos.core.lang.ApplicationName;
-import io.mifos.core.lang.DateConverter;
-import io.mifos.core.lang.ServiceException;
-import io.mifos.core.lang.TenantContextHolder;
-import io.mifos.core.lang.config.TenantHeaderFilter;
-import io.mifos.core.lang.security.RsaPrivateKeyBuilder;
-import io.mifos.core.lang.security.RsaPublicKeyBuilder;
 import io.mifos.identity.api.v1.events.EventConstants;
 import io.mifos.identity.internal.command.AuthenticationCommandResponse;
 import io.mifos.identity.internal.command.PasswordAuthenticationCommand;
@@ -44,7 +27,28 @@ import io.mifos.identity.internal.command.RefreshTokenAuthenticationCommand;
 import io.mifos.identity.internal.repository.*;
 import io.mifos.identity.internal.service.RoleMapper;
 import io.mifos.identity.internal.util.IdentityConstants;
-import io.mifos.tool.crypto.HashGenerator;
+import org.apache.fineract.cn.anubis.api.v1.domain.AllowedOperation;
+import org.apache.fineract.cn.anubis.api.v1.domain.TokenContent;
+import org.apache.fineract.cn.anubis.api.v1.domain.TokenPermission;
+import org.apache.fineract.cn.anubis.provider.InvalidKeyTimestampException;
+import org.apache.fineract.cn.anubis.provider.TenantRsaKeyProvider;
+import org.apache.fineract.cn.anubis.security.AmitAuthenticationException;
+import org.apache.fineract.cn.anubis.token.TenantAccessTokenSerializer;
+import org.apache.fineract.cn.anubis.token.TenantApplicationRsaKeyProvider;
+import org.apache.fineract.cn.anubis.token.TenantRefreshTokenSerializer;
+import org.apache.fineract.cn.anubis.token.TokenDeserializationResult;
+import org.apache.fineract.cn.anubis.token.TokenSerializationResult;
+import org.apache.fineract.cn.command.annotation.Aggregate;
+import org.apache.fineract.cn.command.annotation.CommandHandler;
+import org.apache.fineract.cn.command.annotation.CommandLogLevel;
+import org.apache.fineract.cn.crypto.HashGenerator;
+import org.apache.fineract.cn.lang.ApplicationName;
+import org.apache.fineract.cn.lang.DateConverter;
+import org.apache.fineract.cn.lang.ServiceException;
+import org.apache.fineract.cn.lang.TenantContextHolder;
+import org.apache.fineract.cn.lang.config.TenantHeaderFilter;
+import org.apache.fineract.cn.lang.security.RsaPrivateKeyBuilder;
+import org.apache.fineract.cn.lang.security.RsaPublicKeyBuilder;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -187,7 +191,8 @@ public class AuthenticationCommandHandler {
   private PrivateSignatureEntity checkedGetPrivateSignature() {
     final Optional<PrivateSignatureEntity> privateSignature = signatures.getPrivateSignature();
     if (!privateSignature.isPresent()) {
-      logger.error("Authentication attempted on tenant with no valid signature{}.", TenantContextHolder.identifier());
+      logger.error("Authentication attempted on tenant with no valid signature{}.", TenantContextHolder
+          .identifier());
       throw ServiceException.internalError("Tenant has no valid signature.");
     }
     return privateSignature.get();

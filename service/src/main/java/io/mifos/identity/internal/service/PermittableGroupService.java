@@ -18,16 +18,15 @@
  */
 package io.mifos.identity.internal.service;
 
-import io.mifos.anubis.api.v1.domain.PermittableEndpoint;
 import io.mifos.identity.api.v1.domain.PermittableGroup;
-import io.mifos.identity.internal.repository.PermittableType;
 import io.mifos.identity.internal.repository.PermittableGroupEntity;
 import io.mifos.identity.internal.repository.PermittableGroups;
-import org.springframework.stereotype.Service;
-
+import io.mifos.identity.internal.repository.PermittableType;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.apache.fineract.cn.anubis.api.v1.domain.PermittableEndpoint;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Myrle Krantz

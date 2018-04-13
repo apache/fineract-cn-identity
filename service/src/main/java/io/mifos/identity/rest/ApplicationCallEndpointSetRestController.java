@@ -18,15 +18,15 @@
  */
 package io.mifos.identity.rest;
 
-import io.mifos.anubis.annotation.AcceptedTokenType;
-import io.mifos.anubis.annotation.Permittable;
-import io.mifos.core.command.gateway.CommandGateway;
-import io.mifos.core.lang.ServiceException;
 import io.mifos.identity.api.v1.domain.CallEndpointSet;
 import io.mifos.identity.internal.command.ChangeApplicationCallEndpointSetCommand;
 import io.mifos.identity.internal.command.CreateApplicationCallEndpointSetCommand;
 import io.mifos.identity.internal.command.DeleteApplicationCallEndpointSetCommand;
 import io.mifos.identity.internal.service.ApplicationService;
+import org.apache.fineract.cn.anubis.annotation.AcceptedTokenType;
+import org.apache.fineract.cn.anubis.annotation.Permittable;
+import org.apache.fineract.cn.command.gateway.CommandGateway;
+import org.apache.fineract.cn.lang.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

@@ -18,11 +18,11 @@
  */
 package io.mifos.identity.internal.service;
 
-import io.mifos.anubis.api.v1.domain.AllowedOperation;
 import io.mifos.identity.api.v1.PermittableGroupIds;
 import io.mifos.identity.api.v1.domain.Permission;
 import io.mifos.identity.api.v1.domain.User;
 import io.mifos.identity.internal.repository.*;
+import org.apache.fineract.cn.anubis.api.v1.domain.AllowedOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

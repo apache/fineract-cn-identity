@@ -18,10 +18,6 @@
  */
 package io.mifos.identity.internal.command.handler;
 
-import io.mifos.core.command.annotation.Aggregate;
-import io.mifos.core.command.annotation.CommandHandler;
-import io.mifos.core.command.annotation.CommandLogLevel;
-import io.mifos.core.command.annotation.EventEmitter;
 import io.mifos.identity.api.v1.domain.Role;
 import io.mifos.identity.api.v1.events.EventConstants;
 import io.mifos.identity.internal.command.ChangeRoleCommand;
@@ -30,13 +26,16 @@ import io.mifos.identity.internal.command.DeleteRoleCommand;
 import io.mifos.identity.internal.mapper.PermissionMapper;
 import io.mifos.identity.internal.repository.RoleEntity;
 import io.mifos.identity.internal.repository.Roles;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import org.apache.fineract.cn.command.annotation.Aggregate;
+import org.apache.fineract.cn.command.annotation.CommandHandler;
+import org.apache.fineract.cn.command.annotation.CommandLogLevel;
+import org.apache.fineract.cn.command.annotation.EventEmitter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
-import javax.annotation.Nonnull;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * @author Myrle Krantz

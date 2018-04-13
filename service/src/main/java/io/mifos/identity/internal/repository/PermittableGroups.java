@@ -26,16 +26,15 @@ import com.datastax.driver.core.schemabuilder.Create;
 import com.datastax.driver.core.schemabuilder.CreateType;
 import com.datastax.driver.core.schemabuilder.SchemaBuilder;
 import com.datastax.driver.mapping.Mapper;
-import io.mifos.core.cassandra.core.CassandraSessionProvider;
-import io.mifos.core.cassandra.core.TenantAwareCassandraMapperProvider;
-import io.mifos.core.cassandra.core.TenantAwareEntityTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.apache.fineract.cn.cassandra.core.CassandraSessionProvider;
+import org.apache.fineract.cn.cassandra.core.TenantAwareCassandraMapperProvider;
+import org.apache.fineract.cn.cassandra.core.TenantAwareEntityTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 /**
  * @author Myrle Krantz

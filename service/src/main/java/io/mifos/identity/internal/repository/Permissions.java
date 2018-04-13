@@ -20,8 +20,8 @@ package io.mifos.identity.internal.repository;
 
 import com.datastax.driver.core.DataType;
 import com.datastax.driver.core.schemabuilder.SchemaBuilder;
-import io.mifos.core.cassandra.core.CassandraSessionProvider;
-import io.mifos.core.cassandra.util.CodecRegistry;
+import org.apache.fineract.cn.cassandra.core.CassandraSessionProvider;
+import org.apache.fineract.cn.cassandra.util.CodecRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

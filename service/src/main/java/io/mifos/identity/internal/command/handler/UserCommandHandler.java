@@ -18,17 +18,17 @@
  */
 package io.mifos.identity.internal.command.handler;
 
-import io.mifos.core.command.annotation.Aggregate;
-import io.mifos.core.command.annotation.CommandHandler;
-import io.mifos.core.command.annotation.CommandLogLevel;
-import io.mifos.core.command.annotation.EventEmitter;
-import io.mifos.core.lang.ServiceException;
 import io.mifos.identity.api.v1.events.EventConstants;
 import io.mifos.identity.internal.command.ChangeUserPasswordCommand;
 import io.mifos.identity.internal.command.ChangeUserRoleCommand;
 import io.mifos.identity.internal.command.CreateUserCommand;
 import io.mifos.identity.internal.repository.UserEntity;
 import io.mifos.identity.internal.repository.Users;
+import org.apache.fineract.cn.command.annotation.Aggregate;
+import org.apache.fineract.cn.command.annotation.CommandHandler;
+import org.apache.fineract.cn.command.annotation.CommandLogLevel;
+import org.apache.fineract.cn.command.annotation.EventEmitter;
+import org.apache.fineract.cn.lang.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;

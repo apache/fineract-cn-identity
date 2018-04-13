@@ -18,13 +18,12 @@
  */
 package io.mifos.identity.api.v1.domain;
 
-import io.mifos.anubis.api.v1.domain.AllowedOperation;
-import org.hibernate.validator.constraints.NotBlank;
-
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.Objects;
 import java.util.Set;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import org.apache.fineract.cn.anubis.api.v1.domain.AllowedOperation;
+import org.hibernate.validator.constraints.NotBlank;
 
 /**
  * @author Myrle Krantz

@@ -19,20 +19,19 @@
 package io.mifos.identity.internal.command.handler;
 
 import com.datastax.driver.core.LocalDate;
-import io.mifos.core.lang.ServiceException;
 import io.mifos.identity.internal.repository.PrivateTenantInfoEntity;
 import io.mifos.identity.internal.repository.Tenants;
 import io.mifos.identity.internal.repository.UserEntity;
 import io.mifos.identity.internal.util.IdentityConstants;
 import io.mifos.identity.internal.util.Time;
-import io.mifos.tool.crypto.HashGenerator;
-import io.mifos.tool.crypto.SaltGenerator;
+import java.nio.ByteBuffer;
+import java.util.Optional;
+import org.apache.fineract.cn.crypto.HashGenerator;
+import org.apache.fineract.cn.crypto.SaltGenerator;
+import org.apache.fineract.cn.lang.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.util.EncodingUtils;
 import org.springframework.stereotype.Component;
-
-import java.nio.ByteBuffer;
-import java.util.Optional;
 
 /**
  * @author Myrle Krantz

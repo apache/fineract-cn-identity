@@ -18,8 +18,8 @@
  */
 package io.mifos.identity.api.v1.domain;
 
-import io.mifos.core.lang.validation.constraints.ValidIdentifier;
 import io.mifos.identity.api.v1.validation.ChangeableRole;
+import org.apache.fineract.cn.lang.validation.constraints.ValidIdentifier;
 import org.hibernate.validator.constraints.ScriptAssert;
 import org.springframework.util.Assert;
 

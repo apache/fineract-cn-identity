@@ -18,13 +18,13 @@
  */
 package io.mifos.identity.internal.service;
 
-import io.mifos.anubis.api.v1.domain.Signature;
 import io.mifos.identity.api.v1.domain.CallEndpointSet;
 import io.mifos.identity.api.v1.domain.Permission;
 import io.mifos.identity.internal.mapper.ApplicationCallEndpointSetMapper;
 import io.mifos.identity.internal.mapper.PermissionMapper;
 import io.mifos.identity.internal.mapper.SignatureMapper;
 import io.mifos.identity.internal.repository.*;
+import org.apache.fineract.cn.anubis.api.v1.domain.Signature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
