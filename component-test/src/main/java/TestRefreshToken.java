@@ -17,11 +17,11 @@
  * under the License.
  */
 
-import io.mifos.identity.api.v1.client.IdentityManager;
-import io.mifos.identity.api.v1.domain.Authentication;
-import io.mifos.identity.api.v1.domain.Password;
-import io.mifos.identity.api.v1.domain.Permission;
-import io.mifos.identity.api.v1.domain.User;
+import org.apache.fineract.cn.identity.api.v1.client.IdentityManager;
+import org.apache.fineract.cn.identity.api.v1.domain.Authentication;
+import org.apache.fineract.cn.identity.api.v1.domain.Password;
+import org.apache.fineract.cn.identity.api.v1.domain.Permission;
+import org.apache.fineract.cn.identity.api.v1.domain.User;
 import org.apache.fineract.cn.anubis.api.v1.TokenConstants;
 import org.apache.fineract.cn.anubis.token.TenantRefreshTokenSerializer;
 import org.apache.fineract.cn.anubis.token.TokenSerializationResult;

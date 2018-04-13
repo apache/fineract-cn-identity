@@ -16,18 +16,18 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import static io.mifos.identity.api.v1.events.EventConstants.OPERATION_POST_PERMITTABLE_GROUP;
-import static io.mifos.identity.api.v1.events.EventConstants.OPERATION_POST_ROLE;
-import static io.mifos.identity.api.v1.events.EventConstants.OPERATION_POST_USER;
-import static io.mifos.identity.api.v1.events.EventConstants.OPERATION_PUT_USER_PASSWORD;
+import static org.apache.fineract.cn.identity.api.v1.events.EventConstants.OPERATION_POST_PERMITTABLE_GROUP;
+import static org.apache.fineract.cn.identity.api.v1.events.EventConstants.OPERATION_POST_ROLE;
+import static org.apache.fineract.cn.identity.api.v1.events.EventConstants.OPERATION_POST_USER;
+import static org.apache.fineract.cn.identity.api.v1.events.EventConstants.OPERATION_PUT_USER_PASSWORD;
 
 import com.google.common.collect.Sets;
-import io.mifos.identity.api.v1.domain.Authentication;
-import io.mifos.identity.api.v1.domain.Password;
-import io.mifos.identity.api.v1.domain.Permission;
-import io.mifos.identity.api.v1.domain.PermittableGroup;
-import io.mifos.identity.api.v1.domain.Role;
-import io.mifos.identity.api.v1.domain.UserWithPassword;
+import org.apache.fineract.cn.identity.api.v1.domain.Authentication;
+import org.apache.fineract.cn.identity.api.v1.domain.Password;
+import org.apache.fineract.cn.identity.api.v1.domain.Permission;
+import org.apache.fineract.cn.identity.api.v1.domain.PermittableGroup;
+import org.apache.fineract.cn.identity.api.v1.domain.Role;
+import org.apache.fineract.cn.identity.api.v1.domain.UserWithPassword;
 import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Collections;

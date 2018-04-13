@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.identity.api.v1.client.IdentityManager;
+import org.apache.fineract.cn.identity.api.v1.client.IdentityManager;
 import org.apache.fineract.cn.anubis.api.v1.RoleConstants;
 import org.apache.fineract.cn.anubis.api.v1.domain.ApplicationSignatureSet;
 import org.apache.fineract.cn.anubis.api.v1.domain.Signature;

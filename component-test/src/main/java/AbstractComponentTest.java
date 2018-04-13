@@ -16,17 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.identity.api.v1.PermittableGroupIds;
-import io.mifos.identity.api.v1.client.IdentityManager;
-import io.mifos.identity.api.v1.domain.Authentication;
-import io.mifos.identity.api.v1.domain.Password;
-import io.mifos.identity.api.v1.domain.Permission;
-import io.mifos.identity.api.v1.domain.Role;
-import io.mifos.identity.api.v1.domain.UserWithPassword;
-import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
-import io.mifos.identity.api.v1.events.ApplicationSignatureEvent;
-import io.mifos.identity.api.v1.events.EventConstants;
-import io.mifos.identity.config.IdentityServiceConfig;
+import org.apache.fineract.cn.identity.api.v1.PermittableGroupIds;
+import org.apache.fineract.cn.identity.api.v1.client.IdentityManager;
+import org.apache.fineract.cn.identity.api.v1.domain.Authentication;
+import org.apache.fineract.cn.identity.api.v1.domain.Password;
+import org.apache.fineract.cn.identity.api.v1.domain.Permission;
+import org.apache.fineract.cn.identity.api.v1.domain.Role;
+import org.apache.fineract.cn.identity.api.v1.domain.UserWithPassword;
+import org.apache.fineract.cn.identity.api.v1.events.ApplicationPermissionEvent;
+import org.apache.fineract.cn.identity.api.v1.events.ApplicationSignatureEvent;
+import org.apache.fineract.cn.identity.api.v1.events.EventConstants;
 import java.util.Arrays;
 import javax.annotation.PostConstruct;
 import org.apache.commons.lang.RandomStringUtils;
@@ -38,6 +37,7 @@ import org.apache.fineract.cn.api.context.AutoGuest;
 import org.apache.fineract.cn.api.context.AutoUserContext;
 import org.apache.fineract.cn.api.util.ApiFactory;
 import org.apache.fineract.cn.api.util.UserContextHolder;
+import org.apache.fineract.cn.identity.config.IdentityServiceConfig;
 import org.apache.fineract.cn.lang.security.RsaKeyPairFactory;
 import org.apache.fineract.cn.test.env.TestEnvironment;
 import org.apache.fineract.cn.test.fixture.TenantDataStoreContextTestRule;

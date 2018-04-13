@@ -16,9 +16,9 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.identity.api.v1.PermittableGroupIds;
-import io.mifos.identity.api.v1.domain.PermittableGroup;
-import io.mifos.identity.api.v1.events.EventConstants;
+import org.apache.fineract.cn.identity.api.v1.PermittableGroupIds;
+import org.apache.fineract.cn.identity.api.v1.domain.PermittableGroup;
+import org.apache.fineract.cn.identity.api.v1.events.EventConstants;
 import java.util.Collections;
 import java.util.List;
 import org.apache.fineract.cn.anubis.api.v1.domain.PermittableEndpoint;

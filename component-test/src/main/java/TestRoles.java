@@ -16,9 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.identity.api.v1.domain.Permission;
-import io.mifos.identity.api.v1.domain.Role;
-import io.mifos.identity.api.v1.events.EventConstants;
+import static org.apache.fineract.cn.identity.internal.util.IdentityConstants.SU_ROLE;
+
+import org.apache.fineract.cn.identity.api.v1.domain.Permission;
+import org.apache.fineract.cn.identity.api.v1.domain.Role;
+import org.apache.fineract.cn.identity.api.v1.events.EventConstants;
 import org.apache.fineract.cn.api.context.AutoUserContext;
 import org.apache.fineract.cn.api.util.NotFoundException;
 import org.junit.Assert;
@@ -27,7 +29,6 @@ import org.junit.Test;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static io.mifos.identity.internal.util.IdentityConstants.SU_ROLE;
 
 /**
  * @author Myrle Krantz

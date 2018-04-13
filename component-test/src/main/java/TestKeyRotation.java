@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.identity.api.v1.domain.Authentication;
+import org.apache.fineract.cn.identity.api.v1.domain.Authentication;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.apache.fineract.cn.anubis.api.v1.client.Anubis;
