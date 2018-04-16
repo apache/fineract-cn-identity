@@ -16,20 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.anubis.api.v1.client.Anubis;
-import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
-import io.mifos.anubis.api.v1.domain.Signature;
-import io.mifos.core.api.context.AutoGuest;
-import io.mifos.core.api.context.AutoSeshat;
-import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.core.api.util.NotFoundException;
-import io.mifos.core.test.env.TestEnvironment;
-import io.mifos.identity.api.v1.domain.Authentication;
-import org.junit.Assert;
-import org.junit.Test;
-
+import org.apache.fineract.cn.identity.api.v1.domain.Authentication;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.apache.fineract.cn.anubis.api.v1.client.Anubis;
+import org.apache.fineract.cn.anubis.api.v1.domain.ApplicationSignatureSet;
+import org.apache.fineract.cn.anubis.api.v1.domain.Signature;
+import org.apache.fineract.cn.api.context.AutoGuest;
+import org.apache.fineract.cn.api.context.AutoSeshat;
+import org.apache.fineract.cn.api.context.AutoUserContext;
+import org.apache.fineract.cn.api.util.NotFoundException;
+import org.apache.fineract.cn.test.env.TestEnvironment;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author Myrle Krantz
@@ -82,7 +81,8 @@ public class TestKeyRotation extends AbstractComponentTest {
 
       final Authentication adminAuthenticationOnSecondKeyset;
       try (final AutoUserContext ignored2 = new AutoGuest()) {
-        adminAuthenticationOnSecondKeyset = getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
+        adminAuthenticationOnSecondKeyset = getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment
+            .encodePassword(ADMIN_PASSWORD));
       }
 
       Assert.assertTrue(canAccessResources(adminAuthenticationOnFirstKeyset));

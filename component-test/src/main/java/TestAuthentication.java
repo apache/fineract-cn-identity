@@ -16,24 +16,39 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+import static org.apache.fineract.cn.identity.api.v1.events.EventConstants.OPERATION_POST_PERMITTABLE_GROUP;
+import static org.apache.fineract.cn.identity.api.v1.events.EventConstants.OPERATION_POST_ROLE;
+import static org.apache.fineract.cn.identity.api.v1.events.EventConstants.OPERATION_POST_USER;
+import static org.apache.fineract.cn.identity.api.v1.events.EventConstants.OPERATION_PUT_USER_PASSWORD;
+
 import com.google.common.collect.Sets;
-import io.mifos.anubis.api.v1.client.Anubis;
-import io.mifos.anubis.api.v1.domain.*;
-import io.mifos.anubis.test.v1.SystemSecurityEnvironment;
-import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.core.api.util.InvalidTokenException;
-import io.mifos.core.api.util.NotFoundException;
-import io.mifos.core.lang.AutoTenantContext;
-import io.mifos.core.lang.security.RsaPublicKeyBuilder;
-import io.mifos.core.test.env.TestEnvironment;
-import io.mifos.identity.api.v1.domain.*;
+import org.apache.fineract.cn.identity.api.v1.domain.Authentication;
+import org.apache.fineract.cn.identity.api.v1.domain.Password;
+import org.apache.fineract.cn.identity.api.v1.domain.Permission;
+import org.apache.fineract.cn.identity.api.v1.domain.PermittableGroup;
+import org.apache.fineract.cn.identity.api.v1.domain.Role;
+import org.apache.fineract.cn.identity.api.v1.domain.UserWithPassword;
+import java.security.PublicKey;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.apache.fineract.cn.anubis.api.v1.client.Anubis;
+import org.apache.fineract.cn.anubis.api.v1.domain.AllowedOperation;
+import org.apache.fineract.cn.anubis.api.v1.domain.PermittableEndpoint;
+import org.apache.fineract.cn.anubis.api.v1.domain.Signature;
+import org.apache.fineract.cn.anubis.api.v1.domain.TokenContent;
+import org.apache.fineract.cn.anubis.api.v1.domain.TokenPermission;
+import org.apache.fineract.cn.anubis.test.v1.SystemSecurityEnvironment;
+import org.apache.fineract.cn.api.context.AutoUserContext;
+import org.apache.fineract.cn.api.util.InvalidTokenException;
+import org.apache.fineract.cn.api.util.NotFoundException;
+import org.apache.fineract.cn.lang.AutoTenantContext;
+import org.apache.fineract.cn.lang.security.RsaPublicKeyBuilder;
+import org.apache.fineract.cn.test.env.TestEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.security.PublicKey;
-import java.util.*;
-
-import static io.mifos.identity.api.v1.events.EventConstants.*;
 
 /**
  * @author Myrle Krantz
@@ -137,7 +152,8 @@ public class TestAuthentication extends AbstractComponentTest {
       }
 
       final Authentication authentication = getTestSubject().login(user.getIdentifier(), user.getPassword());
-      final TokenContent tokenContent = SystemSecurityEnvironment.getTokenContent(authentication.getAccessToken(), getPublicKey());
+      final TokenContent tokenContent = SystemSecurityEnvironment
+          .getTokenContent(authentication.getAccessToken(), getPublicKey());
       final Set<TokenPermission> tokenPermissions = new HashSet<>(tokenContent.getTokenPermissions());
 
       final Set<TokenPermission> expectedTokenPermissions= new HashSet<>();

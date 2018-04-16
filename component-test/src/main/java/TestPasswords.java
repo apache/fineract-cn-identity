@@ -16,15 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.core.api.util.NotFoundException;
-import io.mifos.core.test.domain.TimeStampChecker;
-import io.mifos.core.test.env.TestEnvironment;
-import io.mifos.identity.api.v1.domain.Authentication;
-import io.mifos.identity.api.v1.domain.Password;
-import io.mifos.identity.api.v1.domain.UserWithPassword;
-import io.mifos.identity.api.v1.events.EventConstants;
+import org.apache.fineract.cn.identity.api.v1.domain.Authentication;
+import org.apache.fineract.cn.identity.api.v1.domain.Password;
+import org.apache.fineract.cn.identity.api.v1.domain.UserWithPassword;
+import org.apache.fineract.cn.identity.api.v1.events.EventConstants;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.fineract.cn.api.context.AutoUserContext;
+import org.apache.fineract.cn.api.util.NotFoundException;
+import org.apache.fineract.cn.test.domain.TimeStampChecker;
+import org.apache.fineract.cn.test.env.TestEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
 

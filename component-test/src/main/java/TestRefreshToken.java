@@ -16,21 +16,22 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.anubis.api.v1.TokenConstants;
-import io.mifos.anubis.token.TenantRefreshTokenSerializer;
-import io.mifos.anubis.token.TokenSerializationResult;
-import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.core.api.util.FeignTargetWithCookieJar;
-import io.mifos.core.api.util.InvalidTokenException;
-import io.mifos.core.api.util.NotFoundException;
-import io.mifos.core.test.domain.TimeStampChecker;
-import io.mifos.core.test.env.TestEnvironment;
-import io.mifos.core.test.fixture.TenantDataStoreTestContext;
-import io.mifos.identity.api.v1.client.IdentityManager;
-import io.mifos.identity.api.v1.domain.Authentication;
-import io.mifos.identity.api.v1.domain.Password;
-import io.mifos.identity.api.v1.domain.Permission;
-import io.mifos.identity.api.v1.domain.User;
+
+import org.apache.fineract.cn.identity.api.v1.client.IdentityManager;
+import org.apache.fineract.cn.identity.api.v1.domain.Authentication;
+import org.apache.fineract.cn.identity.api.v1.domain.Password;
+import org.apache.fineract.cn.identity.api.v1.domain.Permission;
+import org.apache.fineract.cn.identity.api.v1.domain.User;
+import org.apache.fineract.cn.anubis.api.v1.TokenConstants;
+import org.apache.fineract.cn.anubis.token.TenantRefreshTokenSerializer;
+import org.apache.fineract.cn.anubis.token.TokenSerializationResult;
+import org.apache.fineract.cn.api.context.AutoUserContext;
+import org.apache.fineract.cn.api.util.FeignTargetWithCookieJar;
+import org.apache.fineract.cn.api.util.InvalidTokenException;
+import org.apache.fineract.cn.api.util.NotFoundException;
+import org.apache.fineract.cn.test.domain.TimeStampChecker;
+import org.apache.fineract.cn.test.env.TestEnvironment;
+import org.apache.fineract.cn.test.fixture.TenantDataStoreTestContext;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;

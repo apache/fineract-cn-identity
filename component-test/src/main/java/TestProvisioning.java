@@ -16,17 +16,17 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.anubis.api.v1.RoleConstants;
-import io.mifos.anubis.api.v1.domain.ApplicationSignatureSet;
-import io.mifos.anubis.api.v1.domain.Signature;
-import io.mifos.anubis.token.SystemAccessTokenSerializer;
-import io.mifos.core.api.context.AutoSeshat;
-import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.core.api.util.InvalidTokenException;
-import io.mifos.core.lang.AutoTenantContext;
-import io.mifos.core.lang.TenantContextHolder;
-import io.mifos.core.test.env.TestEnvironment;
-import io.mifos.identity.api.v1.client.IdentityManager;
+import org.apache.fineract.cn.identity.api.v1.client.IdentityManager;
+import org.apache.fineract.cn.anubis.api.v1.RoleConstants;
+import org.apache.fineract.cn.anubis.api.v1.domain.ApplicationSignatureSet;
+import org.apache.fineract.cn.anubis.api.v1.domain.Signature;
+import org.apache.fineract.cn.anubis.token.SystemAccessTokenSerializer;
+import org.apache.fineract.cn.api.context.AutoSeshat;
+import org.apache.fineract.cn.api.context.AutoUserContext;
+import org.apache.fineract.cn.api.util.InvalidTokenException;
+import org.apache.fineract.cn.lang.AutoTenantContext;
+import org.apache.fineract.cn.lang.TenantContextHolder;
+import org.apache.fineract.cn.test.env.TestEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
 

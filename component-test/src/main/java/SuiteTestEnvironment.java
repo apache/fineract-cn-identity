@@ -16,8 +16,8 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.core.test.env.TestEnvironment;
-import io.mifos.core.test.fixture.cassandra.CassandraInitializer;
+import org.apache.fineract.cn.test.env.TestEnvironment;
+import org.apache.fineract.cn.test.fixture.cassandra.CassandraInitializer;
 import org.junit.ClassRule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.RunExternalResourceOnce;

@@ -16,27 +16,33 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.anubis.api.v1.domain.AllowedOperation;
-import io.mifos.anubis.api.v1.domain.Signature;
-import io.mifos.anubis.test.v1.TenantApplicationSecurityEnvironmentTestRule;
-import io.mifos.core.api.config.EnableApiFactory;
-import io.mifos.core.api.context.AutoGuest;
-import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.core.api.util.ApiFactory;
-import io.mifos.core.api.util.UserContextHolder;
-import io.mifos.core.lang.security.RsaKeyPairFactory;
-import io.mifos.core.test.env.TestEnvironment;
-import io.mifos.core.test.fixture.TenantDataStoreContextTestRule;
-import io.mifos.core.test.listener.EnableEventRecording;
-import io.mifos.core.test.listener.EventRecorder;
-import io.mifos.identity.api.v1.PermittableGroupIds;
-import io.mifos.identity.api.v1.client.IdentityManager;
-import io.mifos.identity.api.v1.domain.*;
-import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
-import io.mifos.identity.api.v1.events.ApplicationSignatureEvent;
-import io.mifos.identity.api.v1.events.EventConstants;
-import io.mifos.identity.config.IdentityServiceConfig;
+import org.apache.fineract.cn.identity.api.v1.PermittableGroupIds;
+import org.apache.fineract.cn.identity.api.v1.client.IdentityManager;
+import org.apache.fineract.cn.identity.api.v1.domain.Authentication;
+import org.apache.fineract.cn.identity.api.v1.domain.Password;
+import org.apache.fineract.cn.identity.api.v1.domain.Permission;
+import org.apache.fineract.cn.identity.api.v1.domain.Role;
+import org.apache.fineract.cn.identity.api.v1.domain.UserWithPassword;
+import org.apache.fineract.cn.identity.api.v1.events.ApplicationPermissionEvent;
+import org.apache.fineract.cn.identity.api.v1.events.ApplicationSignatureEvent;
+import org.apache.fineract.cn.identity.api.v1.events.EventConstants;
+import java.util.Arrays;
+import javax.annotation.PostConstruct;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.fineract.cn.anubis.api.v1.domain.AllowedOperation;
+import org.apache.fineract.cn.anubis.api.v1.domain.Signature;
+import org.apache.fineract.cn.anubis.test.v1.TenantApplicationSecurityEnvironmentTestRule;
+import org.apache.fineract.cn.api.config.EnableApiFactory;
+import org.apache.fineract.cn.api.context.AutoGuest;
+import org.apache.fineract.cn.api.context.AutoUserContext;
+import org.apache.fineract.cn.api.util.ApiFactory;
+import org.apache.fineract.cn.api.util.UserContextHolder;
+import org.apache.fineract.cn.identity.config.IdentityServiceConfig;
+import org.apache.fineract.cn.lang.security.RsaKeyPairFactory;
+import org.apache.fineract.cn.test.env.TestEnvironment;
+import org.apache.fineract.cn.test.fixture.TenantDataStoreContextTestRule;
+import org.apache.fineract.cn.test.listener.EnableEventRecording;
+import org.apache.fineract.cn.test.listener.EventRecorder;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.ClassRule;
@@ -48,9 +54,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import javax.annotation.PostConstruct;
-import java.util.Arrays;
 
 /**
  * @author Myrle Krantz

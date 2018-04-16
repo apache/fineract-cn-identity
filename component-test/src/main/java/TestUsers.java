@@ -16,21 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.anubis.api.v1.domain.AllowedOperation;
-import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.core.test.env.TestEnvironment;
-import io.mifos.identity.api.v1.PermittableGroupIds;
-import io.mifos.identity.api.v1.domain.*;
-import io.mifos.identity.api.v1.events.EventConstants;
+import static org.apache.fineract.cn.identity.internal.util.IdentityConstants.SU_NAME;
+import static org.apache.fineract.cn.identity.internal.util.IdentityConstants.SU_ROLE;
+
+import org.apache.fineract.cn.identity.api.v1.PermittableGroupIds;
+import org.apache.fineract.cn.identity.api.v1.domain.Authentication;
+import org.apache.fineract.cn.identity.api.v1.domain.Permission;
+import org.apache.fineract.cn.identity.api.v1.domain.Role;
+import org.apache.fineract.cn.identity.api.v1.domain.RoleIdentifier;
+import org.apache.fineract.cn.identity.api.v1.domain.User;
+import org.apache.fineract.cn.identity.api.v1.domain.UserWithPassword;
+import org.apache.fineract.cn.identity.api.v1.events.EventConstants;
+import org.apache.fineract.cn.anubis.api.v1.domain.AllowedOperation;
+import org.apache.fineract.cn.api.context.AutoUserContext;
+import org.apache.fineract.cn.test.env.TestEnvironment;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static io.mifos.identity.internal.util.IdentityConstants.SU_NAME;
-import static io.mifos.identity.internal.util.IdentityConstants.SU_ROLE;
 
 /**
  * @author Myrle Krantz

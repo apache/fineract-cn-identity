@@ -16,21 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.anubis.api.v1.domain.AllowedOperation;
-import io.mifos.anubis.token.TenantRefreshTokenSerializer;
-import io.mifos.anubis.token.TokenSerializationResult;
-import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.core.api.util.NotFoundException;
-import io.mifos.identity.api.v1.PermittableGroupIds;
-import io.mifos.identity.api.v1.domain.Authentication;
-import io.mifos.identity.api.v1.domain.CallEndpointSet;
-import io.mifos.identity.api.v1.domain.Permission;
-import io.mifos.identity.api.v1.domain.User;
-import io.mifos.identity.api.v1.events.ApplicationCallEndpointSetEvent;
-import io.mifos.identity.api.v1.events.ApplicationPermissionEvent;
-import io.mifos.identity.api.v1.events.ApplicationPermissionUserEvent;
-import io.mifos.identity.api.v1.events.EventConstants;
+import org.apache.fineract.cn.identity.api.v1.PermittableGroupIds;
+import org.apache.fineract.cn.identity.api.v1.domain.Authentication;
+import org.apache.fineract.cn.identity.api.v1.domain.CallEndpointSet;
+import org.apache.fineract.cn.identity.api.v1.domain.Permission;
+import org.apache.fineract.cn.identity.api.v1.domain.User;
+import org.apache.fineract.cn.identity.api.v1.events.ApplicationCallEndpointSetEvent;
+import org.apache.fineract.cn.identity.api.v1.events.ApplicationPermissionEvent;
+import org.apache.fineract.cn.identity.api.v1.events.ApplicationPermissionUserEvent;
+import org.apache.fineract.cn.identity.api.v1.events.EventConstants;
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.fineract.cn.anubis.api.v1.domain.AllowedOperation;
+import org.apache.fineract.cn.anubis.token.TenantRefreshTokenSerializer;
+import org.apache.fineract.cn.anubis.token.TokenSerializationResult;
+import org.apache.fineract.cn.api.context.AutoUserContext;
+import org.apache.fineract.cn.api.util.NotFoundException;
 import org.junit.Assert;
 import org.junit.Test;
 

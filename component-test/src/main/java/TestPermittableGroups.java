@@ -16,16 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import io.mifos.anubis.api.v1.domain.PermittableEndpoint;
-import io.mifos.core.api.context.AutoUserContext;
-import io.mifos.identity.api.v1.events.EventConstants;
-import io.mifos.identity.api.v1.PermittableGroupIds;
-import io.mifos.identity.api.v1.domain.PermittableGroup;
-import org.junit.Assert;
-import org.junit.Test;
-
+import org.apache.fineract.cn.identity.api.v1.PermittableGroupIds;
+import org.apache.fineract.cn.identity.api.v1.domain.PermittableGroup;
+import org.apache.fineract.cn.identity.api.v1.events.EventConstants;
 import java.util.Collections;
 import java.util.List;
+import org.apache.fineract.cn.anubis.api.v1.domain.PermittableEndpoint;
+import org.apache.fineract.cn.api.context.AutoUserContext;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * @author Myrle Krantz
