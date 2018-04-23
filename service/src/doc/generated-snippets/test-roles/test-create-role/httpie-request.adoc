@@ -1,0 +1,4 @@
+[source,bash]
+----
+$ http POST 'http://localhost:8080/identity/v1/roles' 'Accept:application/json' 'Content-Type:application/json'
+----

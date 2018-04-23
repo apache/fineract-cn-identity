@@ -1,0 +1,7 @@
+[source,http,options="nowrap"]
+----
+PUT /identity/v1/users/Ahmes1 HTTP/1.1
+Content-Type: application/json
+Host: localhost:8080
+
+----
