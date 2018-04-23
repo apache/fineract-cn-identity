@@ -1,0 +1,4 @@
+[source,bash]
+----
+$ curl 'http://localhost:8080/identity/v1/roles/scribe10' -i -X DELETE -H 'Accept: */*' -H 'Content-Type: application/json'
+----

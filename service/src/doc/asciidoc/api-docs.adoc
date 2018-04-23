@@ -1,0 +1,75 @@
+== Apache Fineract CN Identity Management API Documentation ==
+
+== Users ==
+
+==== Add User ====
+
+.curl-request
+include::{snippets}/test-users/test-add-login/curl-request.adoc[]
+
+.http-request
+include::{snippets}/test-users/test-add-login/http-request.adoc[]
+
+.http-response
+include::{snippets}/test-users/test-add-login/http-response.adoc[]
+
+.httpie-request
+include::{snippets}/test-users/test-add-login/httpie-request.adoc[]
+
+==== Change User's Role ====
+
+.curl-request
+include::{snippets}/test-users/test-change-user-role/curl-request.adoc[]
+
+.http-request
+include::{snippets}/test-users/test-change-user-role/http-request.adoc[]
+
+.http-response
+include::{snippets}/test-users/test-change-user-role/http-response.adoc[]
+
+.httpie-request
+include::{snippets}/test-users/test-change-user-role/httpie-request.adoc[]
+
+== Roles ==
+
+==== Create A Role ====
+
+.curl-request
+include::{snippets}/test-roles/test-create-role/curl-request.adoc[]
+
+.http-request
+include::{snippets}/test-roles/test-create-role/http-request.adoc[]
+
+.http-response
+include::{snippets}/test-roles/test-create-role/http-response.adoc[]
+
+.httpie-request
+include::{snippets}/test-roles/test-create-role/httpie-request.adoc[]
+
+==== Update A Role ====
+
+.curl-request
+include::{snippets}/test-roles/change-role/curl-request.adoc[]
+
+.http-request
+include::{snippets}/test-roles/change-role/http-request.adoc[]
+
+.http-response
+include::{snippets}/test-roles/change-role/http-response.adoc[]
+
+.httpie-request
+include::{snippets}/test-roles/change-role/httpie-request.adoc[]
+
+==== Delete A Role ====
+
+.curl-request
+include::{snippets}/test-roles/delete-role/curl-request.adoc[]
+
+.http-request
+include::{snippets}/test-roles/delete-role/http-request.adoc[]
+
+.http-response
+include::{snippets}/test-roles/delete-role/http-response.adoc[]
+
+.httpie-request
+include::{snippets}/test-roles/delete-role/httpie-request.adoc[]

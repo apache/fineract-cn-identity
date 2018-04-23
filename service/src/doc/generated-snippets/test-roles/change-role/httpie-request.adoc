@@ -1,0 +1,4 @@
+[source,bash]
+----
+$ http PUT 'http://localhost:8080/identity/v1/roles/scribe1' 'Content-Type:application/json'
+----
