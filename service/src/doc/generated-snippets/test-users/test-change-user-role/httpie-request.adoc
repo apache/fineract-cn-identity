@@ -1,4 +1,0 @@
-[source,bash]
-----
-$ http PUT 'http://localhost:8080/identity/v1/users/Ahmes1' 'Content-Type:application/json'
-----

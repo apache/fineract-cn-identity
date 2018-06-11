@@ -1,4 +1,0 @@
-[source,bash]
-----
-$ http DELETE 'http://localhost:8080/identity/v1/roles/scribe10' 'Accept:*/*' 'Content-Type:application/json'
-----
