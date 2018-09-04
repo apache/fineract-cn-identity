@@ -33,7 +33,7 @@ import org.junit.Test;
 /**
  * @author Myrle Krantz
  */
-public class TestKeyRotation extends AbstractComponentTest {
+public class TestKeyRotation extends AbstractIdentityTest {
   @Test
   public void testKeyRotation() throws InterruptedException {
     final Anubis anubis = tenantApplicationSecurityEnvironment.getAnubis();

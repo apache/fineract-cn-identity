@@ -40,7 +40,7 @@ import java.util.Set;
 /**
  * @author Myrle Krantz
  */
-public class TestUsers extends AbstractComponentTest {
+public class TestUsers extends AbstractIdentityTest {
 
 
   @Test

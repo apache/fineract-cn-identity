@@ -53,7 +53,7 @@ import org.junit.Test;
 /**
  * @author Myrle Krantz
  */
-public class TestAuthentication extends AbstractComponentTest {
+public class TestAuthentication extends AbstractIdentityTest {
   @Test
   //@Repeat(25)
   public void testAdminLogin() throws InterruptedException {
