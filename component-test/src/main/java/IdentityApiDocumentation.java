@@ -1,3 +1,21 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
@@ -365,7 +383,7 @@ public class IdentityApiDocumentation extends AbstractIdentityTest {
 
     try (final AutoUserContext ignored = new AutoUserContext(username, userAuthentication.getAccessToken())) {
 
-      UserWithPassword newUser = new UserWithPassword("Ahmes_friend", "scribe",
+      UserWithPassword newUser = new UserWithPassword("Ahmes_friend_zero", "scribe_zero",
               TestEnvironment.encodePassword(AHMES_FRIENDS_PASSWORD));
 
       Gson serializer = new Gson();
@@ -398,7 +416,7 @@ public class IdentityApiDocumentation extends AbstractIdentityTest {
 
     try (final AutoUserContext ignored = new AutoUserContext(username, userAuthentication.getAccessToken())) {
 
-      UserWithPassword newUser = new UserWithPassword("Ahmes_friend", "scribe",
+      UserWithPassword newUser = new UserWithPassword("Ahmes_friend_three", "scribe_three",
               TestEnvironment.encodePassword(AHMES_FRIENDS_PASSWORD));
       getTestSubject().createUser(newUser);
       final boolean found = eventRecorder.wait(EventConstants.OPERATION_POST_USER, newUser.getIdentifier());
@@ -475,7 +493,7 @@ public class IdentityApiDocumentation extends AbstractIdentityTest {
 
     try (final AutoUserContext ignored = new AutoUserContext(userName, userAuthentication.getAccessToken())) {
 
-      UserWithPassword user = new UserWithPassword("Ahmes_friend", "scribe",
+      UserWithPassword user = new UserWithPassword("Ahmes_friend_One", "scribe_one",
               TestEnvironment.encodePassword(AHMES_FRIENDS_PASSWORD));
       getTestSubject().createUser(user);
       Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_USER, user.getIdentifier()));
@@ -510,7 +528,7 @@ public class IdentityApiDocumentation extends AbstractIdentityTest {
 
     try (final AutoUserContext ignored = new AutoUserContext(userName, userAuthentication.getAccessToken())) {
 
-      UserWithPassword user = new UserWithPassword("Ahmes_friend", "scribe",
+      UserWithPassword user = new UserWithPassword("Ahmes_friend_Two", "scribe_two",
               TestEnvironment.encodePassword(AHMES_FRIENDS_PASSWORD));
       getTestSubject().createUser(user);
       Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_USER, user.getIdentifier()));
