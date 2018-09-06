@@ -33,7 +33,7 @@ import java.time.Duration;
 /**
  * @author Myrle Krantz
  */
-public class TestPasswords extends AbstractComponentTest {
+public class TestPasswords extends AbstractIdentityTest {
 
   @Test
   public void testAdminChangeUserPassword() throws InterruptedException {

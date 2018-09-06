@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 /**
  * @author Myrle Krantz
  */
-public class TestRoles extends AbstractComponentTest {
+public class TestRoles extends AbstractIdentityTest {
   @Test
   public void testRolesSortedAlphabetically() throws InterruptedException {
     try (final AutoUserContext ignore = loginAdmin()) {

@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
 import org.apache.fineract.cn.identity.api.v1.PermittableGroupIds;
 import org.apache.fineract.cn.identity.api.v1.client.IdentityManager;
 import org.apache.fineract.cn.identity.api.v1.domain.Authentication;
@@ -26,8 +27,10 @@ import org.apache.fineract.cn.identity.api.v1.domain.UserWithPassword;
 import org.apache.fineract.cn.identity.api.v1.events.ApplicationPermissionEvent;
 import org.apache.fineract.cn.identity.api.v1.events.ApplicationSignatureEvent;
 import org.apache.fineract.cn.identity.api.v1.events.EventConstants;
+
 import java.util.Arrays;
 import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.fineract.cn.anubis.api.v1.domain.AllowedOperation;
 import org.apache.fineract.cn.anubis.api.v1.domain.Signature;
@@ -61,20 +64,19 @@ import org.springframework.test.context.junit4.SpringRunner;
 @SuppressWarnings("SpringAutowiredFieldsWarningInspection")
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT,
-        classes = {AbstractComponentTest.TestConfiguration.class})
+        classes = {AbstractIdentityTest.TestConfiguration.class})
 @TestPropertySource(properties = {"cassandra.cl.read = LOCAL_QUORUM", "cassandra.cl.write = LOCAL_QUORUM", "cassandra.cl.delete = LOCAL_QUORUM", "identity.token.refresh.secureCookie = false", "identity.passwordExpiresInDays = 93"})
-public class AbstractComponentTest extends SuiteTestEnvironment {
+public class AbstractIdentityTest extends SuiteTestEnvironment {
   @Configuration
   @EnableApiFactory
   @EnableEventRecording
   @Import({IdentityServiceConfig.class})
   @ComponentScan("listener")
   public static class TestConfiguration {
-    public TestConfiguration() {
+    public TestConfiguration ( ) {
       super();
     }
   }
-
 
   static final String ADMIN_PASSWORD = "golden_osiris";
   static final String ADMIN_ROLE = "pharaoh";
@@ -99,27 +101,26 @@ public class AbstractComponentTest extends SuiteTestEnvironment {
   private IdentityManager identityManager;
 
   @PostConstruct
-  public void provision() throws Exception {
-    identityManager =  apiFactory.create(IdentityManager.class, testEnvironment.serverURI());
+  public void provision ( ) throws Exception {
+    identityManager = apiFactory.create(IdentityManager.class, testEnvironment.serverURI());
 
     try (final AutoUserContext ignored
-             = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
+                 = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
       identityManager.initialize(TestEnvironment.encodePassword(ADMIN_PASSWORD));
     }
   }
 
   @After
-  public void after() {
+  public void after ( ) {
     UserContextHolder.clear();
     eventRecorder.clear();
   }
 
-  IdentityManager getTestSubject()
-  {
+  IdentityManager getTestSubject ( ) {
     return identityManager;
   }
 
-  AutoUserContext loginAdmin() throws InterruptedException {
+  AutoUserContext loginAdmin ( ) throws InterruptedException {
     final Authentication adminAuthentication =
             getTestSubject().login(ADMIN_IDENTIFIER, TestEnvironment.encodePassword(ADMIN_PASSWORD));
     Assert.assertNotNull(adminAuthentication);
@@ -137,7 +138,7 @@ public class AbstractComponentTest extends SuiteTestEnvironment {
    * In identityManager, the user is created with an expired password.  The user must change the password him- or herself
    * to access any other endpoint.
    */
-  String createUserWithNonexpiredPassword(final String password, final String role) throws InterruptedException {
+  String createUserWithNonexpiredPassword (final String password, final String role) throws InterruptedException {
     final String username = testEnvironment.generateUniqueIdentifer("Ahmes");
     try (final AutoUserContext ignore = loginAdmin()) {
       getTestSubject().createUser(new UserWithPassword(username, role, TestEnvironment.encodePassword(password)));
@@ -149,8 +150,7 @@ public class AbstractComponentTest extends SuiteTestEnvironment {
 
       final Authentication passwordOnlyAuthentication = getTestSubject().login(username, TestEnvironment.encodePassword(password));
 
-      try (final AutoUserContext ignore2 = new AutoUserContext(username, passwordOnlyAuthentication.getAccessToken()))
-      {
+      try (final AutoUserContext ignore2 = new AutoUserContext(username, passwordOnlyAuthentication.getAccessToken())) {
         getTestSubject().changeUserPassword(username, new Password(TestEnvironment.encodePassword(password)));
         final boolean found = eventRecorder.wait(EventConstants.OPERATION_PUT_USER_PASSWORD, username);
         Assert.assertTrue(found);
@@ -159,58 +159,58 @@ public class AbstractComponentTest extends SuiteTestEnvironment {
     return username;
   }
 
-  String generateRoleIdentifier() {
+  String generateRoleIdentifier ( ) {
     return testEnvironment.generateUniqueIdentifer("scribe");
   }
 
-  Role buildRole(final String identifier, final Permission... permission) {
+  Role buildRole (final String identifier, final Permission... permission) {
     final Role scribe = new Role();
     scribe.setIdentifier(identifier);
     scribe.setPermissions(Arrays.asList(permission));
     return scribe;
   }
 
-  Permission buildRolePermission() {
+  Permission buildRolePermission ( ) {
     final Permission permission = new Permission();
     permission.setAllowedOperations(AllowedOperation.ALL);
     permission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.ROLE_MANAGEMENT);
     return permission;
   }
 
-  Permission buildUserPermission() {
+  Permission buildUserPermission ( ) {
     final Permission permission = new Permission();
     permission.setAllowedOperations(AllowedOperation.ALL);
     permission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.IDENTITY_MANAGEMENT);
     return permission;
   }
 
-  Permission buildSelfPermission() {
+  Permission buildSelfPermission ( ) {
     final Permission permission = new Permission();
     permission.setAllowedOperations(AllowedOperation.ALL);
     permission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.SELF_MANAGEMENT);
     return permission;
   }
 
-  Permission buildApplicationSelfPermission() {
+  Permission buildApplicationSelfPermission ( ) {
     final Permission permission = new Permission();
     permission.setAllowedOperations(AllowedOperation.ALL);
     permission.setPermittableEndpointGroupIdentifier(PermittableGroupIds.APPLICATION_SELF_MANAGEMENT);
     return permission;
   }
 
-  String createRoleManagementRole() throws InterruptedException {
+  String createRoleManagementRole ( ) throws InterruptedException {
     return createRole(buildRolePermission());
   }
 
-  String createSelfManagementRole() throws InterruptedException {
+  String createSelfManagementRole ( ) throws InterruptedException {
     return createRole(buildSelfPermission());
   }
 
-  String createApplicationSelfManagementRole() throws InterruptedException {
+  String createApplicationSelfManagementRole ( ) throws InterruptedException {
     return createRole(buildApplicationSelfPermission());
   }
 
-  String createRole(final Permission... permission) throws InterruptedException {
+  String createRole (final Permission... permission) throws InterruptedException {
     final String roleIdentifier = generateRoleIdentifier();
     final Role role = buildRole(roleIdentifier, permission);
 
@@ -221,7 +221,7 @@ public class AbstractComponentTest extends SuiteTestEnvironment {
     return roleIdentifier;
   }
 
-  AutoUserContext loginUser(final String userId, final String password) {
+  AutoUserContext loginUser (final String userId, final String password) {
     final Authentication authentication;
     try (AutoUserContext ignored = new AutoGuest()) {
       authentication = getTestSubject().login(userId, TestEnvironment.encodePassword(password));
@@ -229,8 +229,7 @@ public class AbstractComponentTest extends SuiteTestEnvironment {
     return new AutoUserContext(userId, authentication.getAccessToken());
   }
 
-  private String createTestApplicationName()
-  {
+  private String createTestApplicationName ( ) {
     return "test" + RandomStringUtils.randomNumeric(3) + "-v1";
   }
 
@@ -238,25 +237,25 @@ public class AbstractComponentTest extends SuiteTestEnvironment {
     private final String applicationIdentifier;
     private final RsaKeyPairFactory.KeyPairHolder keyPair;
 
-    ApplicationSignatureTestData(final String applicationIdentifier, final RsaKeyPairFactory.KeyPairHolder keyPair) {
+    ApplicationSignatureTestData (final String applicationIdentifier, final RsaKeyPairFactory.KeyPairHolder keyPair) {
       this.applicationIdentifier = applicationIdentifier;
       this.keyPair = keyPair;
     }
 
-    String getApplicationIdentifier() {
+    String getApplicationIdentifier ( ) {
       return applicationIdentifier;
     }
 
-    RsaKeyPairFactory.KeyPairHolder getKeyPair() {
+    RsaKeyPairFactory.KeyPairHolder getKeyPair ( ) {
       return keyPair;
     }
 
-    String getKeyTimestamp() {
+    String getKeyTimestamp ( ) {
       return keyPair.getTimestamp();
     }
   }
 
-  ApplicationSignatureTestData setApplicationSignature() throws InterruptedException {
+  ApplicationSignatureTestData setApplicationSignature ( ) throws InterruptedException {
     final String testApplicationName = createTestApplicationName();
     final RsaKeyPairFactory.KeyPairHolder keyPair = RsaKeyPairFactory.createKeyPair();
     final Signature signature = new Signature(keyPair.getPublicKeyMod(), keyPair.getPublicKeyExp());
@@ -267,7 +266,7 @@ public class AbstractComponentTest extends SuiteTestEnvironment {
     return new ApplicationSignatureTestData(testApplicationName, keyPair);
   }
 
-  void createApplicationPermission(final String applicationIdentifier, final Permission permission) throws InterruptedException {
+  void createApplicationPermission (final String applicationIdentifier, final Permission permission) throws InterruptedException {
     getTestSubject().createApplicationPermission(applicationIdentifier, permission);
     Assert.assertTrue(eventRecorder.wait(EventConstants.OPERATION_POST_APPLICATION_PERMISSION,
             new ApplicationPermissionEvent(applicationIdentifier,

@@ -43,7 +43,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Myrle Krantz
  */
-public class TestRefreshToken extends AbstractComponentTest {
+public class TestRefreshToken extends AbstractIdentityTest {
   private static final int ACCESS_TOKEN_TIME_TO_LIVE = 5;
   private static final int REFRESH_TOKEN_TIME_TO_LIVE = 10;
 

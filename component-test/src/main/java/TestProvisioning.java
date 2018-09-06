@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Myrle Krantz
  */
-public class TestProvisioning extends AbstractComponentTest {
+public class TestProvisioning extends AbstractIdentityTest {
 
   @Test
   public void testBoundaryInitializeCases() throws InterruptedException {

@@ -41,7 +41,7 @@ import java.util.List;
 /**
  * @author Myrle Krantz
  */
-public class TestApplications extends AbstractComponentTest {
+public class TestApplications extends AbstractIdentityTest {
 
   private static final String CALL_ENDPOINT_SET_IDENTIFIER = "doughboy";
 

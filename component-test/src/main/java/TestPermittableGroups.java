@@ -29,7 +29,7 @@ import org.junit.Test;
 /**
  * @author Myrle Krantz
  */
-public class TestPermittableGroups extends AbstractComponentTest {
+public class TestPermittableGroups extends AbstractIdentityTest {
   @Test
   public void getPermittableGroups() throws InterruptedException {
     try (final AutoUserContext ignore = loginAdmin()) {
