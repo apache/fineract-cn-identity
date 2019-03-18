@@ -139,7 +139,7 @@ public class AbstractIdentityTest extends SuiteTestEnvironment {
    * to access any other endpoint.
    */
   String createUserWithNonexpiredPassword (final String password, final String role) throws InterruptedException {
-    final String username = testEnvironment.generateUniqueIdentifer("Ahmes");
+    final String username = testEnvironment.generateUniqueIdentifier("Ahmes");
     try (final AutoUserContext ignore = loginAdmin()) {
       getTestSubject().createUser(new UserWithPassword(username, role, TestEnvironment.encodePassword(password)));
 
@@ -160,7 +160,7 @@ public class AbstractIdentityTest extends SuiteTestEnvironment {
   }
 
   String generateRoleIdentifier ( ) {
-    return testEnvironment.generateUniqueIdentifer("scribe");
+    return testEnvironment.generateUniqueIdentifier("scribe");
   }
 
   Role buildRole (final String identifier, final Permission... permission) {
