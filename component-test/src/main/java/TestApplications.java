@@ -214,7 +214,7 @@ public class TestApplications extends AbstractIdentityTest {
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
       final ApplicationSignatureTestData appPlusSig = setApplicationSignature();
 
-      final String endpointSetIdentifier = testEnvironment.generateUniqueIdentifer("epset");
+      final String endpointSetIdentifier = testEnvironment.generateUniqueIdentifier("epset");
       final CallEndpointSet endpointSet = new CallEndpointSet();
       endpointSet.setIdentifier(endpointSetIdentifier);
       endpointSet.setPermittableEndpointGroupIdentifiers(Collections.emptyList());

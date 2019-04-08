@@ -53,7 +53,7 @@ public class TestPermittableGroups extends AbstractIdentityTest {
   @Test(expected = IllegalArgumentException.class)
   public void createWithIllegalMethodThrows() throws InterruptedException {
     try (final AutoUserContext ignore = loginAdmin()) {
-      final String identifier = testEnvironment.generateUniqueIdentifer("group");
+      final String identifier = testEnvironment.generateUniqueIdentifier("group");
 
       final PermittableEndpoint permittableEndpoint = buildPermittableEndpoint();
       permittableEndpoint.setMethod("blah");
@@ -67,7 +67,7 @@ public class TestPermittableGroups extends AbstractIdentityTest {
   @Test
   public void create() throws InterruptedException {
     try (final AutoUserContext ignore = loginAdmin()) {
-      final String identifier = testEnvironment.generateUniqueIdentifer("group");
+      final String identifier = testEnvironment.generateUniqueIdentifier("group");
 
       final PermittableEndpoint permittableEndpoint = buildPermittableEndpoint();
       final PermittableGroup group = buildPermittableGroup(identifier, permittableEndpoint);

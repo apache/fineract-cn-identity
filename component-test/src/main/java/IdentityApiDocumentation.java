@@ -255,7 +255,7 @@ public class IdentityApiDocumentation extends AbstractIdentityTest {
 
     try (final AutoUserContext ignore = loginAdmin()) {
 
-      final String identifier = testEnvironment.generateUniqueIdentifer("group");
+      final String identifier = testEnvironment.generateUniqueIdentifier("group");
 
       final PermittableEndpoint permittableEndpoint = buildPermittableEndpoint();
       final PermittableGroup pgroup = buildPermittableGroup(identifier, permittableEndpoint);
@@ -287,7 +287,7 @@ public class IdentityApiDocumentation extends AbstractIdentityTest {
 
     try (final AutoUserContext ignore = loginAdmin()) {
 
-      final String identifier = testEnvironment.generateUniqueIdentifer("pgroup");
+      final String identifier = testEnvironment.generateUniqueIdentifier("pgroup");
 
       final PermittableEndpoint permittableEndpoint = buildPermittableEndpoint();
       final PermittableGroup pgroup = buildPermittableGroup(identifier, permittableEndpoint);
@@ -324,8 +324,8 @@ public class IdentityApiDocumentation extends AbstractIdentityTest {
 
     try (final AutoUserContext ignore = loginAdmin()) {
 
-      final String firstIdentifier = testEnvironment.generateUniqueIdentifer("pgroup");
-      final String secondIdentifier = testEnvironment.generateUniqueIdentifer("pgroup");
+      final String firstIdentifier = testEnvironment.generateUniqueIdentifier("pgroup");
+      final String secondIdentifier = testEnvironment.generateUniqueIdentifier("pgroup");
 
       final List <String> identifierstrings = Lists.newArrayList(firstIdentifier, secondIdentifier);
 
@@ -841,7 +841,7 @@ public class IdentityApiDocumentation extends AbstractIdentityTest {
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
       final ApplicationSignatureTestData application = setApplicationSignature();
 
-      final String endpointSetIdentifier = testEnvironment.generateUniqueIdentifer("end_pt_set");
+      final String endpointSetIdentifier = testEnvironment.generateUniqueIdentifier("end_pt_set");
       final CallEndpointSet endpointSet = new CallEndpointSet();
       endpointSet.setIdentifier(endpointSetIdentifier);
       endpointSet.setPermittableEndpointGroupIdentifiers(Collections.emptyList());
@@ -872,7 +872,7 @@ public class IdentityApiDocumentation extends AbstractIdentityTest {
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
       final ApplicationSignatureTestData application = setApplicationSignature();
 
-      final String endpointSetIdentifier = testEnvironment.generateUniqueIdentifer("end_pt_set");
+      final String endpointSetIdentifier = testEnvironment.generateUniqueIdentifier("end_pt_set");
       PermittableEndpoint pEndPointOne = buildPermittableEndpoint();
       PermittableEndpoint pEndPointTwo = buildPermittableEndpoint();
 
@@ -915,8 +915,8 @@ public class IdentityApiDocumentation extends AbstractIdentityTest {
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
       final ApplicationSignatureTestData application = setApplicationSignature();
 
-      final String endpointSetIdentifierOne = testEnvironment.generateUniqueIdentifer("end_pt_set");
-      final String endpointSetIdentifierTwo = testEnvironment.generateUniqueIdentifer("endptset");
+      final String endpointSetIdentifierOne = testEnvironment.generateUniqueIdentifier("end_pt_set");
+      final String endpointSetIdentifierTwo = testEnvironment.generateUniqueIdentifier("endptset");
 
       PermittableEndpoint pEndPointZero = buildPermittableEndpoint();
       PermittableEndpoint pEndPointOne = buildPermittableEndpoint();
@@ -973,8 +973,8 @@ public class IdentityApiDocumentation extends AbstractIdentityTest {
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
       final ApplicationSignatureTestData application = setApplicationSignature();
 
-      final String endpointSetIdentifierOne = testEnvironment.generateUniqueIdentifer("end_pt_set");
-      final String endpointSetIdentifierTwo = testEnvironment.generateUniqueIdentifer("endptset");
+      final String endpointSetIdentifierOne = testEnvironment.generateUniqueIdentifier("end_pt_set");
+      final String endpointSetIdentifierTwo = testEnvironment.generateUniqueIdentifier("endptset");
 
       PermittableEndpoint pEndPointZero = buildPermittableEndpoint();
       PermittableEndpoint pEndPointOne = buildPermittableEndpoint();
@@ -1029,7 +1029,7 @@ public class IdentityApiDocumentation extends AbstractIdentityTest {
                  = tenantApplicationSecurityEnvironment.createAutoSeshatContext()) {
       final ApplicationSignatureTestData application = setApplicationSignature();
 
-      final String endpointSetIdentifier = testEnvironment.generateUniqueIdentifer("end_pt_set");
+      final String endpointSetIdentifier = testEnvironment.generateUniqueIdentifier("end_pt_set");
       PermittableEndpoint pEndPointOne = buildPermittableEndpoint();
       PermittableEndpoint pEndPointTwo = buildPermittableEndpoint();
 
