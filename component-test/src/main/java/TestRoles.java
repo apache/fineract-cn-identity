@@ -39,12 +39,12 @@ public class TestRoles extends AbstractIdentityTest {
     try (final AutoUserContext ignore = loginAdmin()) {
       final Permission rolePermission = buildRolePermission();
 
-      final Role role1 = buildRole(testEnvironment.generateUniqueIdentifer("abba"), rolePermission);
-      final Role role2 = buildRole(testEnvironment.generateUniqueIdentifer("bubba"), rolePermission);
-      final Role role3 = buildRole(testEnvironment.generateUniqueIdentifer("c1"), rolePermission);
-      final Role role4 = buildRole(testEnvironment.generateUniqueIdentifer("calla"), rolePermission);
-      final Role role5 = buildRole(testEnvironment.generateUniqueIdentifer("uelf"), rolePermission);
-      final Role role6 = buildRole(testEnvironment.generateUniqueIdentifer("ulf"), rolePermission);
+      final Role role1 = buildRole(testEnvironment.generateUniqueIdentifier("abba"), rolePermission);
+      final Role role2 = buildRole(testEnvironment.generateUniqueIdentifier("bubba"), rolePermission);
+      final Role role3 = buildRole(testEnvironment.generateUniqueIdentifier("c1"), rolePermission);
+      final Role role4 = buildRole(testEnvironment.generateUniqueIdentifier("calla"), rolePermission);
+      final Role role5 = buildRole(testEnvironment.generateUniqueIdentifier("uelf"), rolePermission);
+      final Role role6 = buildRole(testEnvironment.generateUniqueIdentifier("ulf"), rolePermission);
 
       getTestSubject().createRole(role2);
       getTestSubject().createRole(role1);
