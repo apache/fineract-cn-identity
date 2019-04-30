@@ -1,4 +1,4 @@
-# Apache Fineract CN Identity Manager
+# Apache Fineract CN Identity Manager [![Build Status](https://api.travis-ci.com/apache/fineract-cn-identity.svg?branch=develop)](https://travis-ci.com/apache/fineract-cn-identity)
 
 This project provides identity management for Apache Fineract CN services.
 
