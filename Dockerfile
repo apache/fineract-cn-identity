@@ -16,7 +16,14 @@
 # specific language governing permissions and limitations
 # under the License.
 #
-FROM openjdk:8-jdk-alpine
+FROM openjdk:8-jdk-alpine AS builder
+RUN mkdir builddir
+COPY . builddir
+WORKDIR builddir
+RUN ./gradlew publishToMavenLocal
+
+
+FROM openjdk:8-jdk-alpine AS runner
 
 ARG identity_port=2021
 
@@ -25,6 +32,7 @@ ENV server.max-http-header-size=16384 \
     server.port=$identity_port
 
 WORKDIR /tmp
-RUN wget -O identity-service-boot-0.1.0-BUILD-SNAPSHOT.jar https://mifos.jfrog.io/mifos/libs-snapshot/org/apache/fineract/cn/identity/service-boot/0.1.0-BUILD-SNAPSHOT/service-boot-0.1.0-BUILD-SNAPSHOT.jar
 
-CMD ["java", "-jar", "identity-service-boot-0.1.0-BUILD-SNAPSHOT.jar"]
+COPY --from=builder /builddir/service/build/libs/service-0.1.0-BUILD-SNAPSHOT-boot.jar ./identity-service-boot.jar
+
+CMD ["java", "-jar", "identity-service-boot.jar"]
