@@ -59,6 +59,8 @@ dependencies {
             [group: 'org.apache.fineract.cn.identity', name: 'api', version: rootProject.version],
             [group: 'org.apache.fineract.cn.anubis', name: 'api', version: versions.frameworkanubis],
             [group: 'org.apache.fineract.cn.anubis', name: 'library', version: versions.frameworkanubis],
+            [group: 'io.netty', name: 'netty-all', version: '4.1.39.Final'],
+            [group: 'io.netty', name: 'netty-transport-native-epoll', version: '4.1.39.Final'],
     )
 }
 
