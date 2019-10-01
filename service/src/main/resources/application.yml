@@ -31,7 +31,7 @@ eureka:
       registerWithEureka: false
 
 server:
-  port: 8081
+  port: 2021
   contextPath: /identity/v1
 
 endpoints:
