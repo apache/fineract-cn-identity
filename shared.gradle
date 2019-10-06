@@ -108,6 +108,9 @@ task ci(dependsOn: ['clean', 'test', 'publish'])
 rat {
     // List of exclude directives, defaults to ['**/.gradle/**']
     excludes = [
+            "**/target/**",
+            "**/*.log",
+            "**/banner.txt",
             "**/.dockerignore/**",
             "**/.idea/**",
             "**/.gradle/**",
@@ -117,5 +120,4 @@ rat {
             "gradlew.bat",
             "README.md"
     ]
-    plainOutput = true
 }
