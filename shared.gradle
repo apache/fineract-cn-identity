@@ -18,12 +18,6 @@
 group 'org.apache.fineract.cn.identity'
 version '0.1.0-BUILD-SNAPSHOT'
 
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: 'maven-publish'
-apply plugin: 'io.spring.dependency-management'
-
-
 ext.versions = [
         frameworkcrypto    : '0.1.0-BUILD-SNAPSHOT',
         frameworkanubis    : '0.1.0-BUILD-SNAPSHOT',
@@ -78,7 +72,7 @@ dependencies {
 }
 
 jar {
-    from sourceSets.main.allSource
+    from sourceSets.main.java
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
@@ -114,6 +108,9 @@ task ci(dependsOn: ['clean', 'test', 'publish'])
 rat {
     // List of exclude directives, defaults to ['**/.gradle/**']
     excludes = [
+            "**/target/**",
+            "**/*.log",
+            "**/banner.txt",
             "**/.dockerignore/**",
             "**/.idea/**",
             "**/.gradle/**",
@@ -123,5 +120,4 @@ rat {
             "gradlew.bat",
             "README.md"
     ]
-    plainOutput = true
 }

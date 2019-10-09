@@ -19,28 +19,26 @@ buildscript {
     ext {
         springBootVersion = '1.4.1.RELEASE'
     }
-
     repositories {
         jcenter()
-    }
-
-    dependencies {
-        classpath ("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
     }
 }
 
 plugins {
     id 'com.github.hierynomus.license' version '0.13.1'
-    id("org.nosphere.apache.rat") version "0.3.1"
+    id("org.nosphere.apache.rat") version "0.5.2"
     id "com.jfrog.artifactory" version "4.9.5"
+    id "org.springframework.boot" version "1.4.3.RELEASE"
+    id 'maven'
+    id 'maven-publish'
+    id 'java'
+    id 'idea'
 }
 
 apply from: '../shared.gradle'
 
-apply plugin: 'spring-boot'
-
-springBoot {
-    executable = true
+bootRepackage {
+    enabled = true
     classifier = 'boot'
 }
 
@@ -60,12 +58,13 @@ dependencies {
             [group: 'org.apache.fineract.cn.anubis', name: 'api', version: versions.frameworkanubis],
             [group: 'org.apache.fineract.cn.anubis', name: 'library', version: versions.frameworkanubis],
             [group: 'io.netty', name: 'netty-all', version: '4.1.39.Final'],
-            [group: 'io.netty', name: 'netty-transport-native-epoll', version: '4.1.39.Final'],
+            [group: 'io.netty', name: 'netty-transport-native-epoll', version: '4.1.39.Final']
     )
 }
 
-publishToMavenLocal.dependsOn bootRepackage
-
+tasks.withType(PublishToMavenLocal) { task ->
+    task.dependsOn 'bootRepackage'
+}
 
 publishing {
     publications {
@@ -77,7 +76,7 @@ publishing {
         }
         bootService(MavenPublication) {
             // "boot" jar
-            artifact ("$buildDir/libs/$project.name-$version-boot.jar")
+            artifact(file("$buildDir/libs/$project.name-$project.version-${bootRepackage.classifier}.jar"))
             groupId project.group
             artifactId ("$project.name-boot")
             version project.version
