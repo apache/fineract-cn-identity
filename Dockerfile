@@ -33,6 +33,6 @@ ENV server.max-http-header-size=16384 \
 
 WORKDIR /tmp
 
-COPY --from=builder /builddir/service/build/libs/service-0.1.0-BUILD-SNAPSHOT-boot.jar ./identity-service-boot.jar
+COPY --from=builder /builddir/service/build/libs/service-0.1.x-SNAPSHOT-boot.jar ./identity-service-boot.jar
 
 CMD ["java", "-jar", "identity-service-boot.jar"]
