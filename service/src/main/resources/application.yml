@@ -29,6 +29,8 @@ eureka:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
       registerWithEureka: false
+  instance:
+    homePageUrl: "http://${eureka.hostname}:2021/identity/v1/"
 
 server:
   port: 2021
