@@ -42,11 +42,6 @@ repositories {
     maven { url 'https://mifos.jfrog.io/mifos/libs-snapshot/' }
 }
 
-configurations {
-    compile.exclude group: 'org.apache.fineract.cn', module: 'mariadb'
-    compile.exclude group: 'ch.vorburger', module: 'mariaDB4j'
-}
-
 dependencyManagement {
     imports {
         mavenBom 'io.spring.platform:platform-bom:Athens-RELEASE'
