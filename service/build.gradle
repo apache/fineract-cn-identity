@@ -35,6 +35,8 @@ plugins {
     id 'idea'
 }
 
+apply plugin: 'project-report'
+
 apply from: '../shared.gradle'
 
 bootRepackage {
