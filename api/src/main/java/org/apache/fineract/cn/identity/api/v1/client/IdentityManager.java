@@ -49,7 +49,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  * @author Myrle Krantz
  */
 @SuppressWarnings("unused")
-@FeignClient(name="identity-v1", path="/identity/v1", configuration=CustomFeignClientsConfiguration.class)
+@FeignClient(path="/identity/v1", url = "http://identity-service:2021", configuration=CustomFeignClientsConfiguration.class)
 public interface IdentityManager extends Anubis {
   String REFRESH_TOKEN = "Identity-RefreshToken";
   @RequestMapping(value = "/token?grant_type=password", method = RequestMethod.POST,
