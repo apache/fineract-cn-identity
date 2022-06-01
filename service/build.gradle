@@ -45,7 +45,7 @@ bootRepackage {
 dependencies {
     compile(
             [group: 'org.springframework.cloud', name: 'spring-cloud-starter-config'],
-            [group: 'org.springframework.cloud', name: 'spring-cloud-starter-eureka'],
+            [group: 'org.springframework.boot', name: 'spring-boot-starter-web'],
             [group: 'org.springframework.boot', name: 'spring-boot-starter-jetty'],
             [group: 'org.hibernate', name: 'hibernate-validator', version: versions.hibernatevalidator],
             [group: 'org.apache.fineract.cn', name: 'lang', version: versions.frameworklang],
