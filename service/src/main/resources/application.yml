@@ -24,14 +24,6 @@ spring:
     config:
       enabled: false
 
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-      registerWithEureka: false
-  instance:
-    homePageUrl: "http://${eureka.hostname}:2021/identity/v1/"
-
 server:
   port: 2021
   contextPath: /identity/v1
@@ -72,3 +64,14 @@ system.publicKey:
 identity:
   passwordExpiresInDays: 93
   timeToChangePasswordAfterExpirationInDays: 4
+
+kubernetes:
+  identity:
+    service:
+      name: identity-service
+    server:
+      port: 2021
+
+ribbon:
+  eureka:
+    enabled: false
